@@ -1,0 +1,234 @@
+/* ShotClockControl — shot clock management UI */
+
+.shot-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ---- Clock display ---- */
+
+.shot-clock__display {
+  font-size: 3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  line-height: 1;
+  text-align: center;
+  padding: 0.25rem 0;
+  transition: color 0.2s;
+}
+
+.shot-clock__display--urgent {
+  color: #f2a428;
+}
+
+.shot-clock__display--disabled {
+  opacity: 0.35;
+}
+
+.shot-clock__status {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #7f8ea3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ---- Toggle row ---- */
+
+.shot-clock__toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-content: center;
+}
+
+.shot-clock__toggle-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Toggle switch */
+.shot-clock__toggle {
+  position: relative;
+  display: inline-block;
+  width: 38px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.shot-clock__toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.shot-clock__toggle-track {
+  position: absolute;
+  inset: 0;
+  background: #2a2a4a;
+  border: 1px solid #3a3a5a;
+  border-radius: 20px;
+  transition: background 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.shot-clock__toggle input:checked + .shot-clock__toggle-track {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+}
+
+.shot-clock__toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: #7f8ea3;
+  border-radius: 50%;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.shot-clock__toggle input:checked + .shot-clock__toggle-track::after {
+  transform: translateX(18px);
+  background: #6fcf97;
+}
+
+.shot-clock__toggle input:focus-visible + .shot-clock__toggle-track {
+  outline: 2px solid #5b8dee;
+  outline-offset: 2px;
+}
+
+/* ---- Controls section (hidden when disabled) ---- */
+
+.shot-clock__controls-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: opacity 0.2s;
+}
+
+.shot-clock__controls-wrapper--hidden {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+/* ---- Start / Stop / Reset buttons ---- */
+
+.shot-clock__controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.shot-clock__btn {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.shot-clock__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.shot-clock__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.shot-clock__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.shot-clock__btn--start:hover:not(:disabled) {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+  color: #6fcf97;
+}
+
+.shot-clock__btn--stop:hover:not(:disabled) {
+  background: #4d1e1e;
+  border-color: #7a2a2a;
+  color: #eb5757;
+}
+
+.shot-clock__btn--reset:hover:not(:disabled) {
+  background: #3a2e10;
+  border-color: #7a6420;
+  color: #f2c94c;
+}
+
+/* ---- Duration configuration ---- */
+
+.shot-clock__duration {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.shot-clock__duration-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.shot-clock__duration-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.shot-clock__duration-input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  background: #1a1a2e;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+}
+
+.shot-clock__duration-input:focus {
+  border-color: #5b8dee;
+  outline: none;
+}
+
+.shot-clock__duration-input--error {
+  border-color: #eb5757;
+}
+
+.shot-clock__duration-suffix {
+  font-size: 0.85rem;
+  color: #7f8ea3;
+  white-space: nowrap;
+}
+
+.shot-clock__duration-error {
+  font-size: 0.75rem;
+  color: #eb5757;
+  min-height: 1em;
+}

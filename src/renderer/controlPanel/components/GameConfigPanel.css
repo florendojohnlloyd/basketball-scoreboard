@@ -1,0 +1,476 @@
+/* GameConfigPanel — game configuration and preset management UI */
+
+/* ---------------------------------------------------------------------------
+   Root layout
+--------------------------------------------------------------------------- */
+
+.gcp {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Toast error notification
+--------------------------------------------------------------------------- */
+
+.gcp-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  background: rgba(235, 87, 87, 0.1);
+  border: 1px solid rgba(235, 87, 87, 0.45);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  color: #eb5757;
+  line-height: 1.4;
+}
+
+.gcp-toast__message {
+  flex: 1;
+}
+
+.gcp-toast__dismiss {
+  background: none;
+  border: none;
+  color: #eb5757;
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.gcp-toast__dismiss:hover {
+  opacity: 1;
+}
+
+.gcp-toast__dismiss:focus-visible {
+  outline: 2px solid #5b8dee;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------------------------------------------------------------------------
+   Config form
+--------------------------------------------------------------------------- */
+
+.gcp__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+.gcp__form-heading {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+/* ---- Field ---- */
+
+.gcp__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.gcp__label {
+  font-size: 0.72rem;
+  color: #7f8ea3;
+  letter-spacing: 0.04em;
+}
+
+.gcp__range {
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+/* ---- Input row (input + unit suffix) ---- */
+
+.gcp__input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.gcp__input {
+  width: 5.5rem;
+  padding: 0.38rem 0.55rem;
+  background: #12122a;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+}
+
+.gcp__input:focus-visible,
+.gcp__input:focus {
+  border-color: #5b8dee;
+  outline: none;
+}
+
+.gcp__input--error {
+  border-color: #eb5757;
+}
+
+.gcp__suffix {
+  font-size: 0.8rem;
+  color: #7f8ea3;
+  white-space: nowrap;
+}
+
+/* ---- Inline error ---- */
+
+.gcp__error {
+  font-size: 0.7rem;
+  color: #eb5757;
+}
+
+/* ---- Radio group (period count) ---- */
+
+.gcp__radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.gcp__radio-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gcp__radio-label input[type='radio'] {
+  accent-color: #5b8dee;
+  cursor: pointer;
+}
+
+.gcp__radio-label input[type='radio']:focus-visible {
+  outline: 2px solid #5b8dee;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- Form action buttons ---- */
+
+.gcp__form-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.gcp__btn {
+  padding: 0.42rem 0.9rem;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  outline-offset: 2px;
+}
+
+.gcp__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.gcp__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.gcp__btn--primary {
+  background: #1a4a8a;
+  border: 1px solid #2a5aaa;
+  color: #e0e6ff;
+}
+
+.gcp__btn--primary:hover:not(:disabled) {
+  background: #2255aa;
+  color: #ffffff;
+}
+
+.gcp__btn--secondary {
+  background: #2a2a4a;
+  border: 1px solid #3a3a6a;
+  color: #c0c8e0;
+}
+
+.gcp__btn--secondary:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   Preset list
+--------------------------------------------------------------------------- */
+
+.gcp__presets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+.gcp__presets-heading {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.gcp__presets-loading,
+.gcp__presets-empty {
+  font-size: 0.82rem;
+  color: #7f8ea3;
+  font-style: italic;
+}
+
+.gcp__preset-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+.gcp__preset-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  background: #12122a;
+  border: 1px solid #2a2a4a;
+  border-radius: 6px;
+  transition: border-color 0.15s;
+}
+
+.gcp__preset-item:hover {
+  border-color: #3a3a6a;
+}
+
+.gcp__preset-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.gcp__preset-lock {
+  font-size: 0.7rem;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.gcp__preset-name {
+  font-size: 0.88rem;
+  color: #e0e0e0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gcp__preset-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.gcp__preset-btn {
+  padding: 0.3rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.gcp__preset-btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.gcp__preset-btn--load {
+  background: #1a3a6a;
+  border: 1px solid #2a4a8a;
+  color: #b0c8f0;
+}
+
+.gcp__preset-btn--load:hover {
+  background: #1e4a8a;
+  color: #ffffff;
+}
+
+.gcp__preset-btn--delete {
+  background: #3a1a1a;
+  border: 1px solid #6a2a2a;
+  color: #eb9090;
+}
+
+.gcp__preset-btn--delete:hover {
+  background: #5a1e1e;
+  border-color: #8a3030;
+  color: #eb5757;
+}
+
+/* ---------------------------------------------------------------------------
+   Modal overlay + dialog
+--------------------------------------------------------------------------- */
+
+.gcp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gcp-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1.25rem 1.4rem;
+  background: #16213e;
+  border: 1px solid #2a3a6a;
+  border-radius: 10px;
+  min-width: 20rem;
+  max-width: 28rem;
+  width: calc(100% - 2rem);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.gcp-modal__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e0e0e0;
+  margin: 0;
+}
+
+.gcp-modal__body {
+  font-size: 0.88rem;
+  color: #c0c8d8;
+  line-height: 1.5;
+}
+
+.gcp-modal__body strong {
+  color: #e0e0e0;
+}
+
+.gcp-modal__label {
+  font-size: 0.75rem;
+  color: #7f8ea3;
+  letter-spacing: 0.04em;
+}
+
+.gcp-modal__hint {
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.gcp-modal__input {
+  width: 100%;
+  padding: 0.42rem 0.65rem;
+  background: #12122a;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-family: inherit;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+}
+
+.gcp-modal__input:focus-visible,
+.gcp-modal__input:focus {
+  border-color: #5b8dee;
+  outline: none;
+}
+
+.gcp-modal__input--error {
+  border-color: #eb5757;
+}
+
+.gcp-modal__error {
+  font-size: 0.72rem;
+  color: #eb5757;
+}
+
+.gcp-modal__actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.gcp-modal__btn {
+  padding: 0.42rem 1rem;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.gcp-modal__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.gcp-modal__btn--primary {
+  background: #1a4a8a;
+  border: 1px solid #2a5aaa;
+  color: #e0e6ff;
+}
+
+.gcp-modal__btn--primary:hover {
+  background: #2255aa;
+  color: #ffffff;
+}
+
+.gcp-modal__btn--secondary {
+  background: #2a2a4a;
+  border: 1px solid #3a3a6a;
+  color: #c0c8e0;
+}
+
+.gcp-modal__btn--secondary:hover {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.gcp-modal__btn--danger {
+  background: #5a1a1a;
+  border: 1px solid #8a2a2a;
+  color: #f0b0b0;
+}
+
+.gcp-modal__btn--danger:hover {
+  background: #7a2020;
+  border-color: #aa3030;
+  color: #ffffff;
+}

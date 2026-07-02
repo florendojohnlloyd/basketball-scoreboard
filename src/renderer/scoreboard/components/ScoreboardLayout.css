@@ -1,0 +1,131 @@
+/* ScoreboardLayout — full-screen professional scoreboard */
+
+/* ============================================================
+   Root layout: header / main / footer rows
+   ============================================================ */
+.scoreboard-layout {
+  display: grid;
+  grid-template-rows: 9vh 1fr 8vh;
+  grid-template-columns: 1fr;
+  width: 100vw;
+  height: 100vh;
+  background: #0d1117;
+  overflow: hidden;
+  user-select: none;
+  font-family: 'Arial Black', 'Impact', 'Helvetica Neue', Arial, sans-serif;
+  color: #ffffff;
+}
+
+/* ============================================================
+   HEADER ROW
+   ============================================================ */
+.scoreboard-layout__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #0a1628 0%, #0d1a35 100%);
+  border-bottom: 2px solid #1e6fb5;
+  position: relative;
+  overflow: hidden;
+  padding: 0 3vw;
+  gap: 1.5vw;
+}
+
+/* Decorative chevron / stripe accents */
+.scoreboard-layout__header::before,
+.scoreboard-layout__header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 12vw;
+  background: linear-gradient(135deg, transparent 40%, rgba(30, 111, 181, 0.25) 40%);
+}
+.scoreboard-layout__header::before { left: 0; }
+.scoreboard-layout__header::after {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+.scoreboard-layout__league {
+  font-size: clamp(1rem, 2.2vw, 2.2rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(30, 111, 181, 0.8);
+  z-index: 1;
+}
+
+.scoreboard-layout__league-dot {
+  color: #1e6fb5;
+  margin: 0 0.5em;
+}
+
+/* ============================================================
+   MAIN ROW: away | center | home
+   ============================================================ */
+.scoreboard-layout__main {
+  display: grid;
+  grid-template-columns: 38% 24% 38%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scoreboard-layout__team {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Center column */
+.scoreboard-layout__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1.2vh;
+  background: linear-gradient(180deg, #0a1628 0%, #0d1117 50%, #0a1628 100%);
+  border-left: 2px solid #1e4a7a;
+  border-right: 2px solid #1e4a7a;
+  padding: 1vh 0;
+}
+
+.scoreboard-layout__center-label {
+  font-size: clamp(0.55rem, 1vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #7aaed4;
+}
+
+/* ============================================================
+   FOOTER ROW
+   ============================================================ */
+.scoreboard-layout__footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #080d14;
+  border-top: 2px solid #1e4a7a;
+  padding: 0 3vw;
+}
+
+.scoreboard-layout__footer-text {
+  font-size: clamp(0.65rem, 1.2vw, 1.1rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7aaed4;
+}
+
+.scoreboard-layout__footer-text span {
+  color: #ffffff;
+  margin-left: 0.3em;
+}
+
+.scoreboard-layout__footer-sep {
+  color: #1e6fb5;
+  margin: 0 1.5vw;
+}

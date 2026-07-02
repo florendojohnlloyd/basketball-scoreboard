@@ -1,0 +1,20 @@
+/* PeriodDisplay — period label in the center column */
+
+.period-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.period-display__label {
+  font-size: clamp(1rem, 2.2vw, 2.6rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #ffffff;
+  user-select: none;
+  /* Blue accent glow to match the design */
+  text-shadow: 0 0 12px rgba(30, 111, 181, 0.7);
+}

@@ -1,0 +1,74 @@
+/* VolumeControl — audio volume slider */
+
+.volume-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.volume-control__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.volume-control__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ---- Range input ---- */
+
+.volume-control__slider {
+  flex: 1;
+  /* Reset default browser styles */
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: #3a3a5a;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+/* Thumb — WebKit / Blink (Electron uses Blink) */
+.volume-control__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #5b8dee;
+  border: 2px solid #1a1a2e;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.volume-control__slider:hover::-webkit-slider-thumb {
+  background: #7aaaf2;
+  transform: scale(1.15);
+}
+
+.volume-control__slider:focus-visible {
+  outline: 2px solid #5b8dee;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Track fill — rendered via background gradient, updated dynamically via JS if needed */
+/* Static track colour is sufficient; the thumb position indicates current level */
+
+/* ---- Percentage label ---- */
+
+.volume-control__value {
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #e0e0e0;
+  min-width: 3rem;
+  text-align: right;
+}

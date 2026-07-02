@@ -1,0 +1,170 @@
+/* GameClockControl — game clock management UI */
+
+.game-clock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ---- Clock display ---- */
+
+.game-clock__display {
+  font-size: 3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  line-height: 1;
+  text-align: center;
+  padding: 0.25rem 0;
+  transition: color 0.2s;
+}
+
+.game-clock__display--urgent {
+  color: #eb5757;
+}
+
+.game-clock__status {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #7f8ea3;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ---- Control buttons ---- */
+
+.game-clock__controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.game-clock__btn {
+  flex: 1;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.game-clock__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.game-clock__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.game-clock__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.game-clock__btn--start:hover:not(:disabled) {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+  color: #6fcf97;
+}
+
+.game-clock__btn--stop:hover:not(:disabled) {
+  background: #4d1e1e;
+  border-color: #7a2a2a;
+  color: #eb5757;
+}
+
+.game-clock__btn--reset:hover:not(:disabled) {
+  background: #3a2e10;
+  border-color: #7a6420;
+  color: #f2c94c;
+}
+
+/* ---- Manual time entry ---- */
+
+.game-clock__set {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.game-clock__set-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.game-clock__set-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.game-clock__set-input {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  background: #1a1a2e;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+}
+
+.game-clock__set-input:focus {
+  border-color: #5b8dee;
+  outline: none;
+}
+
+.game-clock__set-input:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.game-clock__set-input--error {
+  border-color: #eb5757;
+}
+
+.game-clock__set-btn {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  outline-offset: 2px;
+}
+
+.game-clock__set-btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.game-clock__set-btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.game-clock__set-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.game-clock__set-error {
+  font-size: 0.75rem;
+  color: #eb5757;
+  min-height: 1em;
+}

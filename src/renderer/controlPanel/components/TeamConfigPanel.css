@@ -1,0 +1,114 @@
+/* TeamConfigPanel — team name, color, and logo configuration */
+
+.team-config-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+/* Heading */
+.team-config-panel__heading {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+/* Field wrapper */
+.team-config-panel__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* Label */
+.team-config-panel__label {
+  font-size: 0.72rem;
+  color: #7f8ea3;
+  letter-spacing: 0.05em;
+}
+
+/* Text input (team name) */
+.team-config-panel__text-input {
+  padding: 0.4rem 0.6rem;
+  background: #12122a;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+}
+
+.team-config-panel__text-input:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.team-config-panel__text-input--error {
+  border-color: #eb5757;
+}
+
+/* Color picker row */
+.team-config-panel__color-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.team-config-panel__color-input {
+  width: 2.4rem;
+  height: 2rem;
+  padding: 0.1rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  background: #12122a;
+  cursor: pointer;
+  outline-offset: 2px;
+}
+
+.team-config-panel__color-input:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+/* Swatch display value */
+.team-config-panel__color-value {
+  font-size: 0.8rem;
+  font-family: 'Courier New', Courier, monospace;
+  color: #b0b8c8;
+  letter-spacing: 0.05em;
+  user-select: all;
+}
+
+/* File input */
+.team-config-panel__file-input {
+  font-size: 0.8rem;
+  color: #b0b8c8;
+  cursor: pointer;
+  outline-offset: 2px;
+}
+
+.team-config-panel__file-input:focus-visible {
+  outline: 2px solid #5b8dee;
+  border-radius: 2px;
+}
+
+/* Current logo filename */
+.team-config-panel__logo-name {
+  font-size: 0.72rem;
+  color: #7f8ea3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Inline validation error */
+.team-config-panel__error {
+  font-size: 0.7rem;
+  color: #eb5757;
+}

@@ -1,0 +1,25 @@
+/* ShotClockDisplay — shot clock in the center column */
+
+.shot-clock-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.shot-clock-display__value {
+  font-size: clamp(2rem, 4.5vw, 5rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #ffffff;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+/* ≤ 5 seconds — amber warning */
+.shot-clock-display__value--amber {
+  color: #ff8c00;
+  text-shadow: 0 0 16px rgba(255, 140, 0, 0.6);
+}

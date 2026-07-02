@@ -1,0 +1,99 @@
+/* TimeoutPanel — timeout tracking UI for a single team */
+
+.timeout-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.75rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+/* Team name */
+.timeout-panel__team-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  text-align: center;
+  margin-bottom: 0.15rem;
+}
+
+/* Row — label + count + buttons */
+.timeout-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Kind label (Full / 20s) */
+.timeout-panel__label {
+  flex: 0 0 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #7f8ea3;
+}
+
+/* Remaining / total count */
+.timeout-panel__count {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  text-align: center;
+}
+
+/* Button group */
+.timeout-panel__buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+/* Base button */
+.timeout-panel__btn {
+  min-width: 2.2rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.timeout-panel__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.timeout-panel__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+/* Use button (−) — red tint on hover */
+.timeout-panel__btn--use:hover:not(:disabled) {
+  background: #4d1e1e;
+  border-color: #7a2a2a;
+  color: #eb5757;
+}
+
+/* Restore button (+) — green tint on hover */
+.timeout-panel__btn--restore:hover:not(:disabled) {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+  color: #6fcf97;
+}
+
+/* Disabled state */
+.timeout-panel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

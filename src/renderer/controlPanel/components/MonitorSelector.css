@@ -1,0 +1,93 @@
+/* MonitorSelector — display selection and assignment UI */
+
+.monitor-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ---- Alert banners ---- */
+
+.monitor-selector__alert {
+  padding: 0.5rem 0.75rem;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.monitor-selector__alert--error {
+  color: #eb5757;
+  background: rgba(235, 87, 87, 0.1);
+  border: 1px solid rgba(235, 87, 87, 0.4);
+}
+
+/* ---- Status message (single monitor) ---- */
+
+.monitor-selector__status {
+  font-size: 0.82rem;
+  color: #f2994a;
+  background: rgba(242, 153, 74, 0.1);
+  border: 1px solid rgba(242, 153, 74, 0.35);
+  border-radius: 5px;
+  padding: 0.4rem 0.7rem;
+}
+
+/* ---- Dropdown + button row ---- */
+
+.monitor-selector__row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.monitor-selector__select {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  background: #12122a;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 0.88rem;
+  cursor: pointer;
+  outline-offset: 2px;
+  min-width: 0;
+}
+
+.monitor-selector__select:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.monitor-selector__select:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.monitor-selector__btn {
+  padding: 0.4rem 1rem;
+  background: #1a4a8a;
+  border: 1px solid #2a5aaa;
+  border-radius: 5px;
+  color: #e0e6ff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+  flex-shrink: 0;
+}
+
+.monitor-selector__btn:hover:not(:disabled) {
+  background: #2255aa;
+  color: #ffffff;
+}
+
+.monitor-selector__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.monitor-selector__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

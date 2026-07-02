@@ -1,0 +1,85 @@
+/* ScorePanel — score management UI for a single team */
+
+.score-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+/* Team name */
+.score-panel__team-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+/* Numeric score */
+.score-panel__score {
+  font-size: 3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  min-width: 3rem;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Button row */
+.score-panel__buttons {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Base button style */
+.score-panel__btn {
+  min-width: 2.6rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  /* Ensure keyboard focus is visible */
+  outline-offset: 2px;
+}
+
+.score-panel__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.score-panel__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+/* Add buttons — green tint on hover */
+.score-panel__btn--add:hover:not(:disabled) {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+  color: #6fcf97;
+}
+
+/* Subtract button — red tint on hover */
+.score-panel__btn--subtract:hover:not(:disabled) {
+  background: #4d1e1e;
+  border-color: #7a2a2a;
+  color: #eb5757;
+}
+
+/* Disabled state */
+.score-panel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

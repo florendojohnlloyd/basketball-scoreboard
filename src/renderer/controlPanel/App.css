@@ -1,0 +1,112 @@
+/* Control Panel two-column layout */
+
+.cp-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto; /* columns fill available space; status bar auto-height */
+  gap: 1.5rem 1.5rem;
+  height: 100%;
+  padding: 1.5rem;
+  padding-bottom: 0; /* status bar sits flush at the bottom */
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Columns                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.cp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Sections                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.cp-section {
+  background: #16213e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cp-section__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Team block                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.cp-team-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cp-team-color-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.cp-team-name {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.cp-score {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Clock display                                                                */
+/* -------------------------------------------------------------------------- */
+
+.cp-clock-display {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+}
+
+.cp-clock-display--shot {
+  font-size: 2rem;
+  color: #e0e0e0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Placeholder text                                                             */
+/* -------------------------------------------------------------------------- */
+
+.cp-placeholder {
+  font-size: 0.9rem;
+  color: #c0c0c0;
+}
+
+.cp-placeholder--muted {
+  color: #7f8ea3;
+  font-size: 0.8rem;
+}

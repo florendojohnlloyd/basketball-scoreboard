@@ -1,0 +1,133 @@
+/* PeriodControl — period tracking UI */
+
+.period-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ---- Period label ---- */
+
+.period-control__label {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-align: center;
+  line-height: 1;
+  padding: 0.25rem 0;
+}
+
+/* ---- Advance row (button + inline warning) ---- */
+
+.period-control__advance-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.period-control__btn {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+}
+
+.period-control__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.period-control__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.period-control__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.period-control__btn--advance {
+  flex-shrink: 0;
+}
+
+.period-control__btn--advance:hover:not(:disabled) {
+  background: #1a3a5c;
+  border-color: #2a5a8c;
+  color: #7ec8e3;
+}
+
+/* ---- Inline clock warning ---- */
+
+.period-control__warning {
+  font-size: 0.8rem;
+  color: #eb5757;
+  font-weight: 500;
+}
+
+/* ---- Game format selector ---- */
+
+.period-control__format {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.period-control__format-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.period-control__format-select {
+  padding: 0.4rem 0.6rem;
+  background: #1a1a2e;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline-offset: 2px;
+  transition: border-color 0.15s;
+  appearance: auto;
+}
+
+.period-control__format-select:focus {
+  border-color: #5b8dee;
+  outline: none;
+}
+
+.period-control__format-select option {
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+/* ---- New Game row ---- */
+
+.period-control__new-game-row {
+  display: flex;
+  align-items: center;
+}
+
+.period-control__btn--new-game {
+  background: #3a1a1a;
+  border-color: #6a2a2a;
+  color: #e07070;
+}
+
+.period-control__btn--new-game:hover:not(:disabled) {
+  background: #5c2020;
+  border-color: #9a3535;
+  color: #ffaaaa;
+}

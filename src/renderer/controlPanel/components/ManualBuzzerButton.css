@@ -1,0 +1,39 @@
+/* ManualBuzzerButton — manual buzzer trigger */
+
+.buzzer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 5px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+  outline-offset: 2px;
+}
+
+.buzzer-btn:hover:not(.buzzer-btn--pressed) {
+  background: #3a3a6a;
+  color: #ffffff;
+  border-color: #5b6aaa;
+}
+
+.buzzer-btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+/* Pressed / active visual state — shows while sound is playing */
+.buzzer-btn--pressed {
+  background: #7c2d12;
+  border-color: #c2410c;
+  color: #fed7aa;
+  box-shadow: 0 0 10px rgba(194, 65, 12, 0.5);
+  cursor: default;
+}
