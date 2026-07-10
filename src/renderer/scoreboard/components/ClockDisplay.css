@@ -1,29 +1,23 @@
-/* ClockDisplay — center column game clock */
-
+/* ClockDisplay — primary game clock in center column */
 .clock-display {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
 }
-
 .clock-display__time {
-  font-size: clamp(2.5rem, 5.5vw, 7rem);
+  font-size: clamp(2.2rem, 5vw, 6rem);
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   line-height: 1;
-  color: #ffffff;
-  user-select: none;
-  /* Blue glow accent matching the design */
+  color: #fff;
   text-shadow: 0 0 24px rgba(30, 111, 181, 0.6);
 }
-
 @keyframes clock-flash {
-  0%, 100% { color: #ffffff; text-shadow: 0 0 24px rgba(30, 111, 181, 0.6); }
-  50%       { color: #ff3b3b; text-shadow: 0 0 32px rgba(255, 59, 59, 0.8); }
+  0%, 100% { color: #fff;    text-shadow: 0 0 24px rgba(30, 111, 181, 0.6); }
+  50%       { color: #ff3b3b; text-shadow: 0 0 32px rgba(255, 59, 59, 0.9); }
 }
-
 .clock-display__time--flashing {
   animation: clock-flash 1s ease-in-out infinite;
 }

@@ -754,3 +754,855 @@ if (process.env.CI) {
 }
 ```
 
+
+
+---
+
+## Extended Features Design (Requirements 28–36)
+
+This section extends the existing architecture to cover Requirements 28–36. Every new service lives in the Electron **main process**, following the same pattern as the existing modules: pure logic + file I/O in the main process, state mirrored to renderers via IPC, and Zustand slices in the renderers consuming the pushed data.
+
+### Bootstrap Order (Updated)
+
+The updated bootstrap sequence in `index.ts` adds eight new modules after the existing six:
+
+```
+8.  RoleStore         (user accounts + RBAC)
+9.  AuditStore        (append-only audit log)
+10. BackupService     (zip archive backup/restore)
+11. OfflineSyncService (pending-changes queue + conflict resolution)
+12. CloudSyncService  (incremental TLS sync to remote endpoint)
+13. OverlayServer     (WebSocket + HTTP for OBS browser source)
+14. ApiServer         (Express REST API + rate limiter)
+15. SocialShareService (OAuth 2.0 token management + posting)
+16. MobileViewerServer (mobile web server + QR code)
+```
+
+---
+
+### Requirement 28: User Roles and Role-Based Access Control
+
+#### Architectural Approach
+
+A `RoleStore` service in the main process manages user accounts and enforces RBAC. It owns a local credential store (separate `electron-store` file, JSON, bcrypt-hashed passwords) and exposes a `canPerform(role, action)` permission matrix. Every IPC command handler in `ipcRouter.ts` checks the active session's role before dispatching to `GameStore`. The renderer Control Panel has no knowledge of the raw permission table — it only knows the current user's role and renders conditionally based on that.
+
+Sessions are held in memory only (no disk persistence for the active session). On launch, a login screen is shown before the main Control Panel is rendered.
+
+#### New Main-Process Module: `roleStore.ts`
+
+**Responsibilities:**
+- CRUD for user accounts (stored with bcrypt hash of password)
+- Role assignment and validation
+- `canPerform(role: Role, action: ActionCategory): boolean` — the permission matrix
+- Account lockout tracking (failed-attempt counter + lockout expiry timestamp, held in memory, cleared on unlock)
+- Default Admin setup on first launch (no accounts exist)
+
+```typescript
+type Role = 'Admin' | 'Coach' | 'Scorekeeper' | 'Viewer';
+
+type ActionCategory =
+  | 'GAME_CONTROL'        // score, clock, fouls, timeouts, player stats
+  | 'LIGA_CONFIG'         // create/edit/delete liga, teams, rosters
+  | 'USER_MANAGEMENT'     // create/edit/delete users, role changes
+  | 'DATA_EXPORT'         // PDF, Excel, CSV exports
+  | 'BACKUP_RESTORE'      // backup, restore
+  | 'SETTINGS_WRITE'      // app settings, API keys, cloud sync config
+  | 'VIEW_STATS'          // season stats, leaderboards, box score (read)
+  | 'VIEW_SCOREBOARD'     // scoreboard display, live scores (read)
+  | 'AUDIT_VIEW'          // read audit log
+  | 'SHARE'               // social media sharing
+
+interface UserAccount {
+  id: string;
+  username: string;
+  passwordHash: string;
+  role: Role;
+  createdAt: string;      // ISO 8601
+  failedAttempts: number;
+  lockedUntil: string | null; // ISO 8601 or null
+}
+
+interface RoleStore {
+  listUsers(): Omit<UserAccount, 'passwordHash'>[];
+  createUser(username: string, password: string, role: Role): UserAccount;
+  updateUser(id: string, updates: Partial<Pick<UserAccount, 'username' | 'role'>>): void;
+  changePassword(id: string, newPassword: string): void;
+  deleteUser(id: string): void;      // throws if sole Admin
+  authenticate(username: string, password: string): UserAccount | null;
+  canPerform(role: Role, action: ActionCategory): boolean;
+  validatePassword(password: string): { valid: boolean; reason?: string };
+}
+```
+
+#### Permission Matrix
+
+| ActionCategory | Admin | Scorekeeper | Coach | Viewer |
+|---|:---:|:---:|:---:|:---:|
+| GAME_CONTROL | ✓ | ✓ | — | — |
+| LIGA_CONFIG | ✓ | — | — | — |
+| USER_MANAGEMENT | ✓ | — | — | — |
+| DATA_EXPORT | ✓ | ✓ | — | — |
+| BACKUP_RESTORE | ✓ | — | — | — |
+| SETTINGS_WRITE | ✓ | — | — | — |
+| VIEW_STATS | ✓ | ✓ | ✓ | — |
+| VIEW_SCOREBOARD | ✓ | ✓ | ✓ | ✓ |
+| AUDIT_VIEW | ✓ | ✓ | — | — |
+| SHARE | ✓ | ✓ | — | — |
+
+#### IPC Integration
+
+New IPC query types added to `QueryMessage` in `ipcRouter.ts`:
+
+```typescript
+| { type: 'AUTH_LOGIN'; username: string; password: string }
+| { type: 'AUTH_LOGOUT' }
+| { type: 'USER_LIST' }
+| { type: 'USER_CREATE'; username: string; password: string; role: Role }
+| { type: 'USER_UPDATE'; id: string; updates: Partial<Pick<UserAccount, 'username' | 'role'>> }
+| { type: 'USER_DELETE'; id: string }
+| { type: 'USER_CHANGE_PASSWORD'; id: string; newPassword: string }
+```
+
+A new IPC event `AUTH_STATE` is pushed to the Control Panel after login/logout:
+```typescript
+{ type: 'AUTH_STATE'; user: { id: string; username: string; role: Role } | null }
+```
+
+Every existing `SCOREBOARD_COMMAND` handler in `ipcRouter.ts` is wrapped with a role check:
+```typescript
+const session = sessionStore.get(event.sender.id);
+if (!roleStore.canPerform(session?.role ?? 'Viewer', requiredCategory(command.type))) {
+  event.sender.send(SCOREBOARD_EVENT, { type: 'ACCESS_DENIED', required: requiredCategory(command.type) });
+  return;
+}
+```
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `bcrypt` | `^5.1.1` | Industry-standard password hashing with configurable work factor |
+| `@types/bcrypt` | `^5.0.2` | TypeScript types for bcrypt |
+
+Password hashing uses bcrypt with `saltRounds: 12`. The credential file is stored in a dedicated `electron-store` instance (`users.json`) separate from game presets to avoid cross-contamination.
+
+---
+
+### Requirement 29: Data Backup and Recovery
+
+#### Architectural Approach
+
+A `BackupService` in the main process builds and validates `.zip` archives using the `archiver` library. The archive always contains a `manifest.json` at the root. Automatic scheduling uses `node-cron` with a configurable expression stored in `electron-store`. Restore is a read-then-validate-then-overwrite operation that ends with `app.relaunch()` + `app.exit()`.
+
+#### New Main-Process Module: `backupService.ts`
+
+**Responsibilities:**
+- `createBackup(destinationPath: string): Promise<void>` — build zip, write manifest
+- `validateArchive(archivePath: string): Promise<{ valid: boolean; error?: string }>` — verify manifest + file presence
+- `restoreFromArchive(archivePath: string): Promise<void>` — extract to user-data dir, then relaunch
+- `scheduleAutoBackup(config: BackupScheduleConfig): void` — register cron job
+- `cancelAutoBackup(): void`
+
+```typescript
+interface BackupManifest {
+  createdAt: string;         // ISO 8601
+  appVersion: string;
+  files: string[];           // relative paths of all included files
+}
+
+interface BackupScheduleConfig {
+  enabled: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  destinationFolder: string;
+}
+```
+
+Archive contents:
+```
+backup_<timestamp>.zip
+├── manifest.json
+├── userData/
+│   ├── ligas/         (all Liga JSON files)
+│   ├── gameLogs/
+│   ├── presets/
+│   ├── photos/        (player photos)
+│   ├── users.json
+│   └── auditLog.db    (or auditLog.json)
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'BACKUP_CREATE' }              // opens save dialog in main, creates archive
+| { type: 'BACKUP_RESTORE' }             // opens open dialog, validates, prompts, restores
+| { type: 'BACKUP_GET_SCHEDULE' }
+| { type: 'BACKUP_SET_SCHEDULE'; config: BackupScheduleConfig }
+```
+
+Event pushed to Control Panel on auto-backup result:
+```typescript
+{ type: 'BACKUP_COMPLETE'; success: boolean; path?: string; error?: string }
+{ type: 'BACKUP_DESTINATION_INACCESSIBLE'; destinationFolder: string }
+```
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `archiver` | `^7.0.1` | De-facto Node.js zip creation library; streams-based, no native deps |
+| `@types/archiver` | `^6.0.3` | TypeScript types |
+| `node-cron` | `^3.0.3` | Cron-expression scheduler that runs in Node without a child process |
+| `unzipper` | `^0.12.3` | Extract zip archives for restore validation |
+
+---
+
+### Requirement 30: Offline Mode with Sync
+
+#### Architectural Approach
+
+An `OfflineSyncService` monitors network connectivity using Node's `dns.resolve` against a well-known host (polling every 10 seconds). Connectivity status is pushed to the Control Panel via IPC. All local operations continue uninterrupted regardless of connectivity.
+
+When Cloud Sync is enabled, every state-changing `GameStore.dispatch()` call also writes a lightweight entry to a **pending-changes log** — a SQLite table (via `better-sqlite3`) with columns `(id, timestamp, entityType, entityId, changeType, payload)`. On reconnect, the service replays entries in timestamp order to the cloud endpoint. Conflict resolution is UI-driven: the main process sends a `SYNC_CONFLICT` event to the Control Panel, the renderer displays a modal, and the operator's choice is sent back as a `SYNC_CONFLICT_RESOLVED` command.
+
+#### New Main-Process Module: `offlineSyncService.ts`
+
+**Responsibilities:**
+- Connectivity polling and status broadcasting
+- `enqueueChange(entry: PendingChange): void` — append to SQLite pending log
+- `replayPending(): Promise<void>` — transmit queued entries in order, with 3-retry/60s logic
+- `handleConflict(local: SyncRecord, remote: SyncRecord): Promise<'local' | 'remote'>` — IPC round-trip to operator
+- `clearSynced(ids: string[]): void` — remove successfully synced entries
+
+```typescript
+interface PendingChange {
+  id: string;
+  timestamp: string;       // ISO 8601
+  entityType: 'gameState' | 'liga' | 'gameLog' | 'auditLog' | 'roster';
+  entityId: string;
+  changeType: 'create' | 'update' | 'delete';
+  payload: string;         // JSON-serialized change delta
+}
+```
+
+The SQLite database (`sync.db`) in user-data serves as both the pending-changes log and the last-sync checkpoint store. A single row in a `sync_meta` table holds `{ lastSyncAt: string }`.
+
+#### IPC Integration
+
+```typescript
+// Events pushed to Control Panel
+{ type: 'CONNECTIVITY_CHANGED'; online: boolean }
+{ type: 'SYNC_STARTED' }
+{ type: 'SYNC_COMPLETE'; recordsTransmitted: number }
+{ type: 'SYNC_FAILED'; attempt: number; maxAttempts: number; error: string }
+{ type: 'SYNC_CONFLICT'; local: SyncRecord; remote: SyncRecord; conflictId: string }
+
+// Commands from Control Panel
+| { type: 'SYNC_CONFLICT_RESOLVED'; conflictId: string; choice: 'local' | 'remote' }
+```
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `better-sqlite3` | `^9.6.0` | Synchronous SQLite3 bindings; ideal for append-heavy logs in Electron main process |
+| `@types/better-sqlite3` | `^7.6.11` | TypeScript types |
+
+---
+
+### Requirement 31: Audit Logs
+
+#### Architectural Approach
+
+`AuditStore` wraps a `better-sqlite3` database (`audit.db` in user-data). Every write is synchronous and append-only — no `UPDATE` or `DELETE` SQL is ever issued on the `audit_log` table. A separate `audit_meta` table holds the purge-last-run timestamp. The store is injected into the IpcRouter alongside the existing services, and `ipcRouter.ts` calls `auditStore.append(entry)` after every successful state-changing dispatch.
+
+#### New Main-Process Module: `auditStore.ts`
+
+**Responsibilities:**
+- `append(entry: AuditEntry): void` — INSERT to `audit_log` table (synchronous, non-blocking to game ops even on failure)
+- `query(filter: AuditFilter): AuditEntry[]` — SELECT with optional date range, user, actionType filters
+- `exportCsv(filter: AuditFilter, destinationPath: string): void`
+- `purgeOldEntries(): void` — DELETE WHERE timestamp < 12 months ago; called at app launch
+
+```typescript
+interface AuditEntry {
+  id: string;
+  timestamp: string;       // ISO 8601 UTC
+  username: string;
+  role: Role;
+  actionType: string;      // e.g. 'ADD_SCORE', 'ROSTER_ADD_PLAYER', 'BACKUP_CREATED'
+  entityId: string;        // Liga ID, game log ID, user ID, 'GAME', etc.
+  previousValue: string;   // JSON-serialized or empty string
+  newValue: string;        // JSON-serialized or empty string
+}
+
+interface AuditFilter {
+  fromDate?: string;       // ISO 8601
+  toDate?: string;
+  username?: string;
+  actionType?: string;
+}
+```
+
+The SQLite schema:
+```sql
+CREATE TABLE audit_log (
+  id TEXT PRIMARY KEY,
+  timestamp TEXT NOT NULL,
+  username TEXT NOT NULL,
+  role TEXT NOT NULL,
+  action_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  previous_value TEXT NOT NULL DEFAULT '',
+  new_value TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX idx_audit_timestamp ON audit_log(timestamp);
+CREATE INDEX idx_audit_username   ON audit_log(username);
+CREATE INDEX idx_audit_action     ON audit_log(action_type);
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'AUDIT_QUERY'; filter: AuditFilter }        // returns AuditEntry[]
+| { type: 'AUDIT_EXPORT_CSV'; filter: AuditFilter }   // opens save dialog, writes CSV
+```
+
+Audit log writes are fire-and-forget inside `ipcRouter.ts` — if `auditStore.append` throws, a `AUDIT_WRITE_FAILED` event is sent to the Control Panel but the main command response is unaffected.
+
+---
+
+### Requirement 32: Cloud Sync
+
+#### Architectural Approach
+
+`CloudSyncService` wraps the Node `https` module (no extra HTTP client needed beyond what Node provides, though `node-fetch` is acceptable for ergonomics). The service reads sync configuration from `electron-store` and is disabled by default. Sync is incremental: it compares each record's `lastModified` timestamp to the stored `lastSyncAt` checkpoint in `sync.db` and transmits only newer records.
+
+A 5-minute full-poll timer (`setInterval`) and a 30-second debounced trigger (started after any local change via `OfflineSyncService.enqueueChange`) coexist. Both feed into a single `syncQueue` that serializes operations so two syncs never run in parallel.
+
+All HTTP requests use `https://` URLs — the endpoint configuration validator rejects `http://` URLs. Node's built-in TLS stack (OpenSSL) enforces TLS 1.2+ by default on modern Node versions bundled with Electron 30.
+
+#### New Main-Process Module: `cloudSyncService.ts`
+
+**Responsibilities:**
+- `configure(config: CloudSyncConfig): void`
+- `testConnection(): Promise<{ ok: boolean; error?: string }>`
+- `syncNow(): Promise<SyncResult>`
+- `startPeriodicSync(): void` / `stopPeriodicSync(): void`
+
+```typescript
+interface CloudSyncConfig {
+  enabled: boolean;
+  endpointUrl: string;     // must start with https://
+  apiKey: string;          // stored encrypted in electron-store
+}
+
+interface SyncResult {
+  success: boolean;
+  recordsTransmitted: number;
+  startedAt: string;
+  completedAt: string;
+  error?: string;
+}
+```
+
+The sync payload format for each record type is a JSON envelope:
+```typescript
+interface SyncEnvelope {
+  entityType: 'liga' | 'gameLog' | 'auditLog' | 'roster';
+  entityId: string;
+  lastModified: string;
+  operation: 'upsert' | 'delete';
+  data: unknown;           // entity-specific payload
+}
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'CLOUD_SYNC_GET_CONFIG' }
+| { type: 'CLOUD_SYNC_SET_CONFIG'; config: CloudSyncConfig }
+| { type: 'CLOUD_SYNC_TEST_CONNECTION' }
+| { type: 'CLOUD_SYNC_TRIGGER_NOW' }
+
+// Events pushed to Control Panel
+{ type: 'CLOUD_SYNC_STATUS'; status: 'idle' | 'syncing' | 'error'; lastSyncAt?: string }
+{ type: 'CLOUD_SYNC_AUTH_ERROR' }
+```
+
+#### New npm Packages
+
+No additional packages beyond `better-sqlite3` (already listed under Req 30) and Node built-ins. If a more ergonomic fetch API is preferred:
+
+| Package | Version | Justification |
+|---|---|---|
+| `node-fetch` | `^3.3.2` | Ergonomic Fetch API in Node; well-maintained; used only if native `https` is too verbose |
+
+---
+
+### Requirement 33: Live Streaming Integration
+
+#### Architectural Approach
+
+`OverlayServer` runs two things in the same module: a lightweight `express` HTTP server (serves the overlay HTML page and static assets) and a `ws` WebSocket server attached to the same Node `http.Server` instance. When `GameStore` state changes, the IpcRouter calls `overlayServer.broadcast(state)`, which serializes the relevant fields and pushes to all connected WebSocket clients.
+
+The RTMP output is handled by `fluent-ffmpeg` which spawns an `ffmpeg` child process to screen-capture the Scoreboard Display window and pipe to the RTMP endpoint. The scoreboard window's position/dimensions are read from `WindowManager`.
+
+The overlay HTML page is a static file bundled under `resources/overlay/index.html` and served by Express from `__dirname`. It connects to `ws://localhost:<port>/ws` and updates the DOM on every received message.
+
+#### New Main-Process Module: `overlayServer.ts`
+
+**Responsibilities:**
+- `start(port: number): Promise<void>` — bind HTTP + WebSocket server
+- `stop(): Promise<void>`
+- `broadcast(state: GameState): void` — push reduced state to all WS clients
+- `updateConfig(config: OverlayConfig): void` — push config update to all WS clients
+- `startRtmp(config: RtmpConfig): void` — spawn ffmpeg child process
+- `stopRtmp(): void` — kill ffmpeg child process
+- `getRtmpStatus(): RtmpStatus`
+
+```typescript
+interface OverlayConfig {
+  visibleElements: {
+    score: boolean; clock: boolean; period: boolean;
+    teamFouls: boolean; timeouts: boolean;
+  };
+  fontScaleFactor: number;   // 0.5 – 2.0
+  backgroundAlpha: number;   // 0.0 – 1.0
+}
+
+interface RtmpConfig {
+  destinationUrl: string;    // must start with rtmp:// or rtmps://
+  streamKey: string;
+}
+
+interface RtmpStatus {
+  active: boolean;
+  elapsedSeconds: number;
+  error: string | null;
+}
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'OVERLAY_START'; port: number }
+| { type: 'OVERLAY_STOP' }
+| { type: 'OVERLAY_GET_CONFIG' }
+| { type: 'OVERLAY_SET_CONFIG'; config: OverlayConfig }
+| { type: 'RTMP_START'; config: RtmpConfig }
+| { type: 'RTMP_STOP' }
+| { type: 'RTMP_GET_STATUS' }
+
+// Events pushed to Control Panel
+{ type: 'OVERLAY_PORT_CONFLICT'; port: number }
+{ type: 'RTMP_STATUS_UPDATE'; status: RtmpStatus }
+{ type: 'RTMP_RECONNECT_ATTEMPT'; attempt: number; maxAttempts: number }
+{ type: 'RTMP_FAILED' }
+```
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `express` | `^4.19.2` | Minimal HTTP server with static file middleware for the overlay page |
+| `@types/express` | `^4.17.21` | TypeScript types |
+| `ws` | `^8.17.1` | WebSocket server; attaches to the existing `http.Server` from Express |
+| `@types/ws` | `^8.5.11` | TypeScript types |
+| `fluent-ffmpeg` | `^2.1.3` | Fluent API for ffmpeg child process; handles RTMP output and reconnect logic |
+| `@types/fluent-ffmpeg` | `^2.1.24` | TypeScript types |
+
+---
+
+### Requirement 34: External REST API
+
+#### Architectural Approach
+
+`ApiServer` is an Express application that starts on a configurable port (default 3000). It is a **read-only** API — no endpoints mutate game state. All endpoints read from `GameStore.getState()`, the Liga file system, and the game log directory.
+
+Authentication is Bearer-token middleware that checks the token against an in-memory set of active API Keys (loaded from `electron-store` at boot, updated immediately on key generation/revocation). Rate limiting uses the `express-rate-limit` middleware keyed by API Key value (not by IP, since all requests are local). OpenAPI 3.0 documentation is served at `/docs` using `swagger-ui-express` with a bundled spec file.
+
+#### New Main-Process Module: `apiServer.ts`
+
+**Responsibilities:**
+- `start(port: number): Promise<void>` / `stop(): Promise<void>`
+- Express route registration for all endpoints
+- API Key CRUD (`generateKey`, `revokeKey`, `listKeys`) backed by `electron-store`
+- Rate-limit state management (in-memory, reset on app restart)
+
+**REST Endpoints:**
+
+```
+GET  /api/v1/game/state            Current game state (scores, clocks, period, fouls, timeouts)
+GET  /api/v1/game/players          Active player stats for current game
+GET  /api/v1/gamelogs?page=1       Paginated saved game logs (20/page)
+GET  /api/v1/season/averages       Season averages for current Liga
+GET  /docs                         OpenAPI 3.0 spec (swagger-ui-express)
+```
+
+All responses follow:
+```typescript
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  pagination?: { page: number; pageSize: number; total: number; totalPages: number };
+}
+```
+
+```typescript
+interface ApiKey {
+  id: string;
+  label: string;             // 1–50 chars
+  key: string;               // UUID v4, shown once at generation
+  keyHash: string;           // SHA-256 hash used for comparison at runtime
+  createdAt: string;
+  active: boolean;
+}
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'API_START'; port: number }
+| { type: 'API_STOP' }
+| { type: 'API_KEY_LIST' }
+| { type: 'API_KEY_GENERATE'; label: string }
+| { type: 'API_KEY_REVOKE'; id: string }
+| { type: 'API_GET_STATUS' }   // returns { running: boolean; port: number }
+
+// Events
+{ type: 'API_PORT_CONFLICT'; port: number }
+```
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `express-rate-limit` | `^7.3.1` | Minimal, well-maintained rate limiter middleware for Express |
+| `swagger-ui-express` | `^5.0.1` | Serves OpenAPI/Swagger UI at `/docs` with zero configuration |
+| `@types/swagger-ui-express` | `^4.1.6` | TypeScript types |
+| `uuid` | `^10.0.0` | UUID v4 for API key generation |
+| `@types/uuid` | `^10.0.0` | TypeScript types |
+
+(`express` and `ws` are already listed under Req 33.)
+
+---
+
+### Requirement 35: Social Media Sharing
+
+#### Architectural Approach
+
+`SocialShareService` handles OAuth 2.0 flows and post dispatch for Twitter/X and Facebook. OAuth tokens are stored using Electron's `safeStorage` API (AES-256 encryption backed by the OS credential store on Windows). Token refresh is attempted silently using the stored refresh token before any share action.
+
+The OAuth callback is received via a custom URL scheme (`ligacontrol://oauth-callback`) registered at app startup with `app.setAsDefaultProtocolClient`. When the OS opens the app with this scheme after browser authorization, the main process captures the `open-url` event and completes the PKCE exchange.
+
+Screenshot generation uses Electron's `capturePage()` method on the scoreboard `BrowserWindow` — this works whether or not the Display Monitor is connected, since the window exists in memory. The PNG buffer is then attached to the share post via the platform API's multipart upload endpoint.
+
+#### New Main-Process Module: `socialShareService.ts`
+
+**Responsibilities:**
+- `initiateOAuth(platform: SocialPlatform): void` — opens browser, registers PKCE state
+- `handleOAuthCallback(url: string): Promise<void>` — complete code exchange, store tokens
+- `generateShareText(state: GameState): string` — format game summary
+- `captureScreenshot(): Promise<Buffer>` — `BrowserWindow.capturePage()` → PNG Buffer
+- `sharePost(platform: SocialPlatform, text: string, imagePng?: Buffer): Promise<void>`
+- `getTokenStatus(platform: SocialPlatform): 'valid' | 'expired' | 'missing'`
+
+```typescript
+type SocialPlatform = 'twitter' | 'facebook';
+
+interface SharePost {
+  platform: SocialPlatform;
+  text: string;             // editable by operator before posting
+  imagePng?: Buffer;        // optional screenshot attachment
+}
+```
+
+Share text format (generated by `generateShareText`):
+```
+[LigaName] | [Date]
+[HomeTeam] [HomeScore] – [AwayScore] [AwayTeam]
+[Period or "Final"]
+```
+
+#### IPC Integration
+
+```typescript
+| { type: 'SHARE_GENERATE_TEXT' }                        // returns { text: string }
+| { type: 'SHARE_CAPTURE_SCREENSHOT' }                   // returns { png: string } (base64)
+| { type: 'SHARE_POST'; platform: SocialPlatform; text: string; attachScreenshot: boolean }
+| { type: 'SHARE_OAUTH_INITIATE'; platform: SocialPlatform }
+| { type: 'SHARE_TOKEN_STATUS'; platform: SocialPlatform } // returns 'valid' | 'expired' | 'missing'
+| { type: 'SHARE_TOKEN_REVOKE'; platform: SocialPlatform }
+
+// Events
+{ type: 'SHARE_OAUTH_COMPLETE'; platform: SocialPlatform }
+{ type: 'SHARE_OAUTH_FAILED'; platform: SocialPlatform; error: string }
+{ type: 'SHARE_POST_COMPLETE'; platform: SocialPlatform; success: boolean; error?: string }
+```
+
+#### New npm Packages
+
+No large OAuth client library is needed — the PKCE flow is straightforward with Node's `https` and `crypto` modules. Electron's `safeStorage` is a built-in API. The only addition needed is a multipart form builder for image upload:
+
+| Package | Version | Justification |
+|---|---|---|
+| `form-data` | `^4.0.0` | Constructs multipart/form-data payloads for image attachment uploads to Twitter/Facebook APIs |
+| `@types/form-data` | `^2.5.0` | TypeScript types |
+
+---
+
+### Requirement 36: Mobile-Friendly Viewer Interface
+
+#### Architectural Approach
+
+`MobileViewerServer` reuses the `express` + `ws` combination already present in `OverlayServer`, but as a separate server instance on a separate port (default 8081). It serves a self-contained responsive HTML page (bundled under `resources/viewer/`) that connects to its own WebSocket endpoint.
+
+The "Scoreboard Offline" page is a static fallback served by Express's error handler when the server is stopped — Express is configured with a single `GET /*` catch-all that returns the offline HTML when the server is in a disabled state. When disabled, the server process does not bind the port at all; instead `net.createServer` briefly opens the port, immediately responds with the offline HTML, and closes the connection — keeping the user experience intact without a full Express startup.
+
+The QR code is generated server-side using the `qrcode` package and served as a base64 PNG data URI via IPC query. The local IPv4 address is obtained via Node's `os.networkInterfaces()`.
+
+#### New Main-Process Module: `mobileViewerServer.ts`
+
+**Responsibilities:**
+- `start(port: number): Promise<void>` / `stop(): Promise<void>`
+- `broadcast(state: GameState): void` — push to all connected WS clients (reuses same pattern as `OverlayServer`)
+- `getLocalUrl(): string` — `http://<localIPv4>:<port>`
+- `generateQrCode(): Promise<string>` — returns base64 PNG data URI
+
+```typescript
+interface MobileViewerStatus {
+  running: boolean;
+  port: number;
+  localUrl: string | null;
+  qrCodeDataUri: string | null;
+}
+```
+
+The mobile viewer WebSocket message schema reuses the same `GameState` type already pushed to renderer windows, keeping the serialization layer consistent. The viewer HTML page receives the full `GameState` and renders a subset: scores, clocks, period, team fouls, timeouts, and the box score tab.
+
+#### IPC Integration
+
+```typescript
+| { type: 'MOBILE_VIEWER_START'; port: number }
+| { type: 'MOBILE_VIEWER_STOP' }
+| { type: 'MOBILE_VIEWER_GET_STATUS' }     // returns MobileViewerStatus
+| { type: 'MOBILE_VIEWER_GET_QR' }         // returns { qrDataUri: string; url: string }
+
+// Events
+{ type: 'MOBILE_VIEWER_PORT_CONFLICT'; port: number }
+{ type: 'MOBILE_VIEWER_STATUS_CHANGED'; status: MobileViewerStatus }
+```
+
+The `StatusBar` component in the Control Panel renderer subscribes to `MOBILE_VIEWER_STATUS_CHANGED` and renders the QR code (`<img src={qrDataUri}>`) and URL link when the server is active.
+
+#### New npm Packages
+
+| Package | Version | Justification |
+|---|---|---|
+| `qrcode` | `^1.5.4` | Generates QR codes as PNG buffers or SVG strings; zero native dependencies |
+| `@types/qrcode` | `^1.5.5` | TypeScript types |
+
+(`express` and `ws` are already listed under Req 33.)
+
+---
+
+### Extended Features: Correctness Properties (Requirements 28–36)
+
+*The following properties extend the main Correctness Properties section above. They are numbered starting at 25 to avoid conflicts with Properties 1–24.*
+
+**Property Reflection (Requirements 28–36):**
+- 28.2–28.5 all test the same `canPerform` function for different role/action combinations. Rather than four separate properties, they are consolidated into one property that covers the entire permission matrix.
+- 28.7 (sole Admin deletion) and 28.8 (password validation) are independent and kept separate.
+- 28.10 (user persistence) and 29.1 (backup manifest) are kept separate — different systems.
+- 31.1 (audit log entry completeness) and 31.7 (CSV export row count) test different aspects of the same store, kept separate.
+- 32.6 (incremental sync filtering) and 30.7/8 (pending-changes ordering) are independent, kept separate.
+- 34.3 (API auth) and 34.8 (rate limiting) test different middleware concerns, kept separate.
+
+---
+
+### Property 25: RBAC permission matrix is complete and consistent
+
+*For any* role R and action category A, `canPerform(R, A)` SHALL return `true` if and only if R is in the set of roles authorized for A as defined in the permission matrix table; in particular, Admin SHALL be authorized for every action category, and Viewer SHALL only be authorized for `VIEW_SCOREBOARD`.
+
+**Validates: Requirements 28.2, 28.3, 28.4, 28.5**
+
+---
+
+### Property 26: Deleting the sole Admin account is always rejected
+
+*For any* list of user accounts in which exactly one account has the Admin role, attempting to delete that account SHALL return a failure result and leave the user list unchanged.
+
+**Validates: Requirements 28.7**
+
+---
+
+### Property 27: Password validation accepts strong passwords and rejects weak ones
+
+*For any* string P, `validatePassword(P)` SHALL return `valid: true` if and only if P has length ≥ 8, contains at least one uppercase letter, at least one digit, and at least one special character (any character that is not alphanumeric); otherwise it SHALL return `valid: false` with a non-empty reason string.
+
+**Validates: Requirements 28.8**
+
+---
+
+### Property 28: User account store round-trip preserves all fields
+
+*For any* valid list of `UserAccount` records (with valid usernames, hashed passwords, and roles), saving them to the credential store and then reloading the store SHALL produce a list that is deeply equal to the saved list (same accounts, same roles, same IDs, same `createdAt` values).
+
+**Validates: Requirements 28.10**
+
+---
+
+### Property 29: Backup manifest lists every file included in the archive
+
+*For any* set of application data files F, after `createBackup()` completes, the resulting archive SHALL contain a `manifest.json` whose `files` array lists every file in F (no omissions), and every file listed in the manifest SHALL be present in the archive (no phantom entries).
+
+**Validates: Requirements 29.1, 29.10**
+
+---
+
+### Property 30: Restore rejects archives with missing manifest or missing files
+
+*For any* zip archive A, `validateArchive(A)` SHALL return `valid: false` if: (a) the archive does not contain `manifest.json`, or (b) any filename listed in the manifest is not present in the archive's entries. It SHALL return `valid: true` only when the manifest is present and all listed files are found.
+
+**Validates: Requirements 29.6, 29.9**
+
+---
+
+### Property 31: Pending-changes log preserves insertion order under replay
+
+*For any* ordered sequence of `PendingChange` entries E₁, E₂, …, Eₙ enqueued while offline, when the sync service replays them, the outbound HTTP payloads SHALL be transmitted in the same chronological order (E₁ before E₂ before … before Eₙ) as determined by their `timestamp` fields.
+
+**Validates: Requirements 30.7, 30.8**
+
+---
+
+### Property 32: Audit log entry contains all required fields for every state-changing operation
+
+*For any* state-changing command dispatched through `ipcRouter.ts`, the `AuditStore` SHALL receive an `append` call with an entry containing: a non-empty `id`, a valid ISO 8601 `timestamp`, a non-empty `username`, a valid `role`, a non-empty `actionType` matching the command type, a non-empty `entityId`, and string-serialized `previousValue` and `newValue` fields.
+
+**Validates: Requirements 31.1, 31.2**
+
+---
+
+### Property 33: Audit log purge removes only entries older than 12 months
+
+*For any* collection of `AuditEntry` records with arbitrary `timestamp` values, after calling `purgeOldEntries()`, every entry whose timestamp is more than 12 months before the current UTC time SHALL be absent from the store, and every entry whose timestamp is within 12 months SHALL be present and unchanged.
+
+**Validates: Requirements 31.5**
+
+---
+
+### Property 34: Audit log CSV export contains one row per filtered entry with correct headers
+
+*For any* filtered list of `AuditEntry` records (zero or more entries), the generated CSV file SHALL contain exactly `entries.length` data rows (excluding the header row), the header row SHALL contain the field names `id`, `timestamp`, `username`, `role`, `actionType`, `entityId`, `previousValue`, `newValue`, and each data row SHALL correspond to exactly one entry in the same order as the filter result.
+
+**Validates: Requirements 31.7**
+
+---
+
+### Property 35: Incremental sync transmits only records newer than the last sync checkpoint
+
+*For any* collection of data records with arbitrary `lastModified` timestamps and any `lastSyncAt` checkpoint timestamp T, the sync payload computed by `CloudSyncService` SHALL include exactly those records whose `lastModified` > T and SHALL exclude all records whose `lastModified` ≤ T.
+
+**Validates: Requirements 32.6**
+
+---
+
+### Property 36: REST API returns 401 for any request with missing or invalid API Key
+
+*For any* endpoint path and any Authorization header value that is either absent, not in the `Bearer <key>` format, or contains a key string that does not match any active API Key, the API server SHALL respond with HTTP status 401 and a JSON body with `success: false`.
+
+**Validates: Requirements 34.3**
+
+---
+
+### Property 37: Rate limiter returns 429 with Retry-After header after limit exceeded
+
+*For any* API Key K and any sequence of N > 60 requests within a 60-second window attributed to K, the (61st) and all subsequent requests in that window SHALL receive HTTP status 429 with a `Retry-After` header containing a positive integer value representing the number of seconds until the window resets.
+
+**Validates: Requirements 34.8**
+
+---
+
+### Property 38: Share text summary contains all required fields for any game state
+
+*For any* `GameState` value (pre-game, in-game, or post-game, with arbitrary team names, scores, period, and Liga name), the string returned by `generateShareText(state)` SHALL contain all of: the Liga name, both team names, both scores as integers, and either the current period label or the string "Final" if `gamePhase` is `'post-game'`.
+
+**Validates: Requirements 35.2**
+
+---
+
+### Property 39: QR code round-trip encodes the correct mobile viewer URL
+
+*For any* valid local IPv4 address and port number in the range [1024, 65535], the QR code generated by `mobileViewerServer.generateQrCode()` SHALL encode a URL that, when decoded, exactly matches `http://<ipv4>:<port>`.
+
+**Validates: Requirements 36.8**
+
+---
+
+### Extended Features: Testing Strategy (Requirements 28–36)
+
+This section supplements the existing Testing Strategy with guidance for the eight new modules.
+
+#### New Property-Based Tests
+
+Each property 25–39 above maps to a fast-check test in a new test file under `src/main/__tests__/`:
+
+| Property # | Test File | fast-check Arbitraries |
+|---|---|---|
+| 25 | `roleStore.test.ts` | `fc.constantFrom('Admin','Coach','Scorekeeper','Viewer')` × `fc.constantFrom(...ActionCategories)` |
+| 26 | `roleStore.test.ts` | `fc.array(fc.record({...}))` filtered to exactly one Admin |
+| 27 | `roleStore.test.ts` | `fc.string({ minLength: 0, maxLength: 50 })` |
+| 28 | `roleStore.test.ts` | `fc.array(fc.record({ username: fc.string(), role: fc.constantFrom(...) }))` |
+| 29 | `backupService.test.ts` | `fc.array(fc.string())` (file paths) |
+| 30 | `backupService.test.ts` | `fc.record({ hasManifest: fc.boolean(), missingFiles: fc.array(fc.string()) })` |
+| 31 | `offlineSyncService.test.ts` | `fc.array(fc.record({ timestamp: fc.date(), payload: fc.jsonValue() }))` |
+| 32 | `auditStore.test.ts` | `fc.record({ actionType: fc.string(), entityId: fc.string(), ... })` |
+| 33 | `auditStore.test.ts` | `fc.array(fc.record({ timestamp: fc.date() }))` with some older than 12 months |
+| 34 | `auditStore.test.ts` | `fc.array(fc.record({ ...auditEntryFields }))` |
+| 35 | `cloudSyncService.test.ts` | `fc.array(fc.record({ lastModified: fc.date() }))` × `fc.date()` (checkpoint) |
+| 36 | `apiServer.test.ts` | `fc.string()` (invalid keys), `fc.constantFrom(...endpoints)` |
+| 37 | `apiServer.test.ts` | `fc.integer(61, 200)` (request counts above limit) |
+| 38 | `socialShareService.test.ts` | Arbitrary `GameState` with random team names, scores, phases |
+| 39 | `mobileViewerServer.test.ts` | `fc.ipV4()` × `fc.integer(1024, 65535)` |
+
+Minimum **100 runs** per property test (`numRuns: 100` in `fc.property` options), consistent with the existing test suite configuration.
+
+**Tag format:**
+```typescript
+// Feature: basketball-scoreboard, Property {N}: {property_text}
+```
+
+#### Example-Based Unit Tests
+
+Additional example tests required for behaviors not captured by properties:
+
+- `roleStore.test.ts` — account lockout triggers at exactly 3 failed attempts; lockout clears after 5 minutes (mocked timer)
+- `backupService.test.ts` — scheduled backup next-run date computed correctly for daily/weekly/monthly
+- `offlineSyncService.test.ts` — conflict resolution retains local version on cancel
+- `offlineSyncService.test.ts` — retry count capped at 3 attempts with 60-second intervals (mocked timer)
+- `overlayServer.test.ts` — WebSocket client receives state update after `broadcast()` call
+- `overlayServer.test.ts` — port conflict returns descriptive error (mocked `net.createServer`)
+- `apiServer.test.ts` — `GET /api/v1/game/state` returns current game state with correct Content-Type header
+- `apiServer.test.ts` — revoked API Key rejected within 5 seconds (in-memory set updated synchronously)
+- `socialShareService.test.ts` — OAuth token stored via `safeStorage`, not plain text on disk
+- `mobileViewerServer.test.ts` — "Scoreboard Offline" response served when server is stopped
+
+#### Integration Tests
+
+The following behaviors require a live server instance and are tested with Supertest (for HTTP) and a `ws` client (for WebSocket):
+
+- Overlay WebSocket push arrives within 500ms of `broadcast()` call
+- Mobile viewer WebSocket push arrives within 500ms of state change
+- REST API paginated game log endpoint returns correct `page`/`totalPages` metadata
+- Cloud Sync test-connection endpoint returns success/failure correctly (mocked HTTP server)
+
+#### E2E Tests (Playwright additions)
+
+New Playwright test scenarios in `e2e/scoreboard.spec.ts`:
+
+- Login screen displayed on first launch; Admin setup flow completes successfully
+- Admin can create a Scorekeeper account; Scorekeeper cannot access Liga config
+- Backup created successfully; manifest file present in archive
+- REST API returns current game state after score change via Control Panel

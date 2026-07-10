@@ -5,7 +5,7 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest'
-import { DEFAULT_GAME_STATE } from '@shared/types'
+import { DEFAULT_GAME_STATE, makeDefaultPlayer } from '@shared/types'
 import type { GameState } from '@shared/types'
 
 vi.mock('../store', async () => {
@@ -165,6 +165,77 @@ describe('PeriodDisplay', () => {
     set({ period: { current: 4, format: 'quarters', isOvertime: true, overtimeNumber: 3 } })
     render(<PeriodDisplay />)
     expect(screen.getByText('3OT')).toBeTruthy()
+  })
+})
+
+// ===========================================================================
+// TeamSection — jersey number display (Requirement 15)
+// ===========================================================================
+
+describe('TeamSection — jersey numbers', () => {
+  beforeEach(() => store.setState({ gameState: DEFAULT_GAME_STATE() }))
+
+  it('renders jersey number when player has a non-empty number', () => {
+    const player = { ...makeDefaultPlayer(), id: 'p1', name: 'Jordan', number: '23', active: true, points: 30 }
+    set({ home: { ...DEFAULT_GAME_STATE().home, players: [player] } })
+    render(<TeamSection team="home" />)
+    // The jersey number span should contain '23'
+    const numEl = document.querySelector('.ts__player-num')
+    expect(numEl).not.toBeNull()
+    expect(numEl!.textContent).toBe('23')
+  })
+
+  it('renders empty string (no visible number) when jerseyNumber is null — layout unchanged', () => {
+    // Player.number is a string field; null is represented as '' in the Player type
+    // We test both an explicit empty string and simulate null-like value
+    const playerWithNull = { ...makeDefaultPlayer(), id: 'p2', name: 'LeBron', number: '', active: true, points: 10 }
+    const playerWithNumber = { ...makeDefaultPlayer(), id: 'p3', name: 'Kobe', number: '24', active: true, points: 20 }
+    set({ home: { ...DEFAULT_GAME_STATE().home, players: [playerWithNull, playerWithNumber] } })
+    const { container } = render(<TeamSection team="home" />)
+
+    const rows = container.querySelectorAll('.ts__player-row')
+    // Both players are active so both rows should appear
+    expect(rows.length).toBe(2)
+
+    const numEls = container.querySelectorAll('.ts__player-num')
+    // First player: empty number renders as empty string
+    expect(numEls[0].textContent).toBe('')
+    // Second player: number renders normally
+    expect(numEls[1].textContent).toBe('24')
+
+    // Layout: both rows exist and both still have a .ts__player-name element
+    const nameEls = container.querySelectorAll('.ts__player-name')
+    expect(nameEls.length).toBe(2)
+    expect(nameEls[0].textContent).toBe('LeBron')
+    expect(nameEls[1].textContent).toBe('Kobe')
+  })
+
+  it('renders player row with name and points alongside jersey number', () => {
+    const player = { ...makeDefaultPlayer(), id: 'p4', name: 'Magic', number: '32', active: true, points: 15 }
+    set({ home: { ...DEFAULT_GAME_STATE().home, players: [player] } })
+    const { container } = render(<TeamSection team="home" />)
+
+    expect(container.querySelector('.ts__player-num')?.textContent).toBe('32')
+    expect(container.querySelector('.ts__player-name')?.textContent).toBe('Magic')
+    expect(container.querySelector('.ts__player-pts')?.textContent).toBe('15')
+  })
+
+  it('does not render player list section when no players are active', () => {
+    const inactivePlayer = { ...makeDefaultPlayer(), id: 'p5', name: 'Bench', number: '99', active: false }
+    set({ home: { ...DEFAULT_GAME_STATE().home, players: [inactivePlayer] } })
+    const { container } = render(<TeamSection team="home" />)
+    // Player list section should not be rendered
+    expect(container.querySelector('.ts__player-list')).toBeNull()
+  })
+
+  it('only shows active players in the list', () => {
+    const active   = { ...makeDefaultPlayer(), id: 'pa', name: 'Active',   number: '1',  active: true  }
+    const inactive = { ...makeDefaultPlayer(), id: 'pi', name: 'Inactive', number: '99', active: false }
+    set({ home: { ...DEFAULT_GAME_STATE().home, players: [active, inactive] } })
+    const { container } = render(<TeamSection team="home" />)
+    const rows = container.querySelectorAll('.ts__player-row')
+    expect(rows.length).toBe(1)
+    expect(container.querySelector('.ts__player-name')?.textContent).toBe('Active')
   })
 })
 

@@ -1,0 +1,144 @@
+/* AdvancedMetricsPanel — Requirement 21: PEI, plus/minus, efficiency */
+
+.advanced-metrics-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1rem;
+  background: #121220;
+  border-radius: 8px;
+}
+
+/* Panel heading */
+.amp-header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  margin: 0 0 0.25rem;
+}
+
+/* Team section */
+.amp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.amp-section__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a0b4cc;
+  margin: 0;
+}
+
+/* Table */
+.amp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  table-layout: fixed;
+}
+
+/* Header cells */
+.amp-th {
+  padding: 0.2rem 0.35rem;
+  text-align: right;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  border-bottom: 1px solid #2a2a4a;
+  white-space: nowrap;
+}
+
+.amp-th--identity {
+  text-align: left;
+  width: 45%;
+}
+
+/* Data cells */
+.amp-cell {
+  padding: 0.25rem 0.35rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #d0d8e8;
+  border-bottom: 1px solid #1e1e32;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.amp-cell--identity {
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.35rem;
+  border-bottom: 1px solid #1e1e32;
+}
+
+.amp-cell--empty {
+  text-align: center;
+  color: #555;
+  padding: 0.5rem;
+  font-style: italic;
+}
+
+/* Player identity */
+.amp-num {
+  font-size: 0.65rem;
+  color: #7f8ea3;
+  min-width: 2.2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.amp-name {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #e0e8f4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Plus/Minus colour coding */
+.amp-cell--pm-pos {
+  color: #6fcf97;
+  font-weight: 700;
+}
+
+.amp-cell--pm-neg {
+  color: #eb5757;
+  font-weight: 700;
+}
+
+/* Row status indicators */
+.amp-row--active .amp-num {
+  color: #6fcf97;
+}
+
+.amp-row--bench {
+  opacity: 0.6;
+}
+
+.amp-row--fouled-out {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+/* Hover highlight */
+.amp-row:hover td,
+.amp-row:hover .amp-cell--identity {
+  background: #1e1e38;
+}
+
+/* MIN column — slightly dimmer */
+.amp-cell--min {
+  color: #8898aa;
+  font-size: 0.7rem;
+}

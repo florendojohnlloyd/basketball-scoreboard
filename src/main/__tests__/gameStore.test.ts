@@ -541,3 +541,246 @@ describe('createGameStore', () => {
     expect(store.getState().volume).toBe(0.3)
   })
 })
+
+// ---------------------------------------------------------------------------
+// ADD_PLAYER_STAT / SUBTRACT_PLAYER_STAT (Task 42 — Requirement 13)
+// ---------------------------------------------------------------------------
+
+/** Build a fresh state with a single player added to the home team. */
+function freshWithPlayer(overrides?: Partial<import('../../shared/types').Player>) {
+  const s = fresh()
+  const player: import('../../shared/types').Player = {
+    id: 'p1', number: '10', name: 'Alice',
+    fouls: 0, points: 0, rebounds: 0, assists: 0,
+    active: true, fouledOut: false,
+    steals: 0, blocks: 0, fga: 0, fgm: 0,
+    minutesPlayed: 0, substitutions: [],
+    ...overrides,
+  }
+  return gameReducer(s, { type: 'ADD_PLAYER', team: 'home', player })
+}
+
+describe('ADD_PLAYER_STAT — steals / blocks', () => {
+  it('increments steals', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'steals' })
+    expect(s.home.players[0].steals).toBe(1)
+  })
+
+  it('increments blocks', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'blocks' })
+    expect(s.home.players[0].blocks).toBe(1)
+  })
+
+  it('does not affect other stat fields', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'steals' })
+    expect(s.home.players[0].blocks).toBe(0)
+    expect(s.home.players[0].fga).toBe(0)
+  })
+})
+
+describe('ADD_PLAYER_STAT — FGM increments FGA atomically', () => {
+  it('incrementing FGM also increments FGA by 1', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(s.home.players[0].fgm).toBe(1)
+    expect(s.home.players[0].fga).toBe(1)
+  })
+
+  it('incrementing FGM twice makes fga = 2 and fgm = 2', () => {
+    let s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    s = gameReducer(s, { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(s.home.players[0].fgm).toBe(2)
+    expect(s.home.players[0].fga).toBe(2)
+  })
+
+  it('incrementing FGA directly does not change FGM', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fga' })
+    expect(s.home.players[0].fga).toBe(1)
+    expect(s.home.players[0].fgm).toBe(0)
+  })
+})
+
+describe('SUBTRACT_PLAYER_STAT — FGM decrement also decrements FGA', () => {
+  it('decrementing FGM also decrements FGA', () => {
+    // Start with fgm=2, fga=3 (missed one)
+    let s = freshWithPlayer({ fgm: 2, fga: 3 })
+    s = gameReducer(s, { type: 'ADD_PLAYER', team: 'home', player: { id: 'dummy', number: '', name: '', fouls: 0, points: 0, rebounds: 0, assists: 0, active: true, fouledOut: false, steals: 0, blocks: 0, fga: 0, fgm: 0, minutesPlayed: 0, substitutions: [] } })
+    // Use a fresh state with pre-set fgm/fga
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 3, fgm: 2,
+      minutesPlayed: 0, substitutions: [],
+    }
+    const stateWithPlayer = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    const result = gameReducer(stateWithPlayer, { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(result.home.players[0].fgm).toBe(1)
+    expect(result.home.players[0].fga).toBe(2)
+  })
+
+  it('FGM never exceeds FGA after decrement: fgm=1, fga=1 → both become 0', () => {
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 1, fgm: 1,
+      minutesPlayed: 0, substitutions: [],
+    }
+    const s0 = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    const s1 = gameReducer(s0, { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(s1.home.players[0].fgm).toBe(0)
+    expect(s1.home.players[0].fga).toBe(0)
+    // Invariant: fgm <= fga
+    expect(s1.home.players[0].fgm).toBeLessThanOrEqual(s1.home.players[0].fga)
+  })
+
+  it('FGM decrement: arbitrary increments/decrements keep fgm <= fga', () => {
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    let s = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    // Do 3 FGM increments (each also increments FGA), then 1 FGA increment, then 2 FGM decrements
+    s = gameReducer(s, { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    s = gameReducer(s, { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    s = gameReducer(s, { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    s = gameReducer(s, { type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fga' })
+    // fga=4, fgm=3
+    expect(s.home.players[0].fga).toBe(4)
+    expect(s.home.players[0].fgm).toBe(3)
+    s = gameReducer(s, { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    s = gameReducer(s, { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    // After 2 FGM decrements: fgm=1, fga should be 2
+    expect(s.home.players[0].fgm).toBe(1)
+    expect(s.home.players[0].fga).toBe(2)
+    // Invariant always holds
+    expect(s.home.players[0].fgm).toBeLessThanOrEqual(s.home.players[0].fga)
+  })
+})
+
+describe('SUBTRACT_PLAYER_STAT — stats floored at 0', () => {
+  it('subtracting steals when 0 stays at 0', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'steals' })
+    expect(s.home.players[0].steals).toBe(0)
+  })
+
+  it('subtracting blocks when 0 stays at 0', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'blocks' })
+    expect(s.home.players[0].blocks).toBe(0)
+  })
+
+  it('subtracting fga when 0 stays at 0', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fga' })
+    expect(s.home.players[0].fga).toBe(0)
+  })
+
+  it('subtracting fgm when 0 stays at 0 (fga also stays at 0)', () => {
+    const s = gameReducer(freshWithPlayer(), { type: 'SUBTRACT_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(s.home.players[0].fgm).toBe(0)
+    expect(s.home.players[0].fga).toBe(0)
+  })
+})
+
+describe('NEW_GAME resets extended player stats', () => {
+  it('resets steals and blocks to 0 on NEW_GAME', () => {
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 2, points: 5, rebounds: 3, assists: 1,
+      active: true, fouledOut: false,
+      steals: 3, blocks: 2, fga: 5, fgm: 3,
+      minutesPlayed: 0, substitutions: [],
+    }
+    let s = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    s = gameReducer(s, { type: 'NEW_GAME', clearTeams: false })
+    const p = s.home.players[0]
+    expect(p.steals).toBe(0)
+    expect(p.blocks).toBe(0)
+    expect(p.fga).toBe(0)
+    expect(p.fgm).toBe(0)
+    expect(p.points).toBe(0)
+    expect(p.fouls).toBe(0)
+  })
+})
+
+describe('TOGGLE_PLAYER_ACTIVE records SubstitutionEntry', () => {
+  it('toggling active records a substitution entry with clockMs, period, and active state', () => {
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    let s = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    s = gameReducer(s, { type: 'TOGGLE_PLAYER_ACTIVE', team: 'home', playerId: 'p1' })
+    const p = s.home.players[0]
+    expect(p.active).toBe(false)
+    expect(p.substitutions).toHaveLength(1)
+    expect(p.substitutions[0].active).toBe(false)
+    expect(p.substitutions[0].clockMs).toBe(s.gameClock.displayMs)
+    expect(p.substitutions[0].period).toBe(s.period.current)
+  })
+
+  it('toggling active twice records two substitution entries', () => {
+    const base = fresh()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    let s = gameReducer(base, { type: 'ADD_PLAYER', team: 'home', player })
+    s = gameReducer(s, { type: 'TOGGLE_PLAYER_ACTIVE', team: 'home', playerId: 'p1' })
+    s = gameReducer(s, { type: 'TOGGLE_PLAYER_ACTIVE', team: 'home', playerId: 'p1' })
+    const p = s.home.players[0]
+    expect(p.active).toBe(true)
+    expect(p.substitutions).toHaveLength(2)
+    expect(p.substitutions[0].active).toBe(false)
+    expect(p.substitutions[1].active).toBe(true)
+  })
+})
+
+describe('Undo for ADD_PLAYER_STAT / SUBTRACT_PLAYER_STAT', () => {
+  it('undo restores steals to previous value', () => {
+    const store = createGameStore()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    store.dispatch({ type: 'ADD_PLAYER', team: 'home', player })
+    store.dispatch({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'steals' })
+    expect(store.getState().home.players[0].steals).toBe(1)
+    store.dispatch({ type: 'UNDO' })
+    expect(store.getState().home.players[0].steals).toBe(0)
+  })
+
+  it('undo restores fgm and fga to previous values', () => {
+    const store = createGameStore()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    store.dispatch({ type: 'ADD_PLAYER', team: 'home', player })
+    store.dispatch({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
+    expect(store.getState().home.players[0].fgm).toBe(1)
+    expect(store.getState().home.players[0].fga).toBe(1)
+    store.dispatch({ type: 'UNDO' })
+    expect(store.getState().home.players[0].fgm).toBe(0)
+    expect(store.getState().home.players[0].fga).toBe(0)
+  })
+})

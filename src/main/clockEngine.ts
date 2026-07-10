@@ -1,46 +1,32 @@
 /**
- * ClockEngine — drift-compensated timer for the game clock and shot clock.
+ * ClockEngine — drift-compensated timer for game clock, shot clock, and timeout countdown.
  *
- * Uses two independent NodeJS.Timer intervals (one per clock) firing every
- * 100 ms. Each tick measures the actual elapsed time since the previous tick
- * (drift compensation) and dispatches a CLOCK_TICK command with that value.
- *
- * Drift compensation pattern:
- *   - Record `lastTickTime = Date.now()` when the interval starts.
- *   - On each callback: compute `actualElapsed = Date.now() - lastTickTime`,
- *     update `lastTickTime = Date.now()`, then dispatch CLOCK_TICK with
- *     `deltaMs: actualElapsed`.
- *
- * This keeps cumulative clock drift well within the 1 s per 10 min requirement
- * regardless of system scheduling jitter.
+ * Uses a SINGLE shared 100ms interval for game/shot clocks.
+ * Uses a SEPARATE 100ms interval for timeout countdown.
  */
 
 import type { ClockEngine, CommandType } from '../shared/types'
 
 const TICK_INTERVAL_MS = 100
 
-/**
- * Creates a ClockEngine that dispatches CLOCK_TICK commands through the
- * provided `dispatch` function. The same dispatch is used for both the game
- * clock and the shot clock — the GameStore reducer applies the delta to
- * whichever clocks are currently running.
- */
+export interface ExtendedClockEngine extends ClockEngine {
+  startTimeoutClock(): void;
+  stopTimeoutClock(): void;
+}
+
 export function createClockEngine(
   dispatch: (cmd: CommandType) => void,
-): ClockEngine {
-  let gameClockTimer: ReturnType<typeof setInterval> | null = null
-  let shotClockTimer: ReturnType<typeof setInterval> | null = null
+): ExtendedClockEngine {
+  let timer: ReturnType<typeof setInterval> | null = null
+  let timeoutTimer: ReturnType<typeof setInterval> | null = null
+  let gameClockActive = false
+  let shotClockActive = false
+  let lastTickTime = Date.now()
 
-  // ---------------------------------------------------------------------------
-  // Game clock
-  // ---------------------------------------------------------------------------
-
-  function startGameClock(): void {
-    if (gameClockTimer !== null) return // already running
-
-    let lastTickTime = Date.now()
-
-    gameClockTimer = setInterval(() => {
+  function startTimer(): void {
+    if (timer !== null) return
+    lastTickTime = Date.now()
+    timer = setInterval(() => {
       const now = Date.now()
       const actualElapsed = now - lastTickTime
       lastTickTime = now
@@ -48,42 +34,45 @@ export function createClockEngine(
     }, TICK_INTERVAL_MS)
   }
 
-  function stopGameClock(): void {
-    if (gameClockTimer === null) return
-    clearInterval(gameClockTimer)
-    gameClockTimer = null
+  function stopTimer(): void {
+    if (timer === null) return
+    clearInterval(timer)
+    timer = null
   }
 
-  // ---------------------------------------------------------------------------
-  // Shot clock
-  // ---------------------------------------------------------------------------
+  function syncTimer(): void {
+    if (gameClockActive || shotClockActive) startTimer()
+    else stopTimer()
+  }
 
-  function startShotClock(): void {
-    if (shotClockTimer !== null) return // already running
+  function startGameClock(): void  { gameClockActive = true; syncTimer() }
+  function stopGameClock(): void   { gameClockActive = false; syncTimer() }
+  function startShotClock(): void  { shotClockActive = true; syncTimer() }
+  function stopShotClock(): void   { shotClockActive = false; syncTimer() }
 
-    let lastTickTime = Date.now()
-
-    shotClockTimer = setInterval(() => {
+  // ── Timeout countdown (separate timer) ──
+  function startTimeoutClock(): void {
+    if (timeoutTimer !== null) return
+    let lastTick = Date.now()
+    timeoutTimer = setInterval(() => {
       const now = Date.now()
-      const actualElapsed = now - lastTickTime
-      lastTickTime = now
-      dispatch({ type: 'CLOCK_TICK', deltaMs: actualElapsed })
+      const elapsed = now - lastTick
+      lastTick = now
+      dispatch({ type: 'TIMEOUT_TICK', deltaMs: elapsed })
     }, TICK_INTERVAL_MS)
   }
 
-  function stopShotClock(): void {
-    if (shotClockTimer === null) return
-    clearInterval(shotClockTimer)
-    shotClockTimer = null
+  function stopTimeoutClock(): void {
+    if (timeoutTimer === null) return
+    clearInterval(timeoutTimer)
+    timeoutTimer = null
   }
-
-  // ---------------------------------------------------------------------------
-  // Dispose — clears both intervals
-  // ---------------------------------------------------------------------------
 
   function dispose(): void {
-    stopGameClock()
-    stopShotClock()
+    gameClockActive = false
+    shotClockActive = false
+    stopTimer()
+    stopTimeoutClock()
   }
 
   return {
@@ -91,6 +80,8 @@ export function createClockEngine(
     stopGameClock,
     startShotClock,
     stopShotClock,
+    startTimeoutClock,
+    stopTimeoutClock,
     dispose,
   }
 }

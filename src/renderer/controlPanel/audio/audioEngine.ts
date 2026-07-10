@@ -102,22 +102,48 @@ class AudioEngine {
 
   private _subscribeToIpc(): void {
     try {
+      // Resume AudioContext on first user interaction (required by Chromium)
+      const resumeOnGesture = (): void => {
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().then(() => {
+            this.audioAvailable = true
+          }).catch(() => {/* ignore */})
+        }
+        window.removeEventListener('click', resumeOnGesture)
+        window.removeEventListener('touchstart', resumeOnGesture)
+        window.removeEventListener('keydown', resumeOnGesture)
+      }
+      window.addEventListener('click', resumeOnGesture)
+      window.addEventListener('touchstart', resumeOnGesture)
+      window.addEventListener('keydown', resumeOnGesture)
+
       window.electron.ipcRenderer.on(SCOREBOARD_EVENT, (raw: unknown) => {
         const event = raw as ScoreboardEvent
-        switch (event.type) {
-          case 'BUZZER_END_PERIOD':
-            this.playEndOfPeriod()
-            break
-          case 'BUZZER_SHOT_CLOCK':
-            this.playShotClockViolation()
-            break
-          default:
-            break
+        // Resume context if suspended before playing
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().then(() => {
+            this.audioAvailable = true
+            this._handleBuzzerEvent(event)
+          }).catch(() => {/* ignore */})
+          return
         }
+        this._handleBuzzerEvent(event)
       })
     } catch {
-      // IPC not available (e.g., unit test environment)
       console.warn('[AudioEngine] Could not subscribe to scoreboard:event IPC channel')
+    }
+  }
+
+  private _handleBuzzerEvent(event: ScoreboardEvent): void {
+    switch (event.type) {
+      case 'BUZZER_END_PERIOD':
+        this.playEndOfPeriod()
+        break
+      case 'BUZZER_SHOT_CLOCK':
+        this.playShotClockViolation()
+        break
+      default:
+        break
     }
   }
 

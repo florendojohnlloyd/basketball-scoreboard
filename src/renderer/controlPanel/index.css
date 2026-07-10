@@ -1,4 +1,4 @@
-/* Global CSS reset and dark base theme for Control Panel */
+/* Global CSS — LigaControl Control Panel */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -11,19 +11,15 @@ html, body {
 }
 
 body {
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background-color: #0e1218;
+  color: #e0e8f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
 
 #root {
   height: 100%;
   width: 100%;
-}
-
-.control-panel {
-  padding: 2rem;
 }

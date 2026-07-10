@@ -1,0 +1,98 @@
+/* TeamStatsPanel — team-level derived statistics (FG%, Rebounds, Turnovers) */
+
+.team-stats-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  background: #1a1a2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  min-width: 5rem;
+}
+
+/* Team name */
+.team-stats-panel__name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+  text-align: center;
+}
+
+/* Stat row */
+.team-stats-panel__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  width: 100%;
+}
+
+.team-stats-panel__stat-label {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7f8ea3;
+}
+
+.team-stats-panel__stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* Turnover controls row */
+.team-stats-panel__to-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  justify-content: center;
+}
+
+/* Buttons */
+.team-stats-panel__btn {
+  min-width: 1.8rem;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 4px;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  outline-offset: 2px;
+  line-height: 1;
+}
+
+.team-stats-panel__btn:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+.team-stats-panel__btn:hover:not(:disabled) {
+  background: #3a3a6a;
+  color: #ffffff;
+}
+
+.team-stats-panel__btn--add:hover:not(:disabled) {
+  background: #1e4d2b;
+  border-color: #2a7a40;
+  color: #6fcf97;
+}
+
+.team-stats-panel__btn--subtract:hover:not(:disabled) {
+  background: #4d1e1e;
+  border-color: #7a2a2a;
+  color: #eb5757;
+}
+
+.team-stats-panel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}

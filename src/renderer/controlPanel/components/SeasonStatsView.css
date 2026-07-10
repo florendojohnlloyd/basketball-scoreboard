@@ -1,0 +1,166 @@
+/* SeasonStatsView — Requirement 19 */
+
+.season-stats {
+  padding: 1rem;
+  color: #dce8f5;
+  overflow-y: auto;
+}
+
+.season-stats__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin: 0 0 0.75rem;
+}
+
+.season-stats__warning {
+  background: #4a2010;
+  color: #ffaa66;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+.season-stats__empty {
+  color: #7aaed4;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.season-stats__refresh-btn {
+  background: #1e3a5f;
+  color: #a0c4e0;
+  border: 1px solid #2a5080;
+  border-radius: 4px;
+  padding: 0.3em 0.9em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.season-stats__refresh-btn:hover {
+  background: #254870;
+}
+
+.season-stats__section {
+  margin-bottom: 1.5rem;
+}
+
+.season-stats__section-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7aaed4;
+  margin: 0 0 0.5rem;
+}
+
+.season-stats__table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.season-stats__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  min-width: 480px;
+}
+
+.season-stats__table th {
+  background: #14243e;
+  color: #7aaed4;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.35em 0.55em;
+  text-align: center;
+  border-bottom: 1px solid #1e3a5f;
+  white-space: nowrap;
+}
+
+.season-stats__table td {
+  padding: 0.3em 0.55em;
+  text-align: center;
+  border-bottom: 1px solid #14243e;
+  color: #dce8f5;
+  white-space: nowrap;
+}
+
+.season-stats__table tbody tr:hover {
+  background: #14243e;
+}
+
+.season-stats__player-name {
+  text-align: left !important;
+  font-weight: 600;
+  color: #fff;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Export toolbar */
+.season-stats__toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.season-stats__export-btn {
+  padding: 0.3rem 0.75rem;
+  background: #1a3a6e;
+  border: 1px solid #3a6abf;
+  border-radius: 4px;
+  color: #dce8f5;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.season-stats__export-btn:hover:not(:disabled) {
+  background: #2a4a8e;
+}
+
+.season-stats__export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Export status banner */
+.season-stats__export-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.season-stats__export-status--success {
+  background: #0f3d1f;
+  border: 1px solid #2e7d32;
+  color: #81c784;
+}
+
+.season-stats__export-status--error {
+  background: #3d0f0f;
+  border: 1px solid #c62828;
+  color: #ef9a9a;
+}
+
+.season-stats__export-status-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}

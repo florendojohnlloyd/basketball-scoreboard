@@ -132,7 +132,9 @@
 
 .shot-clock__btn {
   flex: 1;
-  padding: 0.45rem 0.6rem;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.5rem 0.6rem;
   border: 1px solid #3a3a5a;
   border-radius: 5px;
   background: #2a2a4a;

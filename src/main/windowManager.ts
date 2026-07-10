@@ -34,6 +34,7 @@ interface WindowManagerState {
 // The WindowManager interface as defined in design.md / types
 export interface WindowManager {
   createWindows(): void;
+  openScoreboard(): void;
   getAvailableDisplays(): Electron.Display[];
   assignScoreboardToDisplay(displayId: number): void;
   onDisplayAdded(handler: (display: Electron.Display) => void): void;
@@ -69,13 +70,7 @@ function getRendererUrl(
     return { type: 'url', value: url };
   }
 
-  // Fallback for dev: load the source HTML directly
-  if (!app.isPackaged) {
-    const srcHtml = join(process.cwd(), `src/renderer/${entryName}/index.html`);
-    console.log(`[WindowManager] fallback loadFile: ${srcHtml}`);
-    return { type: 'file', value: srcHtml };
-  }
-  // Production packaged build
+  // Production / preview: load from built output directory
   const filePath = join(__dirname, `../renderer/${entryName}/index.html`);
   console.log(`[WindowManager] loadFile: ${filePath}`);
   return { type: 'file', value: filePath };
@@ -262,8 +257,38 @@ export function createWindowManager(): WindowManager {
     state.controlPanelWindow.on('resized', persistBounds);
 
     // ------------------------------------------------------------------
-    // Scoreboard Display window
+    // Scoreboard Display window — created on demand
     // ------------------------------------------------------------------
+
+    // Scoreboard window is NOT created automatically.
+    // It will be created when the user clicks "Open Scoreboard" in the control panel.
+
+    // ------------------------------------------------------------------
+    // Load renderer content
+    // ------------------------------------------------------------------
+    loadRenderer(state.controlPanelWindow, 'controlPanel');
+
+    // Scoreboard window is NOT created automatically.
+    // It will be created when the user clicks "Open Scoreboard" in the control panel.
+
+    // ------------------------------------------------------------------
+    // Start heartbeat & screen listeners
+    // ------------------------------------------------------------------
+    ensureScreenListeners();
+    startHeartbeat();
+  }
+
+  function openScoreboard(): void {
+    if (state.scoreboardWindow && !state.scoreboardWindow.isDestroyed()) {
+      state.scoreboardWindow.focus();
+      return;
+    }
+
+    const preloadPath = join(__dirname, '../preload/index.js');
+    const displays = getSortedDisplays();
+    const primaryDisplay = displays[0];
+    const hasSecondaryDisplay = displays.length > 1;
+
     let scoreboardX: number;
     let scoreboardY: number;
     let scoreboardWidth: number;
@@ -273,9 +298,6 @@ export function createWindowManager(): WindowManager {
     if (hasSecondaryDisplay) {
       const secondaryDisplay = displays[1];
       const savedScoreboardBounds = boundsStore.get('scoreboard');
-
-      // Use persisted bounds if they map to the same display; otherwise use
-      // the secondary display's full bounds.
       const boundsToUse =
         savedScoreboardBounds &&
         getDisplayForBounds(savedScoreboardBounds)?.id === secondaryDisplay.id
@@ -288,12 +310,11 @@ export function createWindowManager(): WindowManager {
       scoreboardHeight = boundsToUse.height;
       startFullscreen = true;
     } else {
-      // Single monitor: place scoreboard off-screen to the right of the primary
-      scoreboardX = primaryDisplay.bounds.x + primaryDisplay.bounds.width;
+      scoreboardX = primaryDisplay.bounds.x;
       scoreboardY = primaryDisplay.bounds.y;
       scoreboardWidth = primaryDisplay.bounds.width;
       scoreboardHeight = primaryDisplay.bounds.height;
-      startFullscreen = false;
+      startFullscreen = true;
     }
 
     state.scoreboardWindow = new BrowserWindow({
@@ -309,21 +330,10 @@ export function createWindowManager(): WindowManager {
       }
     });
 
-    // Persist scoreboard bounds on move/resize (relevant when not fullscreen)
     state.scoreboardWindow.on('moved', persistBounds);
     state.scoreboardWindow.on('resized', persistBounds);
-
-    // ------------------------------------------------------------------
-    // Load renderer content
-    // ------------------------------------------------------------------
-    loadRenderer(state.controlPanelWindow, 'controlPanel');
     loadRenderer(state.scoreboardWindow, 'scoreboard');
-
-    // ------------------------------------------------------------------
-    // Start heartbeat & screen listeners
-    // ------------------------------------------------------------------
-    ensureScreenListeners();
-    startHeartbeat();
+    state.isSingleMonitor = !hasSecondaryDisplay;
   }
 
   function getAvailableDisplays(): Electron.Display[] {
@@ -388,6 +398,7 @@ export function createWindowManager(): WindowManager {
   // reflects the live state rather than a snapshot
   const manager: WindowManager = {
     createWindows,
+    openScoreboard,
     getAvailableDisplays,
     assignScoreboardToDisplay,
     onDisplayAdded,

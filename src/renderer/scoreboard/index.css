@@ -1,4 +1,7 @@
-/* Global CSS for Scoreboard Display */
+/* Global CSS for Scoreboard Display — LigaControl V17.11 */
+/* Oswald font for scoreboard (offline: embed via @font-face in production) */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -16,16 +19,11 @@ html, body {
 
 body {
   color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family: 'Oswald', 'Arial Black', 'Impact', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
 #root {
-  height: 100%;
-  width: 100%;
-}
-
-.scoreboard-layout {
   height: 100%;
   width: 100%;
 }

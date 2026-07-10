@@ -72,6 +72,10 @@ function TeamConfigPanel({ team }: TeamConfigPanelProps): React.ReactElement {
   const [logoError, setLogoError] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // ---- Player image state ----
+  const [playerImgError, setPlayerImgError] = useState<string>('')
+  const playerFileInputRef = useRef<HTMLInputElement>(null)
+
   // ---- Handlers: team name ----
 
   function handleNameChange(e: React.ChangeEvent<HTMLInputElement>): void {
@@ -238,6 +242,57 @@ function TeamConfigPanel({ team }: TeamConfigPanelProps): React.ReactElement {
             role="alert"
           >
             {logoError}
+          </div>
+        )}
+      </div>
+
+      {/* ---- Player Image Upload ---- */}
+      <div className="team-config-panel__field">
+        <label
+          className="team-config-panel__label"
+          htmlFor={`team-player-${team}`}
+        >
+          Featured Player (PNG cutout)
+        </label>
+        <input
+          id={`team-player-${team}`}
+          ref={playerFileInputRef}
+          className="team-config-panel__file-input"
+          type="file"
+          accept=".png,image/png"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+            if (ext !== '.png' && file.type !== 'image/png') {
+              setPlayerImgError('Only PNG files are supported for player cutouts.')
+              if (playerFileInputRef.current) playerFileInputRef.current.value = ''
+              return
+            }
+            setPlayerImgError('')
+            const filePath = (file as File & { path?: string }).path ?? file.name
+            sendCommand({
+              type: 'SET_TEAM_CONFIG',
+              team,
+              config: { playerImagePath: filePath },
+            })
+          }}
+          aria-label={`${teamLabel} featured player image (PNG)`}
+          aria-describedby={playerImgError ? `team-player-${team}-error` : undefined}
+          aria-invalid={playerImgError ? 'true' : undefined}
+        />
+        {teamConfig.playerImagePath && !playerImgError && (
+          <div className="team-config-panel__logo-name" aria-live="polite">
+            {teamConfig.playerImagePath.split(/[\\/]/).pop()}
+          </div>
+        )}
+        {playerImgError && (
+          <div
+            id={`team-player-${team}-error`}
+            className="team-config-panel__error"
+            role="alert"
+          >
+            {playerImgError}
           </div>
         )}
       </div>

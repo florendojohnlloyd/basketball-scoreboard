@@ -1,0 +1,179 @@
+/* LeaderboardsView — Requirement 20 */
+
+.leaderboards {
+  padding: 1rem;
+  color: #dce8f5;
+  overflow-y: auto;
+}
+
+.leaderboards__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.leaderboards__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin: 0;
+}
+
+.leaderboards__warning {
+  background: #4a2010;
+  color: #ffaa66;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+.leaderboards__empty {
+  color: #7aaed4;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.leaderboards__refresh-btn {
+  background: #1e3a5f;
+  color: #a0c4e0;
+  border: 1px solid #2a5080;
+  border-radius: 4px;
+  padding: 0.3em 0.9em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.leaderboards__refresh-btn:hover {
+  background: #254870;
+}
+
+/* ── Category Tabs ── */
+
+.leaderboards__tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.leaderboards__tab {
+  background: #14243e;
+  color: #7aaed4;
+  border: 1px solid #1e3a5f;
+  border-radius: 4px;
+  padding: 0.35em 0.8em;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.1s;
+}
+
+.leaderboards__tab:hover {
+  background: #1e3a5f;
+}
+
+.leaderboards__tab--active {
+  background: #2a5080;
+  color: #fff;
+  border-color: #3a70b0;
+}
+
+/* ── Leaderboard Panel ── */
+
+.leaderboards__panel {
+  min-height: 200px;
+}
+
+.leaderboards__category-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7aaed4;
+  margin: 0 0 0.5rem;
+}
+
+/* ── Table ── */
+
+.leaderboards__table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.leaderboards__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 320px;
+}
+
+.leaderboards__table th {
+  background: #14243e;
+  color: #7aaed4;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.35em 0.55em;
+  border-bottom: 1px solid #1e3a5f;
+  white-space: nowrap;
+}
+
+.leaderboards__rank-col {
+  text-align: center;
+  width: 3.5rem;
+}
+
+.leaderboards__value-col {
+  text-align: right;
+  width: 4rem;
+}
+
+.leaderboards__table td {
+  padding: 0.35em 0.55em;
+  border-bottom: 1px solid #14243e;
+  color: #dce8f5;
+  white-space: nowrap;
+}
+
+.leaderboards__table tbody tr:hover {
+  background: #14243e;
+}
+
+.leaderboards__rank {
+  text-align: center;
+  font-weight: 700;
+  color: #7aaed4;
+}
+
+.leaderboards__row--top1 .leaderboards__rank { color: #ffd700; }
+.leaderboards__row--top2 .leaderboards__rank { color: #c0c0c0; }
+.leaderboards__row--top3 .leaderboards__rank { color: #cd7f32; }
+
+.leaderboards__player-name {
+  font-weight: 600;
+  color: #fff;
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.leaderboards__team-name {
+  color: #a0c4e0;
+  font-size: 0.76rem;
+}
+
+.leaderboards__value {
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}

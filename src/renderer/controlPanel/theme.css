@@ -1,0 +1,70 @@
+/* ============================================================
+   LigaControl — Control Panel Theme (Dark Amber-LED)
+   
+   Based on hardware scoreboard controller reference:
+   - Background: Deep charcoal/black with metallic texture
+   - LED displays: Amber/Yellow (#ffcc00) with glow
+   - Score buttons: Solid green (#2d9420)
+   - +1 button: Amber/orange (#b06010)
+   - Control buttons: Dark grey metallic (#1e2836)
+   - Labels: Amber/gold (#f0a020)
+   - Borders: Subtle orange accent (#cc6600)
+   - Switch: Red (#c03010)
+   - Text: Light (#d0dce8)
+   ============================================================ */
+
+:root {
+  /* ── Backgrounds ── */
+  --cp-bg:         #0c0f14;
+  --cp-bg2:        #141820;
+  --cp-panel:      #1a2030;
+  --cp-led-bg:     #060a10;
+
+  /* ── LED colors ── */
+  --led-amber:     #ffcc00;
+  --led-green:     #22ff55;
+  --led-red:       #ff3030;
+  --led-glow:      rgba(255, 204, 0, 0.4);
+  --led-glow-g:    rgba(34, 255, 85, 0.3);
+
+  /* ── Buttons ── */
+  --btn-green:     #2d9420;
+  --btn-green-dk:  #1c6e14;
+  --btn-amber:     #b06010;
+  --btn-amber-dk:  #7c460a;
+  --btn-ctrl:      #1e2836;
+  --btn-ctrl-bdr:  #2a3848;
+  --btn-switch:    #c03010;
+  --btn-horn:      #3a2810;
+
+  /* ── Accent ── */
+  --accent-orange: #cc6600;
+  --accent-gold:   #f0a020;
+  --accent-cyan:   #17a2b8;
+
+  /* ── Text ── */
+  --text-primary:  #d0dce8;
+  --text-muted:    #5a7090;
+  --text-label:    #f0a020;
+
+  /* ── Borders ── */
+  --border:        #22293a;
+  --border-orange: rgba(204, 102, 0, 0.4);
+  --border-led:    #2a3040;
+
+  /* ── Spacing ── */
+  --touch-min:     64px;
+  --gap-xs:        4px;
+  --gap-sm:        6px;
+  --gap-md:        10px;
+  --gap-lg:        14px;
+
+  /* ── Radius ── */
+  --r-sm:          4px;
+  --r-md:          6px;
+  --r-lg:          10px;
+
+  /* ── Font ── */
+  --font-led:      'Orbitron', 'Courier New', monospace;
+  --font-ui:       'Segoe UI', system-ui, sans-serif;
+}

@@ -1,12 +1,15 @@
 /**
- * Main process entry point.
+ * Main process entry point — LigaControl V17.11
  *
- * Instantiation order:
- *  1. GameStore        — authoritative game state
- *  2. ClockEngine      — dispatches CLOCK_TICK commands into GameStore
- *  3. WindowManager    — creates and manages BrowserWindow instances
- *  4. PresetStore      — preset CRUD backed by electron-store
- *  5. IpcRouter        — wires all modules together via IPC
+ * Bootstrap order:
+ *  1. GameStore        (with undo stack + event log)
+ *  2. ClockEngine
+ *  3. WindowManager
+ *  4. PresetStore
+ *  5. LigaStore
+ *  6. AutosaveStore
+ *  7. AuditStore
+ *  8. IpcRouter
  */
 
 import { app, protocol, net } from 'electron';
@@ -15,35 +18,66 @@ import { createGameStore } from './gameStore';
 import { createClockEngine } from './clockEngine';
 import { createWindowManager } from './windowManager';
 import { createPresetStore } from './presetStore';
+import { createLigaStore } from './ligaStore';
+import { createAutosaveStore } from './autosaveStore';
 import { createIpcRouter } from './ipcRouter';
+import { createAuditStore } from './auditStore';
+import { SCOREBOARD_EVENT } from '../shared/types';
+import type { GameState } from '../shared/types';
 
-// ---------------------------------------------------------------------------
-// Custom protocol: local-file://
-// Allows the renderer to load arbitrary local image files without hitting
-// Electron's default Content-Security-Policy restrictions on file:// URLs.
-// Must be registered before app.whenReady().
-// ---------------------------------------------------------------------------
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: 'local-file',
-    privileges: {
-      secure: true,
-      supportFetchAPI: true,
-      corsEnabled: false,
-    },
-  },
-]);
+protocol.registerSchemesAsPrivileged([{
+  scheme: 'local-file',
+  privileges: { secure: true, supportFetchAPI: true, corsEnabled: false },
+}]);
 
-// Module-level references so they can be disposed on quit
-let clockEngineInstance: ReturnType<typeof createClockEngine> | null = null;
+let clockEngineInstance:  ReturnType<typeof createClockEngine>  | null = null;
 let windowManagerInstance: ReturnType<typeof createWindowManager> | null = null;
+let autosaveInstance:      ReturnType<typeof createAutosaveStore> | null = null;
 
 function bootstrap(): void {
-  // 1. GameStore
-  const gameStore = createGameStore();
+  // ── Check for autosave / crash recovery ──
+  const autosaveStore = createAutosaveStore();
+  autosaveInstance = autosaveStore;
+  const savedState = autosaveStore.read();
 
-  // 2. ClockEngine — uses gameStore.dispatch as its tick sink
-  const clockEngine = createClockEngine((cmd) => gameStore.dispatch(cmd));
+  // 1. GameStore — restore from autosave if found
+  let initialState = savedState ?? undefined;
+  // Always clear timeout from autosave — timeouts are live-only, don't persist
+  if (initialState?.timeout) {
+    initialState = { ...initialState, timeout: null };
+  }
+  // Ensure new fields exist in restored state
+  if (initialState && !initialState.sponsorLogos) {
+    initialState = { ...initialState, sponsorLogos: [] };
+  }
+  if (initialState && !initialState.periodSnapshots) {
+    initialState = { ...initialState, periodSnapshots: [] };
+  }
+  if (initialState && initialState.showPhotosOnScoreboard === undefined) {
+    initialState = { ...initialState, showPhotosOnScoreboard: false };
+  }
+  const gameStore = createGameStore(initialState);
+
+  // 2. ClockEngine
+  let broadcastFn: ((prev: GameState, next: GameState) => void) = () => { /* noop */ };
+  let clockEngineRef: ReturnType<typeof createClockEngine> | null = null;
+
+  const clockEngine = createClockEngine((cmd) => {
+    const prev = gameStore.getState();
+    const next = gameStore.dispatch(cmd);
+    broadcastFn(prev, next);
+    autosaveStore.schedule(next);
+
+    // Detect timeout expired — timeout was running, now stopped
+    if (cmd.type === 'TIMEOUT_TICK' && prev.timeout?.running && next.timeout && !next.timeout.running) {
+      // Stop the timeout timer
+      clockEngineRef?.stopTimeoutClock();
+      // Clear timeout state
+      const cleared = gameStore.dispatch({ type: 'END_TIMEOUT' });
+      broadcastFn(next, cleared);
+    }
+  });
+  clockEngineRef = clockEngine;
   clockEngineInstance = clockEngine;
 
   // 3. WindowManager
@@ -51,43 +85,64 @@ function bootstrap(): void {
   windowManagerInstance = windowManager;
   windowManager.createWindows();
 
-  // 4. PresetStore — needs a getter for the Control Panel window so it can
-  //    send PRESET_CORRUPTED events during list()
+  // 4. PresetStore
   const presetStore = createPresetStore(() => windowManager.getControlPanelWindow());
 
-  // 5. IpcRouter — connects everything
-  createIpcRouter(gameStore, clockEngine, windowManager, presetStore);
+  // 5. LigaStore
+  const ligaStore = createLigaStore();
+
+  // 6. AuditStore
+  const auditStore = createAuditStore(
+    undefined,
+    () => windowManager.getControlPanelWindow(),
+  );
+
+  // 7. IpcRouter
+  const ipcRouter = createIpcRouter(gameStore, clockEngine, windowManager, presetStore, ligaStore, autosaveStore, auditStore);
+  broadcastFn = ipcRouter.broadcastWithBuzzerCheck.bind(ipcRouter);
+
+  // If autosave was found, notify the control panel after it opens
+  if (savedState) {
+    const cpWin = windowManager.getControlPanelWindow();
+    if (cpWin) {
+      cpWin.webContents.once('did-finish-load', () => {
+        setTimeout(() => {
+          cpWin.webContents.send(SCOREBOARD_EVENT, {
+            type: 'AUTOSAVE_FOUND',
+            ligaName: savedState.ligaName ?? 'Unknown Liga',
+          });
+        }, 1000);
+      });
+    }
+  }
 }
 
 app.whenReady().then(() => {
-  // Register the local-file:// protocol handler so the renderer can load
-  // team logo images from the local filesystem.
   protocol.handle('local-file', (request) => {
-    // Strip the scheme: "local-file:///C:/path/to/file.png" → "C:/path/to/file.png"
     const filePath = decodeURIComponent(request.url.replace(/^local-file:\/\/\//, ''));
     return net.fetch(pathToFileURL(filePath).toString());
   });
 
   bootstrap();
 
-  // macOS: re-create windows when the dock icon is clicked and no windows exist
   app.on('activate', () => {
     if (windowManagerInstance) {
       const cp = windowManagerInstance.getControlPanelWindow();
-      if (!cp || cp.isDestroyed()) {
-        windowManagerInstance.createWindows();
-      }
+      if (!cp || cp.isDestroyed()) windowManagerInstance.createWindows();
     }
   });
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('before-quit', () => {
   clockEngineInstance?.dispose();
+  if (autosaveInstance) {
+    const state = (clockEngineInstance as any)?._gameStore?.getState?.();
+    // Flush autosave on quit if possible — best-effort
+    try { autosaveInstance.dispose(); } catch { /* ignore */ }
+  }
   windowManagerInstance?.dispose();
 });

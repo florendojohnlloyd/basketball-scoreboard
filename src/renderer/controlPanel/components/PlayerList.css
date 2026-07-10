@@ -1,0 +1,247 @@
+/* PlayerList — player roster management */
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-list__header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #b0c4de;
+  text-transform: uppercase;
+}
+
+/* Add player form */
+.player-list__add-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.player-list__input {
+  background: #0d1a2e;
+  border: 1px solid #2a3a5a;
+  border-radius: 4px;
+  color: #e0e0e0;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  outline: none;
+}
+.player-list__input:focus {
+  border-color: #4a90d9;
+}
+.player-list__input--num {
+  width: 3rem;
+  text-align: center;
+}
+.player-list__input--name {
+  flex: 1;
+}
+
+.player-list__add-btn {
+  background: #1e6fb5;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.player-list__add-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.player-list__add-btn:hover:not(:disabled) {
+  background: #2a8fd9;
+}
+
+/* Empty state */
+.player-list__empty {
+  font-size: 0.75rem;
+  color: #5a7090;
+  font-style: italic;
+}
+
+/* Player rows */
+.player-list__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.player-list__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #0d1a2e;
+  border: 1px solid #1e2e4a;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.player-list__num {
+  font-weight: 800;
+  color: #7aaed4;
+  min-width: 2rem;
+}
+
+.player-list__name {
+  flex: 1;
+  font-weight: 600;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-list__pts {
+  font-weight: 700;
+  color: #4a90d9;
+  min-width: 3rem;
+  text-align: right;
+}
+
+/* Fouls */
+.player-list__fouls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.player-list__foul-btn {
+  background: #1a2a44;
+  border: 1px solid #2a3a5a;
+  color: #b0c4de;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.player-list__foul-btn:hover {
+  background: #2a4060;
+}
+.player-list__foul-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.player-list__foul-count {
+  font-weight: 800;
+  font-size: 0.7rem;
+  color: #e0e0e0;
+  min-width: 1.5rem;
+  text-align: center;
+}
+.player-list__foul-count--max {
+  color: #ff4444;
+}
+
+/* Points buttons */
+.player-list__pts-btns {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.player-list__pt-btn {
+  background: #1a3020;
+  border: 1px solid #2a5040;
+  color: #80d080;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.player-list__pt-btn:hover {
+  background: #2a5040;
+}
+
+/* Remove button */
+.player-list__remove-btn {
+  background: none;
+  border: none;
+  color: #664444;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+.player-list__remove-btn:hover {
+  color: #ff4444;
+}
+
+/* ── Player photo thumbnail (Requirement 16) ── */
+
+.player-list__photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.player-list__photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #2a3a5a;
+  background: #0d1a2e;
+  display: block;
+}
+
+/* Overlay camera icon for the file-upload trigger */
+.player-list__photo-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 1px;
+  transition: background 0.15s;
+}
+.player-list__photo-label:hover {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* Hide the actual file input — the label acts as the trigger */
+.player-list__photo-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Photo validation error banner */
+.player-list__photo-error {
+  background: #3a0d0d;
+  border: 1px solid #b03030;
+  border-radius: 4px;
+  color: #ff8080;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.6rem;
+  word-break: break-word;
+}

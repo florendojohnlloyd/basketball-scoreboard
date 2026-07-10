@@ -1,0 +1,142 @@
+/* BoxScoreView — Requirement 17 */
+
+.box-score {
+  padding: 1rem;
+  color: #dce8f5;
+  background: #0d1a35;
+  min-height: 100%;
+}
+
+.box-score__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.box-score__title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0;
+}
+
+.box-score__btn {
+  background: #1e3a5f;
+  color: #a0c4e0;
+  border: 1px solid #2a5080;
+  border-radius: 4px;
+  padding: 0.35em 0.9em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.box-score__btn:hover { background: #254870; }
+
+.box-score__team-section {
+  margin-bottom: 2rem;
+}
+
+.box-score__team-name {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7aaed4;
+  margin: 0 0 0.5rem;
+}
+
+.box-score__table-wrap {
+  overflow-x: auto;
+}
+
+.box-score__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  user-select: none;
+}
+
+.box-score__th {
+  background: #14243e;
+  color: #7aaed4;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.4em 0.6em;
+  text-align: center;
+  border-bottom: 1px solid #1e3a5f;
+  white-space: nowrap;
+}
+.box-score__th--name { text-align: left; }
+.box-score__th--period { background: #0f1d30; color: #5b8db8; font-size: 0.72rem; }
+.box-score__th--period-sub { background: #0f1d30; color: #4a7096; font-size: 0.7rem; }
+
+.box-score__td {
+  padding: 0.35em 0.6em;
+  text-align: center;
+  border-bottom: 1px solid #14243e;
+  color: #dce8f5;
+}
+.box-score__td--name { text-align: left; font-weight: 600; }
+.box-score__td--num  { font-weight: 700; color: #a0c4e0; }
+.box-score__td--period { background: #0a141f; color: #6a9cbf; font-size: 0.78rem; }
+
+.box-score__row:hover td { background: #111f36; }
+
+.box-score__totals-row td {
+  background: #192f4a;
+  border-top: 2px solid #2a5080;
+  color: #fff;
+}
+
+/* Export button variants */
+.box-score__btn--export {
+  background: #1a3a6e;
+  border-color: #3a6abf;
+}
+
+.box-score__btn--export:hover:not(:disabled) {
+  background: #2a4a8e;
+}
+
+.box-score__btn--export:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Export status banner */
+.box-score__export-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.box-score__export-status--success {
+  background: #0f3d1f;
+  border: 1px solid #2e7d32;
+  color: #81c784;
+}
+
+.box-score__export-status--error {
+  background: #3d0f0f;
+  border: 1px solid #c62828;
+  color: #ef9a9a;
+}
+
+.box-score__export-status-close {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}

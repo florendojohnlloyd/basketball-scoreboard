@@ -1,0 +1,268 @@
+/* SettingsPanel — tabbed settings window */
+
+.settings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f4f4f4;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  font-size: 12px;
+  color: #222;
+}
+
+.settings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border-bottom: 1px solid #ccc;
+}
+
+.settings__title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.settings__close {
+  background: #eee;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+  padding: 0.3em 0.8em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #333;
+}
+.settings__close:hover { background: #ddd; }
+
+.settings__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Sidebar */
+.settings__sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 9rem;
+  background: #fff;
+  border-right: 1px solid #ddd;
+  padding: 0.3rem 0;
+}
+
+.settings__tab {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.8rem;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.settings__tab:hover { background: #f0f0f0; }
+.settings__tab--active {
+  background: #c0392b;
+  color: #fff;
+  border-left-color: #900;
+  font-weight: 700;
+}
+
+/* Content area */
+.settings__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings__fieldset {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.6rem 0.8rem;
+  margin: 0;
+}
+
+.settings__fieldset legend {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #333;
+  padding: 0 0.3rem;
+}
+
+.settings__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  flex-wrap: wrap;
+}
+
+.settings__row label {
+  font-size: 0.75rem;
+  color: #444;
+  min-width: 10rem;
+}
+
+.settings__val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #222;
+}
+
+.settings__input {
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.78rem;
+  width: 10rem;
+}
+.settings__input:focus { border-color: #48f; outline: none; }
+
+.settings__color {
+  width: 2.5rem;
+  height: 1.5rem;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+
+/* ═══ Player List — dark NBA style ═══ */
+.pl {
+  background: #1e2433;
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.pl__title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+
+.pl__header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid #333;
+  gap: 0.4rem;
+}
+
+.pl__col {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #8899aa;
+  text-transform: uppercase;
+}
+.pl__col--num { width: 2rem; text-align: center; }
+.pl__col--name { flex: 1; }
+.pl__col--stat { width: 2.5rem; text-align: center; }
+.pl__col--actions { display: flex; gap: 0.25rem; }
+
+.pl__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.pl__row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.5rem;
+  background: #2a3344;
+  border-radius: 4px;
+  border: 1px solid #3a4a5a;
+  gap: 0.4rem;
+}
+
+.pl__row .pl__col--num {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #aabbcc;
+}
+
+.pl__name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.pl__pts {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #4a4;
+  background: #1a2a1a;
+  border: 1px solid #3a5a3a;
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+}
+
+.pl__pf {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #c44;
+  background: #2a1a1a;
+  border: 1px solid #5a3a3a;
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+}
+
+/* Player list buttons */
+.pl__btn {
+  background: #1a2233;
+  border: 1px solid #3a4a5a;
+  border-radius: 3px;
+  color: #ccc;
+  font-size: 0.72rem;
+  font-weight: 800;
+  width: 2rem;
+  height: 1.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pl__btn:hover { background: #2a3a4a; }
+
+.pl__btn--pts { color: #6c6; }
+.pl__btn--foul { color: #fc6; }
+.pl__btn--remove { color: #888; }
+.pl__btn--remove:hover { color: #f44; }
+
+/* Add player button */
+.pl__add-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.5rem;
+  background: #2a3344;
+  border: 1px dashed #4a5a6a;
+  border-radius: 4px;
+  color: #8899aa;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.pl__add-btn:hover {
+  background: #3a4455;
+  color: #fff;
+  border-color: #6a7a8a;
+}

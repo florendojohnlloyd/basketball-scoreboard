@@ -2,6 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
+// Initialize audio engine so it subscribes to buzzer IPC events
+import './audio/audioEngine'
 
 /**
  * Control Panel renderer entry point.
