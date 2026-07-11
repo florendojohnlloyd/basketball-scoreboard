@@ -92,7 +92,7 @@ export function computeMinutesPlayed(
   player: { active: boolean; substitutions: { clockMs: number; period: number; active: boolean }[] },
   currentClockMs: number,
 ): number {
-  const subs = player.substitutions
+  const subs = player.substitutions || []
   let totalMs = 0
   let startMs: number | null = null
 
@@ -151,7 +151,7 @@ export function computePlusMinus(
   const intervals: Interval[] = []
   let enterEntry: { clockMs: number; period: number } | null = null
 
-  for (const sub of player.substitutions) {
+  for (const sub of (player.substitutions || [])) {
     if (sub.active) {
       enterEntry = { clockMs: sub.clockMs, period: sub.period }
     } else {
@@ -247,5 +247,17 @@ export function computePEI(player: {
 // ---------------------------------------------------------------------------
 
 export function sendCommand(command: CommandType): void {
+  // Fire command via send (main process handles and broadcasts)
   window.electron.ipcRenderer.send(SCOREBOARD_COMMAND, command)
+  // Also fetch state after a brief wait to guarantee UI update
+  // Using two retries to handle any timing edge cases
+  const refresh = (): void => {
+    window.electron.ipcRenderer.invoke(SCOREBOARD_QUERY, { type: 'GET_STATE' })
+      .then((state: unknown) => {
+        if (state) useControlPanelStore.getState().setGameState(state as GameState)
+      })
+      .catch(() => {})
+  }
+  setTimeout(refresh, 16)
+  setTimeout(refresh, 100)
 }

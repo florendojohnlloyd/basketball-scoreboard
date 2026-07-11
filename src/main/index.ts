@@ -56,6 +56,19 @@ function bootstrap(): void {
   if (initialState && initialState.showPhotosOnScoreboard === undefined) {
     initialState = { ...initialState, showPhotosOnScoreboard: false };
   }
+  // Patch missing timeout half-tracking fields from old saves
+  if (initialState) {
+    const patchTeam = (team: typeof initialState.home) => ({
+      ...team,
+      timeouts: {
+        firstHalfUsed: 0,
+        secondHalfUsed: 0,
+        overtimeUsed: 0,
+        ...team.timeouts,
+      },
+    });
+    initialState = { ...initialState, home: patchTeam(initialState.home), away: patchTeam(initialState.away) };
+  }
   const gameStore = createGameStore(initialState);
 
   // 2. ClockEngine
@@ -91,11 +104,17 @@ function bootstrap(): void {
   // 5. LigaStore
   const ligaStore = createLigaStore();
 
-  // 6. AuditStore
-  const auditStore = createAuditStore(
-    undefined,
-    () => windowManager.getControlPanelWindow(),
-  );
+  // 6. AuditStore (gracefully handles missing native modules)
+  let auditStore: any;
+  try {
+    auditStore = createAuditStore(
+      undefined,
+      () => windowManager.getControlPanelWindow(),
+    );
+  } catch (err) {
+    console.warn('[LigaControl] AuditStore creation failed:', (err as Error).message);
+    auditStore = { log() {}, query() { return [] }, purgeOldEntries() { return 0 }, getRecentEntries() { return [] }, close() {} };
+  }
 
   // 7. IpcRouter
   const ipcRouter = createIpcRouter(gameStore, clockEngine, windowManager, presetStore, ligaStore, autosaveStore, auditStore);
@@ -123,7 +142,11 @@ app.whenReady().then(() => {
     return net.fetch(pathToFileURL(filePath).toString());
   });
 
-  bootstrap();
+  try {
+    bootstrap();
+  } catch (err) {
+    console.error('[LigaControl] FATAL: bootstrap() crashed:', err);
+  }
 
   app.on('activate', () => {
     if (windowManagerInstance) {

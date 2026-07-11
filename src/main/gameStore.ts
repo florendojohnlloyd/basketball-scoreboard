@@ -160,16 +160,49 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
     case 'USE_TIMEOUT': {
       const { team, kind } = command;
       const ts = state[team];
-      const max = kind === 'full' ? state.gameConfig.fullTimeoutsPerTeam : state.gameConfig.twentySecTimeoutsPerTeam;
+      const { period, gameClock } = state;
+
+      // ── Custom timeout rules ──
+      const isOT = period.isOvertime;
+      const isFirstHalf = !isOT && period.current <= 2;
+      const isSecondHalf = !isOT && period.current >= 3;
+      const isLast2MinQ4 = period.current === 4 && !isOT && gameClock.displayMs <= 120_000;
+
+      // Determine max allowed for current phase
+      const firstHalfMax = 2;
+      const secondHalfMax = 3;
+      const otMax = 1;
+      const last2MinMax = 2; // max 2 timeouts in last 2 min of Q4
+
+      const { firstHalfUsed, secondHalfUsed, overtimeUsed } = ts.timeouts;
+
+      // Check if timeout is allowed
+      if (kind === 'full') {
+        if (isFirstHalf && firstHalfUsed >= firstHalfMax) return state; // blocked
+        if (isSecondHalf && secondHalfUsed >= secondHalfMax) return state; // blocked
+        if (isOT && overtimeUsed >= otMax) return state; // blocked
+        if (isLast2MinQ4 && secondHalfUsed >= last2MinMax) return state; // last 2 min restriction
+      }
+
       const field = kind === 'full' ? 'fullRemaining' : 'twentyRemaining';
+      const max = kind === 'full' ? state.gameConfig.fullTimeoutsPerTeam : state.gameConfig.twentySecTimeoutsPerTeam;
       const next = clamp(ts.timeouts[field] - 1, 0, max);
+
+      const newTimeouts: typeof ts.timeouts = {
+        ...ts.timeouts,
+        [field]: next,
+        firstHalfUsed: isFirstHalf && kind === 'full' ? firstHalfUsed + 1 : firstHalfUsed,
+        secondHalfUsed: isSecondHalf && kind === 'full' ? secondHalfUsed + 1 : secondHalfUsed,
+        overtimeUsed: isOT && kind === 'full' ? overtimeUsed + 1 : overtimeUsed,
+      };
+
       const ev = makeEvent(state, 'TIMEOUT', {
         team,
-        description: `${ts.config.name} timeout (${kind}) — ${next} left`,
+        description: `${ts.config.name} timeout — ${next} left`,
       });
       return {
         ...state,
-        [team]: { ...ts, timeouts: { ...ts.timeouts, [field]: next } },
+        [team]: { ...ts, timeouts: newTimeouts },
         events: [...state.events, ev],
       };
     }
@@ -218,8 +251,34 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
         ...capturedSnap,
         period: newPeriod,
         gameClock,
-        home: clearFouls(capturedSnap.home),
-        away: clearFouls(capturedSnap.away),
+        home: {
+          ...clearFouls(capturedSnap.home),
+          timeouts: {
+            ...capturedSnap.home.timeouts,
+            // Reset per-half counters at Q2→Q3 transition or at OT start
+            ...(capturedSnap.period.current === 2 ? { secondHalfUsed: 0 } : {}),
+            ...(newPeriod.isOvertime && newPeriod.overtimeNumber === 1 ? { overtimeUsed: 0 } : {}),
+            // Refresh remaining based on phase
+            fullRemaining: newPeriod.isOvertime
+              ? 1
+              : capturedSnap.period.current === 2
+                ? 3  // entering second half: 3 timeouts available
+                : capturedSnap.home.timeouts.fullRemaining,
+          },
+        },
+        away: {
+          ...clearFouls(capturedSnap.away),
+          timeouts: {
+            ...capturedSnap.away.timeouts,
+            ...(capturedSnap.period.current === 2 ? { secondHalfUsed: 0 } : {}),
+            ...(newPeriod.isOvertime && newPeriod.overtimeNumber === 1 ? { overtimeUsed: 0 } : {}),
+            fullRemaining: newPeriod.isOvertime
+              ? 1
+              : capturedSnap.period.current === 2
+                ? 3
+                : capturedSnap.away.timeouts.fullRemaining,
+          },
+        },
         events: [...capturedSnap.events, ev],
       };
     }
@@ -251,8 +310,8 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
         gameConfig: { ...preset },
         gameClock: { displayMs: durationMs, running: false, configuredDurationMs: durationMs },
         shotClock: { ...state.shotClock, displayMs: preset.shotClockDurationSeconds * 1000, running: false, configuredDurationSeconds: preset.shotClockDurationSeconds },
-        home: { ...state.home, timeouts: { fullRemaining: preset.fullTimeoutsPerTeam, twentyRemaining: preset.twentySecTimeoutsPerTeam } },
-        away: { ...state.away, timeouts: { fullRemaining: preset.fullTimeoutsPerTeam, twentyRemaining: preset.twentySecTimeoutsPerTeam } },
+        home: { ...state.home, timeouts: { fullRemaining: preset.fullTimeoutsPerTeam, twentyRemaining: preset.twentySecTimeoutsPerTeam, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 } },
+        away: { ...state.away, timeouts: { fullRemaining: preset.fullTimeoutsPerTeam, twentyRemaining: preset.twentySecTimeoutsPerTeam, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 } },
       };
     }
 
@@ -263,7 +322,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       const resetTeam = (t: TeamState): TeamState => ({
         config: clearTeams ? { name: t.config.name, color: t.config.color, logoPath: null, playerImagePath: null } : { ...t.config },
         score: 0, fouls: 0, turnovers: 0,
-        timeouts: { fullRemaining: cfg.fullTimeoutsPerTeam, twentyRemaining: cfg.twentySecTimeoutsPerTeam },
+        timeouts: { fullRemaining: cfg.fullTimeoutsPerTeam, twentyRemaining: cfg.twentySecTimeoutsPerTeam, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 },
         players: clearTeams ? [] : t.players.map(p => ({
           ...p,
           fouls: 0, points: 0, rebounds: 0, assists: 0,
@@ -416,7 +475,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           period: state.period.current,
           active: newActive,
         };
-        return { ...p, active: newActive, substitutions: [...p.substitutions, entry] };
+        return { ...p, active: newActive, substitutions: [...(p.substitutions || []), entry] };
       });
       const player = players.find(p => p.id === playerId);
       const ev = makeEvent(state, 'SUBSTITUTION', {
@@ -516,7 +575,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           score: 0,
           fouls: 0,
           turnovers: 0,
-          timeouts: { fullRemaining: state.gameConfig.fullTimeoutsPerTeam, twentyRemaining: state.gameConfig.twentySecTimeoutsPerTeam },
+          timeouts: { fullRemaining: state.gameConfig.fullTimeoutsPerTeam, twentyRemaining: state.gameConfig.twentySecTimeoutsPerTeam, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 },
         },
         away: {
           ...state.away,
@@ -525,7 +584,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           score: 0,
           fouls: 0,
           turnovers: 0,
-          timeouts: { fullRemaining: state.gameConfig.fullTimeoutsPerTeam, twentyRemaining: state.gameConfig.twentySecTimeoutsPerTeam },
+          timeouts: { fullRemaining: state.gameConfig.fullTimeoutsPerTeam, twentyRemaining: state.gameConfig.twentySecTimeoutsPerTeam, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 },
         },
       };
     }

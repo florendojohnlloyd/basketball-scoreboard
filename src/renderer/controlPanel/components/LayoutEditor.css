@@ -1,0 +1,317 @@
+/* LayoutEditor — 2 divs: static TV display + editable control panel */
+
+.le {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0a0a0e;
+  overflow: hidden;
+}
+
+/* ═══ TOOLBAR ═══ */
+.le-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #111118;
+  border-bottom: 2px solid #e0a800;
+  flex-shrink: 0;
+  z-index: 50;
+}
+
+.le-toolbar__title {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #e0a800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.le-toolbar__btn {
+  padding: 6px 14px;
+  background: #1e1e28;
+  border: 1px solid #2e2e3e;
+  border-radius: 5px;
+  color: #c0c0d0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.le-toolbar__btn:hover {
+  background: #2a2a38;
+  border-color: #4a4a5e;
+}
+
+.le-toolbar__btn--active {
+  background: #2a1e08;
+  border-color: #e0a800;
+  color: #e0a800;
+}
+
+.le-toolbar__btn--warn {
+  border-color: #703030;
+  color: #f88;
+}
+
+.le-toolbar__btn--warn:hover {
+  background: #2a1414;
+}
+
+/* ═══ UPPER: STATIC TV DISPLAY ═══ */
+.le-display {
+  flex-shrink: 0;
+  height: 38vh;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 3px solid #1a2a40;
+  background: linear-gradient(180deg, #06101e 0%, #0a1a30 50%, #06101e 100%);
+  overflow: hidden;
+}
+
+.le-display__bar {
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid #17a2b8;
+  flex-shrink: 0;
+}
+
+.le-display__label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #17a2b8;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.le-display__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+}
+
+/* TV preview widgets (non-editable) */
+.le-tv__clock {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 5vh, 3.5rem);
+  font-weight: 900;
+  color: #ff3030;
+  text-shadow: 0 0 12px rgba(255, 48, 48, 0.7);
+}
+
+.le-tv__period {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #f4d03f;
+  letter-spacing: 0.12em;
+}
+
+.le-tv__scores {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+}
+
+.le-tv__team {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+}
+
+.le-tv__team-name {
+  font-size: clamp(0.7rem, 1.2vw, 1rem);
+  font-weight: 900;
+  color: #ddd;
+  text-transform: uppercase;
+}
+
+.le-tv__team-score {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 5vh, 3.5rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.le-tv__vs {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #556;
+}
+
+.le-tv__players {
+  display: flex;
+  gap: 3vw;
+  width: 80%;
+  max-width: 600px;
+}
+
+.le-tv__player-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.le-tv__player-list--home { border-left: 3px solid #2980b9; padding-left: 6px; }
+.le-tv__player-list--away { border-left: 3px solid #c0392b; padding-left: 6px; }
+
+.le-tv__player-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: #aab;
+}
+
+.le-tv__pts {
+  color: #f4d03f;
+  font-weight: 800;
+}
+
+/* ═══ LOWER: EDITABLE CONTROL PANEL ═══ */
+.le-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.le-controls__bar {
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid #e0a800;
+  flex-shrink: 0;
+}
+
+.le-controls__label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #e0a800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.le-controls__canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, rgba(255,170,0,0.015) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 4px),
+    linear-gradient(180deg, #1a1a1a 0%, #0e0e0e 50%, #121212 100%);
+  background-size: 10px 10px, auto, auto;
+}
+
+/* ═══ CONTROL WIDGET INTERNALS ═══ */
+.le-c-score {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  width: 100%;
+}
+
+.le-c-score__team {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #e0a800;
+  white-space: nowrap;
+  min-width: 35px;
+  text-transform: uppercase;
+}
+
+.le-c-clock {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.2rem, 3vh, 1.8rem);
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 8px rgba(255, 200, 0, 0.6);
+  text-align: center;
+  width: 100%;
+}
+
+.le-c-btns {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.le-c-shot-val,
+.le-c-period-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ffcc00;
+  min-width: 28px;
+  text-align: center;
+}
+
+.le-c-period-val { color: #ffffff; }
+
+.le-c-foul-val {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #f88;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Control buttons */
+.le-c-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid #3a3a5a;
+  background: #2a2a3a;
+  color: #ccc;
+  transition: background 0.1s, transform 0.05s;
+  min-height: 26px;
+  white-space: nowrap;
+}
+
+.le-c-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.le-c-btn:active:not(:disabled) { transform: scale(0.93); }
+
+.le-c-btn--g { background: #1e5c2b; border-color: #2a7a40; color: #8eff8e; }
+.le-c-btn--g:hover:not(:disabled) { background: #267a36; }
+
+.le-c-btn--a { background: #5a3a10; border-color: #8a5a20; color: #ffe080; }
+.le-c-btn--a:hover:not(:disabled) { background: #6a4a18; }
+
+.le-c-btn--r { background: #5a1a1a; border-color: #8a3030; color: #ff9090; }
+.le-c-btn--r:hover:not(:disabled) { background: #702020; }
+
+.le-c-btn--d { background: #1e1e28; border-color: #3a3a5a; color: #aab; }
+.le-c-btn--d:hover:not(:disabled) { background: #2a2a38; }
+
+.le-c-btn--sw {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #8a2020 0%, #5a1010 100%);
+  border: 2px solid #cc3010;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.le-c-btn--horn {
+  background: #3a2808;
+  border-color: #7a5020;
+  color: #ffbb33;
+  min-width: 70px;
+}
+.le-c-btn--horn:hover { background: #4a3810; }

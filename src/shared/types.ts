@@ -108,6 +108,10 @@ export interface TeamConfig {
 export interface TimeoutState {
   fullRemaining: number;
   twentyRemaining: number;
+  // Per-half tracking for custom rules
+  firstHalfUsed: number;    // timeouts used in Q1-Q2 (max 2)
+  secondHalfUsed: number;   // timeouts used in Q3-Q4 (max 3)
+  overtimeUsed: number;     // timeouts used in OT (max 1)
 }
 
 export interface Player {
@@ -618,6 +622,9 @@ export function DEFAULT_GAME_STATE(): GameState {
     timeouts: {
       fullRemaining: config.fullTimeoutsPerTeam,
       twentyRemaining: config.twentySecTimeoutsPerTeam,
+      firstHalfUsed: 0,
+      secondHalfUsed: 0,
+      overtimeUsed: 0,
     },
     players: [],
   });

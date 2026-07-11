@@ -213,6 +213,10 @@
 
 /* ═══ OVERLAYS ═══ */
 .tv-timeout { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+.tv-timeout--split { flex-direction: row; }
+.tv-timeout__left { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vh; }
+.tv-timeout__right { flex: 1; display: flex; align-items: center; justify-content: center; height: 100%; overflow: hidden; }
+.tv-timeout__video { width: 100%; height: 100%; object-fit: contain; }
 .tv-timeout__flash { font-size: clamp(3rem, 8vw, 8rem); font-weight: 900; color: #f4d03f; text-shadow: 0 0 40px rgba(244,208,63,0.7); letter-spacing: 0.15em; animation: pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 .tv-timeout__team { font-size: clamp(1.2rem, 3vw, 3rem); font-weight: 900; margin-top: 2vh; }
@@ -253,3 +257,45 @@
 .tv-go__sep { font-size: clamp(2rem, 4vw, 4rem); color: #555; }
 .tv-go__winner { font-size: clamp(1.2rem, 2.5vw, 2.5rem); font-weight: 900; color: #ffd700; }
 .tv-go__mvp { font-size: clamp(0.9rem, 1.8vw, 1.8rem); color: #aad; }
+
+
+/* ═══ TV EDIT MODE ═══ */
+.tv--editing {
+  position: relative !important;
+  display: block !important;
+}
+
+.tv-edit-toggle {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 500;
+  display: flex;
+  gap: 6px;
+}
+
+.tv-edit-toggle__btn {
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid #444;
+  border-radius: 5px;
+  color: #ccc;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.tv-edit-toggle__btn--active {
+  border-color: #e0a800;
+  color: #e0a800;
+}
+
+.tv-edit-toggle__btn--warn {
+  border-color: #703030;
+  color: #f88;
+}
+
+.tv-edit-toggle__btn:hover {
+  background: rgba(40, 40, 40, 0.9);
+}

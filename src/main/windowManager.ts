@@ -326,7 +326,8 @@ export function createWindowManager(): WindowManager {
       fullscreen: startFullscreen,
       webPreferences: {
         preload: preloadPath,
-        sandbox: false
+        sandbox: false,
+        webSecurity: false,
       }
     });
 

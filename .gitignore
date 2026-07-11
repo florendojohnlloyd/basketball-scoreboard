@@ -18,3 +18,7 @@ Thumbs.db
 
 # Editor
 .vscode/
+
+
+# Large video files
+vid/*.mp4

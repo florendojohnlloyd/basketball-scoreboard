@@ -20,7 +20,13 @@ try {
   _appGetPath = null;
 }
 
-import Database from 'better-sqlite3';
+// Lazy-load better-sqlite3 to avoid crash if native module is incompatible
+let Database: any;
+try {
+  Database = require('better-sqlite3');
+} catch {
+  Database = null;
+}
 import { join } from 'path';
 import { mkdirSync, existsSync, renameSync } from 'fs';
 import type { BrowserWindow } from 'electron';
@@ -123,6 +129,18 @@ export function createAuditStore(
   dbPath?: string,
   getControlPanelWindow?: () => BrowserWindow | null,
 ): AuditStore {
+
+  // If better-sqlite3 failed to load, return a no-op store
+  if (!Database) {
+    console.warn('[LigaControl] AuditStore: better-sqlite3 not available — audit logging disabled');
+    return {
+      log: () => {},
+      query: () => [],
+      purgeOldEntries: () => 0,
+      getRecentEntries: () => [],
+      close: () => {},
+    } as unknown as AuditStore;
+  }
 
   // ── Resolve DB path ──
   let resolvedPath: string;

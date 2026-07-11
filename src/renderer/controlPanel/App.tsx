@@ -4,12 +4,15 @@ import { formatClockDisplay } from '../shared/clockUtils'
 import type { Player, Liga, LigaTeam } from '@shared/types'
 import { SportSelector } from './components/SportSelector'
 import { TeamRosterModal } from './components/TeamRosterModal'
-import TeamStatsPanel from './components/TeamStatsPanel'
+import { EditableWidget } from './components/EditableWidget'
+import { useLayoutStore } from './components/useLayoutStore'
+import { ScoreTab } from './components/ScoreTab'
 import AdvancedMetricsPanel from './components/AdvancedMetricsPanel'
 import GameHistoryView from './components/GameHistoryView'
 import SeasonStatsView from './components/SeasonStatsView'
 import LeaderboardsView from './components/LeaderboardsView'
 import BoxScoreView from './components/BoxScoreView'
+import sponsorLogo from '../../../pictures/BG.png'
 import './App.css'
 import './audio/audioEngine'
 
@@ -58,6 +61,9 @@ function App(): React.ReactElement {
   if (screen === 'liga-picker') {
     return (
       <div className="liga-picker">
+        <div className="liga-picker__sponsor">
+          <img src={sponsorLogo} alt="Sponsor" className="liga-picker__sponsor-img" />
+        </div>
         <div className="liga-picker__card">
           <div className="liga-picker__logo">🏀</div>
           <h1 className="liga-picker__title">LigaControl</h1>
@@ -100,8 +106,11 @@ function App(): React.ReactElement {
             )}
 
             {/* TRIAL MODE */}
-            <button className="btn btn--dark btn--lg" onClick={() => setScreen('control-panel')}>TRIAL MODE (Quick Game)</button>
-            <p style={{ fontSize: '0.65rem', color: '#556', textAlign: 'center' }}>Trial mode: no Liga needed, direct to scoreboard</p>
+            <button className="btn btn--dark btn--lg" onClick={() => {
+              sendCommand({ type: 'NEW_GAME', clearTeams: false })
+              setScreen('control-panel')
+            }}>TRIAL MODE (Quick Game)</button>
+            <p style={{ fontSize: '0.65rem', color: '#556', textAlign: 'center' }}>Trial mode: keeps teams, resets scores</p>
           </div>
         </div>
       </div>
@@ -254,6 +263,8 @@ function App(): React.ReactElement {
               lp.map((p, i) => ({
                 id: p.id, number: p.number, name: p.name,
                 fouls: 0, points: 0, rebounds: 0, assists: 0,
+                steals: 0, blocks: 0, fga: 0, fgm: 0,
+                minutesPlayed: 0, substitutions: [], photoPath: null,
                 active: i < 5, fouledOut: false,
               }))
 
@@ -294,6 +305,9 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
   const [showSubModal, setShowSubModal] = useState<'home' | 'away' | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<{ team: 'home' | 'away'; id: string } | null>(null)
   const [showBoxScore, setShowBoxScore] = useState(false)
+  const [templateInput, setTemplateInput] = useState<'save' | 'load' | null>(null)
+  const [templateName, setTemplateName] = useState('')
+  const { editing: layoutEditing, setEditing: setLayoutEditing, resetLayout, saveTemplate, loadTemplate, getTemplateNames, currentTemplate } = useLayoutStore()
 
   // Swipe navigation
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null)
@@ -320,164 +334,27 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
   const shotSec = Math.ceil(shotClock.displayMs / 1000)
 
   return (
-    <div className="cp">
+    <div className="cp" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
       {/* ── TAB BAR ── */}
       <div className="cp-tabs">
         {TABS.map(t => (
           <button key={t} className={`cp-tabs__btn${tab === t ? ' cp-tabs__btn--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
         ))}
+        <button className={`cp-tabs__btn cp-tabs__btn--right${layoutEditing ? ' cp-tabs__btn--active' : ''}`} onClick={() => setLayoutEditing(!layoutEditing)}>
+          {layoutEditing ? '🔓 Lock' : '✏️ Edit'}
+        </button>
+        {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#f88' }} onClick={resetLayout}>↺ Reset</button>}
+        {layoutEditing && currentTemplate && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8f8' }} onClick={() => saveTemplate(currentTemplate)}>💾 Save</button>}
+        {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#adf' }} onClick={() => { setTemplateName(''); setTemplateInput('save') }}>💾 Save As</button>}
+        {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8cf' }} onClick={() => { setTemplateName(''); setTemplateInput('load') }}>📂 Load</button>}
         <button className="cp-tabs__btn cp-tabs__btn--right" onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺 TV</button>
         <button className="cp-tabs__btn cp-tabs__btn--right" onClick={onBack}>← Liga</button>
       </div>
 
-      {/* ── SCORE TAB — No scroll, 3-column: Players left/right vertical ── */}
+      {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (
-        <div className="score-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-
-          {/* LEFT: Home team */}
-          <div className="side-col side-col--home">
-            <div className="side-col__header">
-              <span className="team-label">HOME</span>
-            </div>
-            <div className="side-col__score-row">
-              <button className="btn btn--g btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 3 })}>+3</button>
-              <button className="btn btn--g btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 2 })}>+2</button>
-              <button className="btn btn--a btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 1 })}>+1</button>
-              <div className="led-box"><span className="led-val">{home.score}</span></div>
-            </div>
-            <div className="side-col__players">
-              {home.players.filter(p => p.active && !p.fouledOut).slice(0, 5).map(p => (
-                <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({ team: 'home', id: p.id })}>
-                  <span className="side-col__player-num">#{p.number}</span>
-                  <span className="side-col__player-name">{p.name}</span>
-                  <span className="side-col__player-pts">{p.points}</span>
-                </div>
-              ))}
-            </div>
-            <div className="side-col__timeout">
-              <span className="to-label">TO:</span>
-              <div className="led-box"><span className="led-val" style={{ fontSize: '1.8vh' }}>{home.timeouts.fullRemaining}</span></div>
-              <button className="btn btn--dark btn--sm" onClick={() => { sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' }); sendCommand({ type: 'START_TIMEOUT', team: 'home' }) }}>USE</button>
-            </div>
-          </div>
-
-          {/* CENTER */}
-          <div className="center-col">
-            {/* Clock */}
-            <div className="center-col__clock-area">
-              <div className="clock-panel"><span className="clock-led">{clockStr}</span></div>
-              <div className="center-col__clock-btns">
-                <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'START_GAME_CLOCK' })} disabled={gameClock.running}>Start</button>
-                <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'STOP_GAME_CLOCK' })} disabled={!gameClock.running}>Pause</button>
-                <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'RESET_GAME_CLOCK' })}>Reset</button>
-              </div>
-              <button className="btn btn--sw" onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}>⇄ SWITCH</button>
-            </div>
-
-            {/* Shot + Period */}
-            <div className="center-col__mid">
-              <div className="mini-block">
-                <span className="mini-block__lbl">Shot</span>
-                <div className="led-box"><span className="led-val">{shotSec}</span></div>
-                <div className="mini-block__btns">
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'START_SHOT_CLOCK' })}>▶</button>
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'RESET_SHOT_CLOCK' })}>↺</button>
-                </div>
-              </div>
-              <div className="mini-block">
-                <span className="mini-block__lbl">Period</span>
-                <div className="led-box"><span className="led-val led-val--big">{period.isOvertime ? `OT${period.overtimeNumber}` : period.current}</span></div>
-                <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'ADVANCE_PERIOD' })}>NEXT Q</button>
-              </div>
-              <div className="mini-block">
-                <span className="mini-block__lbl">Bonus H</span>
-                <div className="led-box"><span className="led-val">{home.fouls}</span></div>
-                <div className="mini-block__btns">
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}>+</button>
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'home' })}>-</button>
-                </div>
-              </div>
-              <div className="mini-block">
-                <span className="mini-block__lbl">Bonus A</span>
-                <div className="led-box"><span className="led-val">{away.fouls}</span></div>
-                <div className="mini-block__btns">
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'away' })}>+</button>
-                  <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}>-</button>
-                </div>
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="center-col__stats">
-              <button className="btn btn--stat btn--sm" disabled={!selectedPlayer} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_REBOUND', team: selectedPlayer.team, playerId: selectedPlayer.id })}>+REB</button>
-              <button className="btn btn--stat btn--sm" disabled={!selectedPlayer} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_ASSIST', team: selectedPlayer.team, playerId: selectedPlayer.id })}>+AST</button>
-              <button className="btn btn--foul btn--sm" disabled={!selectedPlayer} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_FOUL', team: selectedPlayer.team, playerId: selectedPlayer.id })}>+FOUL</button>
-              <button className="btn btn--stat btn--sm" disabled={!selectedPlayer}>+STL</button>
-              <button className="btn btn--stat btn--sm" disabled={!selectedPlayer}>+BLK</button>
-              <button className="btn btn--stat btn--sm" disabled={!selectedPlayer}>+TO</button>
-              <button className="btn btn--sub btn--sm" onClick={() => setShowSubModal(selectedPlayer?.team ?? 'home')}>SUB</button>
-              <button className="btn btn--undo btn--sm" onClick={() => sendCommand({ type: 'UNDO' })}>UNDO</button>
-              <button className="btn btn--replay btn--sm" onClick={() => window.electron.ipcRenderer.send('scoreboard:event', { type: 'REPLAY_TRIGGER' })}>⏺</button>
-            </div>
-
-            {/* Possession */}
-            <div className="center-col__timeout-row">
-              <button className={`btn btn--dark btn--sm${gs.possession === 'home' ? ' btn--sw' : ''}`} onClick={() => sendCommand({ type: 'SET_POSSESSION', team: 'home' })}>◀ POSS</button>
-              <button className={`btn btn--dark btn--sm${gs.possession === 'away' ? ' btn--sw' : ''}`} onClick={() => sendCommand({ type: 'SET_POSSESSION', team: 'away' })}>POSS ▶</button>
-            </div>
-
-            {/* Footer */}
-            <div className="center-col__footer">
-              <button className="btn btn--horn btn--sm" onClick={() => { import('./audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod()) }}>🔔 Horn</button>
-              <button className="btn btn--dark btn--sm" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>RESET</button>
-              <button className="btn btn--horn btn--sm" onClick={() => { import('./audio/audioEngine').then(m => m.audioEngine.playShotClockViolation()) }}>🔔 Sub</button>
-              {gs.gamePhase === 'post-game' && (
-                <button
-                  className="btn btn--green btn--sm"
-                  onClick={() => setShowBoxScore(true)}
-                  aria-label="View box score"
-                >
-                  📋 Box Score
-                </button>
-              )}
-            </div>
-
-            {/* Team stats (Req 14) */}
-            <div className="center-col__team-stats">
-              <TeamStatsPanel team="home" />
-              <TeamStatsPanel team="away" />
-            </div>
-          </div>
-
-          {/* RIGHT: Away team */}
-          <div className="side-col side-col--away">
-            <div className="side-col__header">
-              <span className="team-label">AWAY</span>
-            </div>
-            <div className="side-col__score-row">
-              <div className="led-box"><span className="led-val">{away.score}</span></div>
-              <button className="btn btn--g btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 1 })}>+1</button>
-              <button className="btn btn--g btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 2 })}>+2</button>
-              <button className="btn btn--a btn--sm" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 3 })}>+3</button>
-            </div>
-            <div className="side-col__players">
-              {away.players.filter(p => p.active && !p.fouledOut).slice(0, 5).map(p => (
-                <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({ team: 'away', id: p.id })}>
-                  <span className="side-col__player-num">#{p.number}</span>
-                  <span className="side-col__player-name">{p.name}</span>
-                  <span className="side-col__player-pts">{p.points}</span>
-                </div>
-              ))}
-            </div>
-            <div className="side-col__timeout">
-              <span className="to-label">TO:</span>
-              <div className="led-box"><span className="led-val" style={{ fontSize: '1.8vh' }}>{away.timeouts.fullRemaining}</span></div>
-              <button className="btn btn--dark btn--sm" onClick={() => { sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' }); sendCommand({ type: 'START_TIMEOUT', team: 'away' }) }}>USE</button>
-            </div>
-          </div>
-
-        </div>
+        <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} />
       )}
 
       {/* ── ROSTER TAB ── */}
@@ -504,7 +381,7 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
                   ))}
                 </div>
                 <button className="btn btn--dark btn--lg" onClick={() => {
-                  const pl: Player = { id: `${team}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, number: String(t.players.length + 1), name: 'NEW PLAYER', fouls: 0, points: 0, rebounds: 0, assists: 0, active: t.players.filter(x => x.active).length < 5, fouledOut: false }
+                  const pl: Player = { id: `${team}-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, number: String(t.players.length + 1), name: 'NEW PLAYER', fouls: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fga: 0, fgm: 0, minutesPlayed: 0, substitutions: [], photoPath: null, active: t.players.filter(x => x.active).length < 5, fouledOut: false }
                   sendCommand({ type: 'ADD_PLAYER', team, player: pl })
                 }}>+ Add Player</button>
               </div>
@@ -581,6 +458,15 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
         <div className="settings-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           <h3>Volume</h3>
           <input type="range" min="0" max="100" defaultValue={Math.round(gs.volume * 100)} onChange={e => sendCommand({ type: 'SET_VOLUME', level: parseInt(e.target.value) / 100 })} />
+          <h3>Player Name Size</h3>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <input type="range" min="6" max="20" defaultValue={parseInt(localStorage.getItem('player-name-size') || '10')} onChange={e => {
+              const val = e.target.value
+              localStorage.setItem('player-name-size', val)
+              document.documentElement.style.setProperty('--player-name-cqh', `${val}cqh`)
+            }} />
+            <span style={{color:'#aaa',fontSize:'0.75rem'}}>{localStorage.getItem('player-name-size') || '10'} (drag to resize)</span>
+          </div>
           <h3>Presets</h3>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 12, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 5, foulOutLimit: 6, fullTimeoutsPerTeam: 7, twentySecTimeoutsPerTeam: 1, timeoutDurationSeconds: 60 } })}>NBA Rules</button>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 10, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 4, foulOutLimit: 5, fullTimeoutsPerTeam: 5, twentySecTimeoutsPerTeam: 0, timeoutDurationSeconds: 60 } })}>FIBA Rules</button>
@@ -591,6 +477,55 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
             {gs.events.slice(-20).reverse().map(ev => (
               <div key={ev.id} className="log-entry"><small>{ev.timestamp.slice(11, 19)}</small> {ev.description}</div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── TEMPLATE MODAL ── */}
+      {templateInput && (
+        <div className="sub-modal" onClick={e => e.target === e.currentTarget && setTemplateInput(null)}>
+          <div className="sub-modal__content" style={{ maxWidth: 320 }}>
+            <h3 style={{ color: '#e0a800', marginBottom: 12 }}>
+              {templateInput === 'save' ? '💾 Save Layout Template' : '📂 Load Layout Template'}
+            </h3>
+            {templateInput === 'save' && (
+              <>
+                <input
+                  className="liga-picker__inp"
+                  placeholder="Template name (e.g. Game1)"
+                  value={templateName}
+                  onChange={e => setTemplateName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && templateName.trim()) {
+                      saveTemplate(templateName.trim())
+                      setTemplateInput(null)
+                    }
+                  }}
+                  autoFocus
+                  style={{ marginBottom: 8 }}
+                />
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <button className="btn btn--green" disabled={!templateName.trim()} onClick={() => { saveTemplate(templateName.trim()); setTemplateInput(null) }}>Save</button>
+                  <button className="btn btn--dark" onClick={() => setTemplateInput(null)}>Cancel</button>
+                </div>
+              </>
+            )}
+            {templateInput === 'load' && (
+              <>
+                {getTemplateNames().length === 0
+                  ? <p style={{ color: '#888', fontSize: '0.8rem' }}>No saved templates yet.</p>
+                  : <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      {getTemplateNames().map(name => (
+                        <button key={name} className="btn btn--dark" style={{ textAlign: 'left', justifyContent: 'flex-start' }}
+                          onClick={() => { loadTemplate(name); setTemplateInput(null) }}>
+                          📐 {name}
+                        </button>
+                      ))}
+                    </div>
+                }
+                <button className="btn btn--dark" style={{ marginTop: 12 }} onClick={() => setTemplateInput(null)}>Cancel</button>
+              </>
+            )}
           </div>
         </div>
       )}

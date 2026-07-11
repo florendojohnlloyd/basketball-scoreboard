@@ -1,0 +1,83 @@
+/* EditableWidget — always absolute, drag anywhere on widget in edit mode */
+
+.ew {
+  position: absolute;
+  overflow: visible;
+}
+
+.ew--editing {
+  border: 2px dashed rgba(224, 168, 0, 0.6);
+  border-radius: 4px;
+  z-index: 10;
+  cursor: move;
+  touch-action: none;
+}
+
+.ew--editing:hover {
+  border-color: #e0a800;
+  box-shadow: 0 0 10px rgba(224, 168, 0, 0.3);
+}
+
+.ew--dragging {
+  opacity: 0.75;
+  z-index: 100;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7);
+  border-color: #fff;
+}
+
+/* Label — always visible at top-left corner */
+.ew__label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: #e0a800;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 2px 5px;
+  border-radius: 0 0 4px 0;
+  white-space: nowrap;
+  z-index: 20;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ew__content {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+/* In edit mode, disable button clicks so drag works on the whole area */
+.ew--editing .ew__content {
+  pointer-events: none;
+}
+
+/* Resize handle — larger for touch */
+.ew__resize {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 45%, #e0a800 45%);
+  border-radius: 0 0 4px 0;
+  z-index: 20;
+  touch-action: none;
+}
+
+.ew__resize:hover {
+  background: linear-gradient(135deg, transparent 30%, #fff 30%);
+}
+
+/* Score tab container */
+.score-tab {
+  position: relative !important;
+  display: block !important;
+}

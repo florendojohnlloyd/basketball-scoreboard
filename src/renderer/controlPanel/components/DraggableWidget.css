@@ -1,0 +1,70 @@
+/* DraggableWidget — draggable/resizable container for layout editor */
+
+.dw {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 4px;
+  transition: box-shadow 0.15s;
+}
+
+/* Editing mode visuals */
+.dw--editing {
+  border: 1px dashed rgba(224, 168, 0, 0.5);
+  cursor: move;
+  z-index: 10;
+}
+
+.dw--editing:hover {
+  border-color: #e0a800;
+  box-shadow: 0 0 12px rgba(224, 168, 0, 0.2);
+}
+
+.dw--dragging {
+  opacity: 0.85;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* Label shown in edit mode */
+.dw__label {
+  position: absolute;
+  top: -16px;
+  left: 2px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #e0a800;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1px 5px;
+  border-radius: 2px;
+  white-space: nowrap;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* Content fills the widget */
+.dw__content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Resize handle (bottom-right) */
+.dw__resize {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, rgba(224, 168, 0, 0.6) 50%);
+  border-radius: 0 0 4px 0;
+  z-index: 20;
+}
+
+.dw__resize:hover {
+  background: linear-gradient(135deg, transparent 40%, #e0a800 40%);
+}
