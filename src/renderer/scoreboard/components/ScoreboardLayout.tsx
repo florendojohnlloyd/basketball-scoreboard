@@ -32,6 +32,10 @@ function ScoreboardLayout(): React.ReactElement {
 
   // TV Layout store (must be called before any conditional returns — Rules of Hooks)
   const { layouts: tvLayouts, editing: tvEditing, setEditing: setTvEditing, updateWidget: updateTvWidget, resetLayout: resetTvLayout } = useTvLayoutStore()
+  const appPath = useScoreboardStore(s => s.appPath)
+  const videoSrc = appPath
+    ? `local-file:///${appPath.replace(/\\/g, '/').replace(/\/$/, '')}/vid/FitnessExclusive_qr.mp4`
+    : 'local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/vid/FitnessExclusive_qr.mp4'
 
   // ═══ PRE-GAME ═══
   if (gamePhase === 'pre-game') {
@@ -203,13 +207,18 @@ function ScoreboardLayout(): React.ReactElement {
         </div>
       </EditableWidget>
 
-      {/* Timeout overlay */}
+      {/* Timeout overlay — fully opaque, scores at bottom */}
       {gs.timeout && (
         <div className="tv-timeout tv-timeout--split">
           <div className="tv-timeout__left">
             <div className="tv-timeout__flash">TIMEOUT</div>
             <div className="tv-timeout__team">{gs[gs.timeout.team].config.name}</div>
             <div className="tv-timeout__countdown">{Math.ceil(gs.timeout.remainingMs / 1000)}</div>
+            <div className="tv-timeout__scores">
+              <span style={{color: home.config.color || '#4a9eff'}}>{home.config.name}: <strong>{home.score}</strong></span>
+              <span style={{margin: '0 16px', color: '#555'}}>|</span>
+              <span style={{color: away.config.color || '#ff4a4a'}}>{away.config.name}: <strong>{away.score}</strong></span>
+            </div>
           </div>
           <div className="tv-timeout__right">
             <video
@@ -218,7 +227,7 @@ function ScoreboardLayout(): React.ReactElement {
               loop
               muted
               playsInline
-              src="local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/vid/FitnessExclusive_qr.mp4"
+              src={videoSrc}
             />
           </div>
         </div>

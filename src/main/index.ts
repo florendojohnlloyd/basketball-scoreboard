@@ -139,7 +139,28 @@ function bootstrap(): void {
 app.whenReady().then(() => {
   protocol.handle('local-file', (request) => {
     const filePath = decodeURIComponent(request.url.replace(/^local-file:\/\/\//, ''));
-    return net.fetch(pathToFileURL(filePath).toString());
+    const { createReadStream, statSync } = require('fs');
+    try {
+      const stat = statSync(filePath);
+      const ext = filePath.split('.').pop()?.toLowerCase();
+      const mimeMap: Record<string, string> = {
+        'mp4': 'video/mp4', 'webm': 'video/webm', 'ogg': 'video/ogg',
+        'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+        'gif': 'image/gif', 'svg': 'image/svg+xml', 'webp': 'image/webp',
+      };
+      const mime = (ext && mimeMap[ext]) || 'application/octet-stream';
+      const stream = createReadStream(filePath);
+      return new Response(stream, {
+        status: 200,
+        headers: {
+          'Content-Type': mime,
+          'Content-Length': stat.size.toString(),
+          'Accept-Ranges': 'bytes',
+        },
+      });
+    } catch {
+      return new Response('Not found', { status: 404 });
+    }
   });
 
   try {

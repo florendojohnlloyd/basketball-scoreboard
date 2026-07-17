@@ -13,6 +13,7 @@ import SeasonStatsView from './components/SeasonStatsView'
 import LeaderboardsView from './components/LeaderboardsView'
 import BoxScoreView from './components/BoxScoreView'
 import sponsorLogo from '../../../pictures/BG.png'
+import fitnessLogo from '../../../pictures/red.png'
 import './App.css'
 import './audio/audioEngine'
 
@@ -61,12 +62,10 @@ function App(): React.ReactElement {
   if (screen === 'liga-picker') {
     return (
       <div className="liga-picker">
-        <div className="liga-picker__sponsor">
-          <img src={sponsorLogo} alt="Sponsor" className="liga-picker__sponsor-img" />
-        </div>
         <div className="liga-picker__card">
-          <div className="liga-picker__logo">🏀</div>
-          <h1 className="liga-picker__title">LigaControl</h1>
+          <div className="liga-picker__logo-img">
+            <img src={fitnessLogo} alt="Fitness Exclusive" className="liga-picker__brand-img" />
+          </div>
           <p className="liga-picker__sub">Basketball Scoreboard System</p>
 
           <div className="liga-picker__actions">

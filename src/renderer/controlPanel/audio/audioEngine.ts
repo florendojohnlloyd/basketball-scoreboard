@@ -194,17 +194,31 @@ class AudioEngine {
    * End-of-period buzzer: ≥ 1.5 seconds at 440 Hz (Requirement 12.1).
    * Silent no-op when audioAvailable === false.
    */
+  /**
+   * End-of-period buzzer — plays sounds/horn.mp3
+   */
   playEndOfPeriod(): void {
-    this._playTone(440, 1.5)
+    this._playAudioFile('local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/sounds/horn.mp3')
   }
 
   /**
-   * Shot-clock violation buzzer: ≤ 0.5 seconds at 880 Hz (Requirement 12.2).
-   * Distinct frequency from end-of-period buzzer.
-   * Silent no-op when audioAvailable === false.
+   * Shot-clock / substitution horn — plays sounds/horn.mp3
    */
   playShotClockViolation(): void {
-    this._playTone(880, 0.5)
+    this._playAudioFile('local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/sounds/horn.mp3')
+  }
+
+  /**
+   * Play an audio file using HTMLAudioElement (bypasses Web Audio tone).
+   */
+  private _playAudioFile(url: string): void {
+    try {
+      const audio = new Audio(url)
+      audio.volume = this.gainNode?.gain.value ?? 0.8
+      audio.play().catch(() => this._playTone(440, 1.5))
+    } catch {
+      this._playTone(440, 1.5)
+    }
   }
 
   /**

@@ -71,6 +71,7 @@ type QueryMessage =
   // Autosave
   | { type: 'AUTOSAVE_READ' }
   | { type: 'AUTOSAVE_CLEAR' }
+  | { type: 'GET_APP_PATH' }
   // Game Logs (Requirement 18)
   | { type: 'GAME_LOG_LIST'; ligaId: string }
   | { type: 'GAME_LOG_LOAD'; ligaId: string; logId: string }
@@ -387,6 +388,7 @@ export function createIpcRouter(
       case 'AUTOSAVE_READ':  return autosaveStore.read();
       case 'AUTOSAVE_READ':  return autosaveStore.read();
       case 'AUTOSAVE_CLEAR': { autosaveStore.clear(); return { success: true }; }
+      case 'GET_APP_PATH': { return { appPath: app.getAppPath() }; }
 
       // ── Game Log queries (Requirement 18) ──
       case 'GAME_LOG_LIST': {

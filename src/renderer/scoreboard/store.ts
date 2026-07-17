@@ -11,6 +11,8 @@ interface ScoreboardStore {
   setGameState: (state: GameState) => void
   replayActive: boolean
   setReplayActive: (v: boolean) => void
+  appPath: string
+  setAppPath: (p: string) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -22,6 +24,8 @@ export const useScoreboardStore = create<ScoreboardStore>((set) => ({
   setGameState: (state: GameState) => set({ gameState: state }),
   replayActive: false,
   setReplayActive: (v: boolean) => set({ replayActive: v }),
+  appPath: '',
+  setAppPath: (p: string) => set({ appPath: p }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -53,6 +57,14 @@ function attachIpc(): void {
         if (state) useScoreboardStore.getState().setGameState(state as GameState)
       })
       .catch(() => {/* ignore if main not ready yet */})
+
+    // Fetch app path for video/audio file access
+    window.electron.ipcRenderer.invoke(SCOREBOARD_QUERY, { type: 'GET_APP_PATH' })
+      .then((result: unknown) => {
+        const r = result as { appPath?: string }
+        if (r?.appPath) useScoreboardStore.getState().setAppPath(r.appPath)
+      })
+      .catch(() => {})
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { EditableWidget } from './EditableWidget'
 import { useLayoutStore } from './useLayoutStore'
 import { useControlPanelStore, sendCommand } from '../store'
@@ -235,9 +235,25 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
       </EditableWidget>
 
       {/* Footer */}
-      <EditableWidget id="btn-horn" rect={layouts['btn-horn']} editing={editing} onUpdate={updateWidget} label="Horn"><button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod()) }}>🔔 Horn</button></EditableWidget>
-      <EditableWidget id="btn-game-reset" rect={layouts['btn-game-reset']} editing={editing} onUpdate={updateWidget} label="Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>RESET</button></EditableWidget>
-      <EditableWidget id="btn-sub-horn" rect={layouts['btn-sub-horn']} editing={editing} onUpdate={updateWidget} label="Sub Horn"><button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playShotClockViolation()) }}>🔔 Sub</button></EditableWidget>      <EditableWidget id="btn-replay" rect={layouts['btn-replay']} editing={editing} onUpdate={updateWidget} label="Replay"><button className="btn btn--replay btn--fill" onClick={() => window.electron.ipcRenderer.send('scoreboard:event', { type: 'REPLAY_TRIGGER' })}>REPLAY</button></EditableWidget>
+      {/* Footer */}
+      <EditableWidget id="btn-horn" rect={layouts['btn-horn']} editing={editing} onUpdate={updateWidget} label="Horn">
+        <button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod()) }}>
+          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg>
+          HORN
+        </button>
+      </EditableWidget>
+      <EditableWidget id="btn-game-reset" rect={layouts['btn-game-reset']} editing={editing} onUpdate={updateWidget} label="Reset">
+        <button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>RESET</button>
+      </EditableWidget>
+      <EditableWidget id="btn-sub-horn" rect={layouts['btn-sub-horn']} editing={editing} onUpdate={updateWidget} label="Sub Horn">
+        <button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playShotClockViolation()) }}>
+          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg>
+          SUB
+        </button>
+      </EditableWidget>
+      <EditableWidget id="btn-replay" rect={layouts['btn-replay']} editing={editing} onUpdate={updateWidget} label="Replay">
+        <button className="btn btn--replay btn--fill" onClick={() => window.electron.ipcRenderer.send('scoreboard:event', { type: 'REPLAY_TRIGGER' })}>REPLAY</button>
+      </EditableWidget>
     </div>
   )
 }

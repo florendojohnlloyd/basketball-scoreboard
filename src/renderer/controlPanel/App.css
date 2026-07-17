@@ -515,8 +515,12 @@ html, body, #root { height: 100%; overflow: hidden; }
 
 /* ═══ LIGA / MATCHUP ═══ */
 .liga-picker { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; background: radial-gradient(ellipse at 50% 30%, rgba(204,102,0,0.05), transparent 60%), linear-gradient(135deg, #0a0a0a, #1a1a1a); }
-.liga-picker__sponsor { width: 360px; height: 80px; display: flex; align-items: center; justify-content: center; background: #ffffff; border-radius: 8px; overflow: hidden; }
-.liga-picker__sponsor-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.liga-picker__sponsor { width: 360px; height: 80px; display: flex; align-items: center; justify-content: center; background: transparent; border-radius: 8px; overflow: hidden; }
+.liga-picker__sponsor-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)) drop-shadow(0 0 24px rgba(255,255,255,0.25)); animation: sponsor-glow 3s ease-in-out infinite; }
+
+/* Brand logo inside the card */
+.liga-picker__logo-img { width: 280px; height: 70px; display: flex; align-items: center; justify-content: center; }
+.liga-picker__brand-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.6)) drop-shadow(0 0 24px rgba(255,255,255,0.3)) drop-shadow(0 0 40px rgba(200,200,255,0.15)); animation: sponsor-glow 3s ease-in-out infinite; }
 .liga-picker__card { display: flex; flex-direction: column; align-items: center; gap: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 24px 20px; width: 360px; max-height: 85vh; overflow-y: auto; border-top: 3px solid #cc6600; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 .liga-picker__logo { font-size: 2.5rem; }
 .liga-picker__title { font-size: 1.3rem; font-weight: 900; color: #fff; }
