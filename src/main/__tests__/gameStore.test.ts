@@ -188,13 +188,15 @@ describe('CLOCK_TICK', () => {
     expect(s.shotClock.displayMs).toBe(before - 200)
   })
 
-  it('clamps shot clock at 0 and stops it', () => {
+  it('shot clock stops at 0 when it expires (violation detected in CLOCK_TICK)', () => {
     let s = gameReducer(fresh(), { type: 'RESET_SHOT_CLOCK' })
     // Set shot clock displayMs manually via state patch (for test isolation)
-    s = { ...s, shotClock: { ...s.shotClock, displayMs: 100, running: true } }
+    s = { ...s, shotClock: { ...s.shotClock, displayMs: 100, running: true }, gameClock: { ...s.gameClock, running: true } }
     s = gameReducer(s, { type: 'CLOCK_TICK', deltaMs: 500 })
+    // Shot clock violation: stops at 0 and game clock also stops
     expect(s.shotClock.displayMs).toBe(0)
     expect(s.shotClock.running).toBe(false)
+    expect(s.gameClock.running).toBe(false)
   })
 })
 
@@ -231,13 +233,26 @@ describe('Timeout commands', () => {
   })
 
   it('USE_TIMEOUT floors at 0', () => {
-    let s = fresh()
-    // Drain all full timeouts
-    const max = s.gameConfig.fullTimeoutsPerTeam
-    for (let i = 0; i < max + 2; i++) {
+    // USE_TIMEOUT also enforces per-half timeout limits (max 2 full timeouts in
+    // the first half). Configure the game so the configured full-timeout budget
+    // (2) matches the first-half allowance, so all timeouts are drainable within
+    // period 1 and we can verify the count floors at 0 and never goes negative.
+    const base = fresh()
+    let s: GameState = {
+      ...base,
+      gameConfig: { ...base.gameConfig, fullTimeoutsPerTeam: 2 },
+      home: {
+        ...base.home,
+        timeouts: { ...base.home.timeouts, fullRemaining: 2 },
+      },
+    }
+    // Attempt to use more timeouts than exist — the count must clamp at 0.
+    for (let i = 0; i < 5; i++) {
       s = gameReducer(s, { type: 'USE_TIMEOUT', team: 'home', kind: 'full' })
     }
     expect(s.home.timeouts.fullRemaining).toBe(0)
+    // And it must never dip below 0.
+    expect(s.home.timeouts.fullRemaining).toBeGreaterThanOrEqual(0)
   })
 
   it('RESTORE_TIMEOUT increments full timeout', () => {
@@ -749,8 +764,26 @@ describe('TOGGLE_PLAYER_ACTIVE records SubstitutionEntry', () => {
   })
 })
 
-describe('Undo for ADD_PLAYER_STAT / SUBTRACT_PLAYER_STAT', () => {
-  it('undo restores steals to previous value', () => {
+describe('Undo only applies to score changes (ADD_PLAYER_POINTS)', () => {
+  it('undo reverts ADD_PLAYER_POINTS', () => {
+    const store = createGameStore()
+    const player: import('../../shared/types').Player = {
+      id: 'p1', number: '10', name: 'Alice',
+      fouls: 0, points: 0, rebounds: 0, assists: 0,
+      active: true, fouledOut: false,
+      steals: 0, blocks: 0, fga: 0, fgm: 0,
+      minutesPlayed: 0, substitutions: [],
+    }
+    store.dispatch({ type: 'ADD_PLAYER', team: 'home', player })
+    store.dispatch({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: 'p1', points: 2 })
+    expect(store.getState().home.players[0].points).toBe(2)
+    expect(store.getState().home.score).toBe(2)
+    store.dispatch({ type: 'UNDO' })
+    expect(store.getState().home.players[0].points).toBe(0)
+    expect(store.getState().home.score).toBe(0)
+  })
+
+  it('ADD_PLAYER_STAT is NOT undoable', () => {
     const store = createGameStore()
     const player: import('../../shared/types').Player = {
       id: 'p1', number: '10', name: 'Alice',
@@ -762,25 +795,18 @@ describe('Undo for ADD_PLAYER_STAT / SUBTRACT_PLAYER_STAT', () => {
     store.dispatch({ type: 'ADD_PLAYER', team: 'home', player })
     store.dispatch({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'steals' })
     expect(store.getState().home.players[0].steals).toBe(1)
+    expect(store.canUndo()).toBe(false)
     store.dispatch({ type: 'UNDO' })
-    expect(store.getState().home.players[0].steals).toBe(0)
+    // Steals should remain unchanged — not undoable
+    expect(store.getState().home.players[0].steals).toBe(1)
   })
 
-  it('undo restores fgm and fga to previous values', () => {
+  it('ADD_FOUL is NOT undoable', () => {
     const store = createGameStore()
-    const player: import('../../shared/types').Player = {
-      id: 'p1', number: '10', name: 'Alice',
-      fouls: 0, points: 0, rebounds: 0, assists: 0,
-      active: true, fouledOut: false,
-      steals: 0, blocks: 0, fga: 0, fgm: 0,
-      minutesPlayed: 0, substitutions: [],
-    }
-    store.dispatch({ type: 'ADD_PLAYER', team: 'home', player })
-    store.dispatch({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: 'p1', stat: 'fgm' })
-    expect(store.getState().home.players[0].fgm).toBe(1)
-    expect(store.getState().home.players[0].fga).toBe(1)
+    store.dispatch({ type: 'ADD_FOUL', team: 'home' })
+    expect(store.getState().home.fouls).toBe(1)
+    expect(store.canUndo()).toBe(false)
     store.dispatch({ type: 'UNDO' })
-    expect(store.getState().home.players[0].fgm).toBe(0)
-    expect(store.getState().home.players[0].fga).toBe(0)
+    expect(store.getState().home.fouls).toBe(1)
   })
 })

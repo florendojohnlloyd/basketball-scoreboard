@@ -32,9 +32,11 @@ const PERMISSIONS: Record<Role, Set<ActionCategory>> = {
   Admin: new Set([
     'SCORING', 'CLOCK', 'FOULS', 'TIMEOUTS', 'PLAYER_STATS',
     'LIGA_CONFIG', 'USER_MGMT', 'SYSTEM', 'VIEWER', 'STREAMING',
+    'TOURNAMENT', 'SHARE',
   ]),
   Scorekeeper: new Set([
     'SCORING', 'CLOCK', 'FOULS', 'TIMEOUTS', 'PLAYER_STATS', 'VIEWER',
+    'TOURNAMENT', 'SHARE',
   ]),
   Coach: new Set(['VIEWER', 'PLAYER_STATS']),
   Viewer: new Set(['VIEWER']),
@@ -127,8 +129,11 @@ export function createRoleStore(): RoleStore {
       const users = getUsers();
       const idx = users.findIndex(u => u.id === userId);
       if (idx === -1) throw new Error(`User "${userId}" not found.`);
-      if (updates.username && findByUsername(updates.username)?.id !== userId) {
-        throw new Error(`Username "${updates.username}" is already taken.`);
+      if (updates.username) {
+        const existing = findByUsername(updates.username);
+        if (existing && existing.id !== userId) {
+          throw new Error(`Username "${updates.username}" is already taken.`);
+        }
       }
       users[idx] = { ...users[idx], ...updates };
       saveUsers(users);

@@ -97,6 +97,9 @@ function GameHistoryView(): React.ReactElement {
           <span className="game-history__detail-teams">
             {selectedLog.homeTeam} {selectedLog.finalScores.home} — {selectedLog.finalScores.away} {selectedLog.awayTeam}
           </span>
+          <span className="game-history__detail-attendance" data-testid="game-history-attendance">
+            Attendance: {selectedLog.attendance != null ? selectedLog.attendance.toLocaleString() : '—'}
+          </span>
         </div>
         {/* Reuse BoxScoreView by injecting the game log into a synthetic state is complex;
             render a simplified table directly from the log record */}

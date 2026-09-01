@@ -39,10 +39,17 @@ export interface TeamSeasonAvg {
   turnoversPerGame: number;
 }
 
+export interface AttendanceStats {
+  totalAttendance: number;
+  gamesWithAttendance: number;
+  averageAttendance: number;
+}
+
 export interface SeasonStats {
   playerAverages: PlayerSeasonAvg[];
   homeTeamAverages: TeamSeasonAvg;
   awayTeamAverages: TeamSeasonAvg;
+  attendance: AttendanceStats;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +82,7 @@ export function computeSeasonAverages(gameLogs: GameLogRecord[]): SeasonStats {
       playerAverages: [],
       homeTeamAverages: emptyTeam(''),
       awayTeamAverages: emptyTeam(''),
+      attendance: { totalAttendance: 0, gamesWithAttendance: 0, averageAttendance: 0 },
     };
   }
 
@@ -273,10 +281,24 @@ export function computeSeasonAverages(gameLogs: GameLogRecord[]): SeasonStats {
     };
   }
 
+  // ── Compute attendance stats (Requirement 27.5) ─────────────────────────
+  let totalAttendance = 0;
+  let gamesWithAttendance = 0;
+  for (const log of gameLogs) {
+    if (log.attendance != null && log.attendance >= 0) {
+      totalAttendance += log.attendance;
+      gamesWithAttendance++;
+    }
+  }
+  const averageAttendance = gamesWithAttendance > 0
+    ? round1(totalAttendance / gamesWithAttendance)
+    : 0;
+
   return {
     playerAverages,
     homeTeamAverages: buildTeamAvg(homeAccum),
     awayTeamAverages: buildTeamAvg(awayAccum),
+    attendance: { totalAttendance, gamesWithAttendance, averageAttendance },
   };
 }
 

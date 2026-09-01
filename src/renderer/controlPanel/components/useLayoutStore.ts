@@ -24,7 +24,6 @@ const DEFAULTS: Record<string, WidgetRect> = {
   'away-score':      { x: 86,  y: 6,  w: 6,  h: 9 },
   'next-q':          { x: 20,  y: 19, w: 10, h: 5 },
   'btn-reset':       { x: 32,  y: 19, w: 14, h: 5 },
-  'shot-play':       { x: 55,  y: 19, w: 6,  h: 5 },
   'shot-reset':      { x: 61,  y: 19, w: 6,  h: 5 },
   'home-players':    { x: 0,   y: 19, w: 18, h: 45 },
   'away-players':    { x: 72,  y: 19, w: 18, h: 45 },
@@ -47,7 +46,6 @@ const DEFAULTS: Record<string, WidgetRect> = {
   'btn-switch':      { x: 36,  y: 38, w: 16, h: 10 },
   'btn-poss-away':   { x: 53,  y: 38, w: 10, h: 10 },
   'btn-replay':      { x: 25,  y: 50, w: 10, h: 10 },
-  'btn-sub-horn':    { x: 36,  y: 50, w: 16, h: 10 },
   'btn-sub':         { x: 53,  y: 50, w: 10, h: 10 },
   'home-plus3':      { x: 0,   y: 66, w: 5,  h: 7 },
   'home-plus2':      { x: 6,   y: 66, w: 5,  h: 7 },
@@ -67,6 +65,7 @@ const DEFAULTS: Record<string, WidgetRect> = {
   'bonus-a-minus':   { x: 67,  y: 90, w: 5,  h: 5 },
   'btn-undo':        { x: 30,  y: 75, w: 12, h: 12 },
   'btn-game-reset':  { x: 44,  y: 75, w: 12, h: 12 },
+  'tab-nav':         { x: 78,  y: 92, w: 22, h: 6 },
 }
 function loadLayout(): Record<string, WidgetRect> {
   try {

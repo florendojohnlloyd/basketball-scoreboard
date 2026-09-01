@@ -52,11 +52,12 @@ describe('TeamSection', () => {
     expect(screen.queryByText('BONUS')).toBeNull()
   })
 
-  it('applies --team-color CSS variable', () => {
-    set({ home: { ...DEFAULT_GAME_STATE().home, config: { name: 'Lakers', color: '#552583', logoPath: null } } })
+  it('applies the team color as a CSS custom property', () => {
+    set({ home: { ...DEFAULT_GAME_STATE().home, config: { ...DEFAULT_GAME_STATE().home.config, name: 'Lakers', color: '#552583', logoPath: null } } })
     const { container } = render(<TeamSection team="home" />)
-    const section = container.querySelector('section.team-section') as HTMLElement
-    expect(section.style.getPropertyValue('--team-color')).toBe('#552583')
+    const section = container.querySelector('section.ts') as HTMLElement
+    expect(section).not.toBeNull()
+    expect(section.style.getPropertyValue('--tc')).toBe('#552583')
   })
 
   it('renders logo when logoPath is set', () => {
@@ -254,9 +255,11 @@ describe('ScoreboardLayout', () => {
     expect(container.querySelectorAll('form').length).toBe(0)
   })
 
-  it('renders both team sections', () => {
+  it('renders both teams', () => {
+    // DEFAULT_GAME_STATE starts in the pre-game phase, which renders the
+    // matchup screen showing both team names.
     render(<ScoreboardLayout />)
-    expect(screen.getByLabelText(/home team/i)).toBeTruthy()
-    expect(screen.getByLabelText(/away team/i)).toBeTruthy()
+    expect(screen.getByText('Home')).toBeTruthy()
+    expect(screen.getByText('Away')).toBeTruthy()
   })
 })

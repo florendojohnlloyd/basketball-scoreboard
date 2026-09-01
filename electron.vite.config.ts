@@ -37,6 +37,7 @@ export default defineConfig({
       }
     },
     build: {
+      assetsInlineLimit: 0,
       rollupOptions: {
         input: {
           controlPanel: resolve(__dirname, 'src/renderer/controlPanel/index.html'),

@@ -1,0 +1,402 @@
+/**
+ * BracketViewer styles
+ *
+ * Provides styles for the container component including loading states,
+ * error states, empty states, and header/badge styling.
+ *
+ * Task: 8.1
+ */
+
+.bracket-viewer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: #1a1f2e;
+  color: #dce8f5;
+  padding: 16px;
+  overflow: auto;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+.bracket-viewer__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a3347;
+}
+
+.bracket-viewer__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #e0a800;
+  margin: 0;
+}
+
+.bracket-viewer__format-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 12px;
+  background: #2a3347;
+  color: #7aaed4;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bracket-viewer__format-badge[data-format="single-elimination"] {
+  background: #2a4747;
+  color: #6dd4d4;
+}
+
+.bracket-viewer__format-badge[data-format="double-elimination"] {
+  background: #4a3847;
+  color: #d46dd4;
+}
+
+.bracket-viewer__format-badge[data-format="round-robin"] {
+  background: #47382a;
+  color: #d4a76d;
+}
+
+.bracket-viewer__status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 12px;
+  background: #2a3347;
+  color: #888;
+}
+
+.bracket-viewer__status-badge[data-status="pending"] {
+  background: #3a3a3a;
+  color: #999;
+}
+
+.bracket-viewer__status-badge[data-status="seeding"] {
+  background: #3a3847;
+  color: #a8a8d4;
+}
+
+.bracket-viewer__status-badge[data-status="in-progress"] {
+  background: #2a4738;
+  color: #6dd488;
+}
+
+.bracket-viewer__status-badge[data-status="completed"] {
+  background: #47382a;
+  color: #d4a76d;
+}
+
+/* ── Content ────────────────────────────────────────────────────────── */
+
+.bracket-viewer__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+/* ── Loading State ──────────────────────────────────────────────────── */
+
+.bracket-viewer__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 16px;
+}
+
+.bracket-viewer__spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #2a3347;
+  border-top-color: #7aaed4;
+  border-radius: 50%;
+  animation: bracket-viewer-spin 1s linear infinite;
+}
+
+@keyframes bracket-viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bracket-viewer__loading-text {
+  font-size: 1rem;
+  color: #7aaed4;
+  margin: 0;
+}
+
+/* ── Error State ────────────────────────────────────────────────────── */
+
+.bracket-viewer__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 12px;
+  padding: 24px;
+  background: #2a1f1f;
+  border: 1px solid #4a2f2f;
+  border-radius: 8px;
+  margin: 0 auto;
+  max-width: 500px;
+}
+
+.bracket-viewer__error-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #d46d6d;
+  margin: 0;
+}
+
+.bracket-viewer__error-message {
+  font-size: 0.9rem;
+  color: #dce8f5;
+  text-align: center;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.bracket-viewer__retry-btn {
+  margin-top: 8px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background: #4a7a9a;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bracket-viewer__retry-btn:hover {
+  background: #5a8aaa;
+}
+
+.bracket-viewer__retry-btn:active {
+  background: #3a6a8a;
+}
+
+/* ── Empty State ────────────────────────────────────────────────────── */
+
+.bracket-viewer__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 24px;
+}
+
+.bracket-viewer__empty-text {
+  font-size: 1rem;
+  color: #7aaed4;
+  margin: 0;
+}
+
+/* ── Placeholder Sub-Components ─────────────────────────────────────── */
+
+.bracket-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  padding: 24px;
+  background: #2a3347;
+  border: 2px dashed #3a4357;
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.bracket-placeholder p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #7aaed4;
+}
+
+.bracket-placeholder p:first-child {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0a800;
+}
+
+/* ── SingleElimTree (Task 8.2) ──────────────────────────────────────── */
+
+.single-elim-tree {
+  position: relative;
+  overflow: auto;
+  padding: 32px 16px 32px;
+}
+
+.single-elim-tree--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.single-elim-tree__empty-text {
+  color: #7aaed4;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* SVG connector lines between rounds */
+.single-elim-tree__connectors {
+  overflow: visible;
+}
+
+.single-elim-tree__connector-line {
+  stroke: #3a4357;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+}
+
+/* Each round column */
+.single-elim-tree__round {
+  /* positioned absolutely by component logic */
+}
+
+/* Round name label shown above the column */
+.single-elim-tree__round-header {
+  position: absolute;
+  top: -28px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7aaed4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Wrapper that positions each card within its vertical slot */
+.single-elim-tree__card-slot {
+  /* positioned absolutely by component logic */
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   DoubleElimView — Task 8.3, Requirements 6.2, 6.4, 6.5
+   ──────────────────────────────────────────────────────────────────────────── */
+
+/* Outer wrapper — stacks the three sections vertically with spacing */
+.double-elim-view {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 8px 0;
+  overflow: auto;
+}
+
+.double-elim-view--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.double-elim-view__empty-text {
+  font-size: 1rem;
+  color: #7aaed4;
+  margin: 0;
+}
+
+/* ── Section container ────────────────────────────────────────────── */
+
+.double-elim-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Section header (labeled) ────────────────────────────────────── */
+
+.double-elim-section__header {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px 0;
+  padding: 6px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* Winners — gold/yellow accent */
+.double-elim-section__header--winners {
+  background: #3a3000;
+  color: #e0a800;
+  border-left: 3px solid #e0a800;
+}
+
+/* Losers — red/orange accent */
+.double-elim-section__header--losers {
+  background: #3a1500;
+  color: #d46d3a;
+  border-left: 3px solid #d46d3a;
+}
+
+/* Grand Final — purple/violet accent */
+.double-elim-section__header--final {
+  background: #280a3a;
+  color: #c06dd4;
+  border-left: 3px solid #c06dd4;
+}
+
+/* ── Canvas — absolutely positioned cards + SVG overlay ─────────── */
+
+.double-elim-section__canvas {
+  position: relative;
+  /* Let content dictate minimum size; allow horizontal scroll */
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* ── Round column label ────────────────────────────────────────────── */
+
+.double-elim-section__round-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a7f9a;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Card wrapper ────────────────────────────────────────────────── */
+
+.double-elim-section__card-wrapper {
+  /* Transition for smooth updates when bracket state changes (Req 6.6) */
+  transition: top 0.25s ease, left 0.25s ease;
+}
+
+/* ── SVG connector paths ────────────────────────────────────────── */
+
+.double-elim-section__connector-path {
+  stroke: #3a4357;
+  stroke-width: 2;
+}
+
+/* Pulse/highlight the connector near an in-progress card */
+.double-elim-section__canvas:has(.match-card--in-progress) .double-elim-section__connector-path {
+  stroke: #3a4f7a;
+}

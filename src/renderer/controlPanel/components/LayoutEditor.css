@@ -99,7 +99,7 @@
 
 /* TV preview widgets (non-editable) */
 .le-tv__clock {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--font-led);
   font-size: clamp(2rem, 5vh, 3.5rem);
   font-weight: 900;
   color: #ff3030;
@@ -133,7 +133,7 @@
 }
 
 .le-tv__team-score {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--font-led);
   font-size: clamp(2rem, 5vh, 3.5rem);
   font-weight: 900;
   color: #fff;
@@ -228,7 +228,7 @@
 }
 
 .le-c-clock {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--font-led);
   font-size: clamp(1.2rem, 3vh, 1.8rem);
   font-weight: 900;
   color: #ffcc00;
@@ -249,7 +249,7 @@
 
 .le-c-shot-val,
 .le-c-period-val {
-  font-family: 'Orbitron', monospace;
+  font-family: var(--font-led);
   font-size: 1.1rem;
   font-weight: 900;
   color: #ffcc00;

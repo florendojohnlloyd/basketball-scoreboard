@@ -1,0 +1,502 @@
+/* UserManagementView — Requirement 28, Task 60 */
+
+/* ── Container ── */
+.user-mgmt {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  color: #dce8f5;
+  min-height: 200px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* ── Header ── */
+.user-mgmt__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.user-mgmt__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  margin: 0;
+}
+
+.user-mgmt__close-btn {
+  background: transparent;
+  border: 1px solid #2a3950;
+  border-radius: 5px;
+  color: #7aaed4;
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 5px 12px;
+  transition: background-color 0.15s, color 0.15s;
+}
+.user-mgmt__close-btn:hover {
+  background: rgba(220, 50, 50, 0.18);
+  border-color: #c44;
+  color: #f88;
+}
+
+/* ── Alerts / status ── */
+.user-mgmt__alert {
+  border-radius: 6px;
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  margin-bottom: 0.75rem;
+}
+.user-mgmt__alert--error {
+  background: rgba(220, 50, 50, 0.15);
+  border: 1px solid rgba(220, 50, 50, 0.3);
+  color: #f07070;
+}
+.user-mgmt__alert--success {
+  background: rgba(40, 200, 100, 0.15);
+  border: 1px solid rgba(40, 200, 100, 0.3);
+  color: #5de0a0;
+}
+
+.user-mgmt__inline-error {
+  background: rgba(220, 50, 50, 0.12);
+  border: 1px solid rgba(220, 50, 50, 0.25);
+  border-radius: 4px;
+  color: #f07070;
+  font-size: 0.77rem;
+  padding: 5px 10px;
+  margin-top: 4px;
+}
+
+.user-mgmt__denied {
+  color: #f07070;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.user-mgmt__loading {
+  color: #7aaed4;
+  font-size: 0.88rem;
+}
+
+.user-mgmt__empty {
+  color: #556a80;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+/* ── User list ── */
+.user-mgmt__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+/* ── User row ── */
+.user-mgmt__row {
+  background: #14243e;
+  border: 1px solid #1e3a5f;
+  border-radius: 7px;
+  padding: 0.55rem 0.85rem;
+  transition: border-color 0.15s;
+}
+.user-mgmt__row:hover {
+  border-color: #2a5080;
+}
+.user-mgmt__row--editing {
+  border-color: #4a8ad0;
+  background: #0f1e35;
+}
+
+/* Normal read-mode row layout */
+.user-mgmt__row-info {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-height: 28px;
+}
+
+.user-mgmt__row-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+  flex-wrap: wrap;
+}
+
+/* ── Username + badges ── */
+.user-mgmt__username {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #e0e8f5;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.user-mgmt__badge {
+  background: #e0a800;
+  color: #1a1200;
+  border-radius: 3px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 1px 5px;
+  text-transform: uppercase;
+}
+
+.user-mgmt__locked-badge {
+  background: rgba(220, 50, 50, 0.2);
+  color: #f07070;
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 5px;
+}
+
+/* ── Role pill ── */
+.user-mgmt__role-pill {
+  border-radius: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+.user-mgmt__role-pill[data-role="admin"]       { background: #2a1a00; color: #e0a800; border: 1px solid #6a5000; }
+.user-mgmt__role-pill[data-role="scorekeeper"] { background: #0a2a1a; color: #50d090; border: 1px solid #1a6040; }
+.user-mgmt__role-pill[data-role="coach"]       { background: #0a1a40; color: #70a8ff; border: 1px solid #1a3a80; }
+.user-mgmt__role-pill[data-role="viewer"]      { background: #1e1e2e; color: #9090b0; border: 1px solid #3a3a5a; }
+
+.user-mgmt__created {
+  color: #5a7a9a;
+  font-size: 0.7rem;
+  margin-left: auto;
+}
+
+/* ── Buttons ── */
+.user-mgmt__btn {
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.user-mgmt__btn--edit {
+  background: #1e3a5f;
+  border-color: #2a5080;
+  color: #a0c4e0;
+}
+.user-mgmt__btn--edit:hover {
+  background: #254870;
+  border-color: #4a8ad0;
+}
+
+.user-mgmt__btn--pw {
+  background: #1e3a2a;
+  border-color: #2a6040;
+  color: #70c888;
+}
+.user-mgmt__btn--pw:hover {
+  background: #254a34;
+  border-color: #4a9060;
+}
+
+.user-mgmt__btn--delete {
+  background: #3a1010;
+  border-color: #602020;
+  color: #e07070;
+}
+.user-mgmt__btn--delete:hover:not(:disabled) {
+  background: #4a1818;
+  border-color: #902828;
+  color: #f08888;
+}
+.user-mgmt__btn--delete:disabled {
+  background: #222;
+  border-color: #333;
+  color: #555;
+  cursor: not-allowed;
+}
+
+.user-mgmt__btn--delete-confirm {
+  background: #802020;
+  border-color: #a03030;
+  color: #ffc0c0;
+}
+.user-mgmt__btn--delete-confirm:hover:not(:disabled) {
+  background: #a02828;
+}
+.user-mgmt__btn--delete-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-mgmt__btn--save {
+  background: #1a5a30;
+  border-color: #2a8040;
+  color: #80e8a8;
+}
+.user-mgmt__btn--save:hover:not(:disabled) {
+  background: #206838;
+  border-color: #40a060;
+}
+.user-mgmt__btn--save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-mgmt__btn--cancel {
+  background: #1e2a38;
+  border-color: #2a3a50;
+  color: #7a9ab8;
+}
+.user-mgmt__btn--cancel:hover:not(:disabled) {
+  background: #253040;
+  border-color: #3a5068;
+}
+.user-mgmt__btn--cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tooltip wrapper for disabled delete */
+.user-mgmt__tooltip-wrapper {
+  display: inline-block;
+  position: relative;
+}
+.user-mgmt__tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a2e;
+  border: 1px solid #3a3a6a;
+  border-radius: 4px;
+  color: #c0c0e0;
+  font-size: 0.7rem;
+  padding: 4px 8px;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.user-mgmt__tooltip-wrapper:hover .user-mgmt__tooltip {
+  opacity: 1;
+}
+
+/* ── Edit / delete confirm inline ── */
+.user-mgmt__edit-form,
+.user-mgmt__delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.user-mgmt__edit-fields {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.user-mgmt__edit-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.user-mgmt__delete-question {
+  font-size: 0.83rem;
+  color: #e0c080;
+}
+.user-mgmt__delete-question strong {
+  color: #f0a040;
+}
+
+/* ── Fields ── */
+.user-mgmt__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.user-mgmt__label {
+  color: #7aaed4;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.user-mgmt__input {
+  background: #0d1a2d;
+  border: 1px solid #2a3950;
+  border-radius: 5px;
+  color: #e0e8f5;
+  font-size: 0.83rem;
+  padding: 7px 10px;
+  transition: border-color 0.15s;
+}
+.user-mgmt__input:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+.user-mgmt__input:disabled {
+  opacity: 0.55;
+}
+
+.user-mgmt__select {
+  background: #0d1a2d;
+  border: 1px solid #2a3950;
+  border-radius: 5px;
+  color: #e0e8f5;
+  font-size: 0.83rem;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.user-mgmt__select:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+.user-mgmt__select:disabled {
+  opacity: 0.55;
+}
+
+/* ── Password strength indicator ── */
+.user-mgmt__strength {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 4px;
+}
+.user-mgmt__pw-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #2a3950;
+  overflow: hidden;
+}
+.user-mgmt__pw-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.2s, background-color 0.2s;
+}
+.user-mgmt__strength-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 48px;
+}
+
+/* ── Add user button ── */
+.user-mgmt__add-btn {
+  align-self: flex-start;
+  background: #1a3a5f;
+  border: 1px dashed #3a6090;
+  border-radius: 6px;
+  color: #7aaed4;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.user-mgmt__add-btn:hover {
+  background: #204a70;
+  border-color: #5090c0;
+  color: #a0d0f0;
+}
+
+/* ── Create form ── */
+.user-mgmt__create-form {
+  background: #0f1e35;
+  border: 1px solid #2a5080;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  flex-shrink: 0;
+}
+.user-mgmt__create-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #a0c4e0;
+  margin: 0 0 0.65rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.user-mgmt__create-fields {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+.user-mgmt__create-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+/* ── Modal overlay / dialog (edit, password, delete) ── */
+.user-mgmt__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.user-mgmt__modal {
+  background: #1a2940;
+  border: 1px solid #2a5080;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  max-width: 420px;
+  width: 90%;
+  padding: 1.5rem 1.5rem 1.25rem;
+}
+
+.user-mgmt__pw-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.user-mgmt__pw-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #e0e8f5;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.user-mgmt__pw-subtitle {
+  color: #7aaed4;
+  font-size: 0.8rem;
+  margin: 0 0 1rem 0;
+}
+.user-mgmt__pw-subtitle strong {
+  color: #a0c4e0;
+}
+
+.user-mgmt__pw-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}

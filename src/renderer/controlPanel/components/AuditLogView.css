@@ -1,0 +1,29 @@
+/* AuditLogView — Requirement 31 */
+.audit-log { padding: 1rem; color: #dce8f5; }
+.audit-log__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.audit-log__title { font-size: 1.2rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; margin: 0; }
+.audit-log__export-btn { background: #1e3a5f; color: #a0c4e0; border: 1px solid #2a5080; border-radius: 4px; padding: 0.4em 1em; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.audit-log__export-btn:hover { background: #254870; }
+.audit-log__export-msg { background: #102a1a; color: #6fd88a; padding: 0.4rem 0.75rem; border-radius: 4px; font-size: 0.78rem; margin-bottom: 0.5rem; }
+.audit-log__denied { color: #ff8080; font-size: 0.9rem; margin-top: 1rem; }
+.audit-log__error { background: #4a2010; color: #ffaa66; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.82rem; margin-bottom: 0.5rem; }
+.audit-log__loading { color: #7aaed4; font-size: 0.9rem; margin-top: 0.5rem; }
+.audit-log__empty { color: #7aaed4; font-size: 0.9rem; margin-top: 1rem; }
+
+/* Filter controls */
+.audit-log__filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.75rem; }
+.audit-log__filter { display: flex; flex-direction: column; gap: 0.15rem; }
+.audit-log__filter-label { font-size: 0.7rem; color: #7aaed4; text-transform: uppercase; letter-spacing: 0.04em; }
+.audit-log__filter-input { background: #14243e; border: 1px solid #2a5080; border-radius: 4px; color: #dce8f5; padding: 0.3em 0.5em; font-size: 0.8rem; min-width: 120px; }
+.audit-log__filter-input:focus { outline: none; border-color: #4a8ad0; }
+
+/* Table */
+.audit-log__table-wrap { overflow-x: auto; max-height: 60vh; overflow-y: auto; }
+.audit-log__table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+.audit-log__table th { background: #14243e; color: #7aaed4; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.4em 0.5em; text-align: left; border-bottom: 1px solid #1e3a5f; position: sticky; top: 0; z-index: 1; }
+.audit-log__table td { padding: 0.35em 0.5em; border-bottom: 1px solid #14243e; color: #dce8f5; vertical-align: top; }
+.audit-log__table tr:hover td { background: #1a2e4a; }
+.audit-log__cell--ts { font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 130px; }
+.audit-log__cell--action { font-weight: 600; color: #a0c4e0; }
+.audit-log__cell--entity { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audit-log__cell--change { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.72rem; color: #8ab8d8; }

@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { useControlPanelStore } from '../store'
-import type { PlayerSeasonAvg, TeamSeasonAvg } from '../../../main/analytics'
+import type { PlayerSeasonAvg, TeamSeasonAvg, AttendanceStats } from '../../../main/analytics'
 import type {
   SeasonStatsExportData,
   ExportPlayerAvgRow,
@@ -24,6 +24,7 @@ interface SeasonStatsResult {
   playerAverages: PlayerSeasonAvg[]
   homeTeamAverages: TeamSeasonAvg
   awayTeamAverages: TeamSeasonAvg
+  attendance: AttendanceStats
 }
 
 // ---------------------------------------------------------------------------
@@ -187,7 +188,7 @@ function SeasonStatsView(): React.ReactElement {
     )
   }
 
-  const { playerAverages, homeTeamAverages, awayTeamAverages } = data
+  const { playerAverages, homeTeamAverages, awayTeamAverages, attendance } = data
 
   return (
     <div className="season-stats" role="region" aria-label="Season Stats">
@@ -305,6 +306,31 @@ function SeasonStatsView(): React.ReactElement {
                 ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* ── Attendance Stats (Req 27.5) ── */}
+      <section className="season-stats__section" aria-labelledby="attendance-heading">
+        <h3 id="attendance-heading" className="season-stats__section-title">Attendance</h3>
+        <div className="season-stats__attendance" data-testid="season-attendance">
+          <div className="season-stats__attendance-item">
+            <span className="season-stats__attendance-label">Total Season Attendance</span>
+            <span className="season-stats__attendance-value" data-testid="total-attendance">
+              {attendance.gamesWithAttendance > 0 ? attendance.totalAttendance.toLocaleString() : '—'}
+            </span>
+          </div>
+          <div className="season-stats__attendance-item">
+            <span className="season-stats__attendance-label">Average per Game</span>
+            <span className="season-stats__attendance-value" data-testid="avg-attendance">
+              {attendance.gamesWithAttendance > 0 ? attendance.averageAttendance.toLocaleString() : '—'}
+            </span>
+          </div>
+          <div className="season-stats__attendance-item">
+            <span className="season-stats__attendance-label">Games with Recorded Attendance</span>
+            <span className="season-stats__attendance-value" data-testid="games-with-attendance">
+              {attendance.gamesWithAttendance}
+            </span>
+          </div>
         </div>
       </section>
     </div>

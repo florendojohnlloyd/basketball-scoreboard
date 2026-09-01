@@ -39,8 +39,10 @@ const arbitraryGameConfig = (): fc.Arbitrary<GameConfig> =>
     overtimeDurationMinutes: fc.integer({ min: 1, max: 60 }),
     shotClockDurationSeconds: fc.integer({ min: 14, max: 30 }),
     bonusThreshold: fc.integer({ min: 1, max: 10 }),
+    foulOutLimit: fc.integer({ min: 1, max: 6 }),
     fullTimeoutsPerTeam: fc.integer({ min: 0, max: 10 }),
     twentySecTimeoutsPerTeam: fc.integer({ min: 0, max: 10 }),
+    timeoutDurationSeconds: fc.integer({ min: 30, max: 90 }),
   })
 
 /** Generates an arbitrary ClockState */
@@ -68,14 +70,22 @@ const arbitraryTeamState = (
   fc.record({
     config: fc.record({
       name: fc.string({ minLength: 1, maxLength: 30 }).filter((s) => s.trim().length > 0),
-      color: fc.hexaString({ minLength: 6, maxLength: 6 }).map((h) => `#${h}`),
+      color: fc
+        .string({ unit: fc.constantFrom(...'0123456789abcdef'), minLength: 6, maxLength: 6 })
+        .map((h) => `#${h}`),
       logoPath: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 100 })),
+      playerImagePath: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 100 })),
     }),
     score: fc.nat(),
     fouls: fc.nat(),
+    turnovers: fc.nat(),
+    players: fc.constant([]),
     timeouts: fc.record({
       fullRemaining: fc.integer({ min: 0, max: fullMax }),
       twentyRemaining: fc.integer({ min: 0, max: twentyMax }),
+      firstHalfUsed: fc.integer({ min: 0, max: 2 }),
+      secondHalfUsed: fc.integer({ min: 0, max: 3 }),
+      overtimeUsed: fc.integer({ min: 0, max: 1 }),
     }),
   })
 
@@ -84,25 +94,30 @@ const arbitraryGameState = (): fc.Arbitrary<GameState> =>
   arbitraryGameConfig().chain((gameConfig) => {
     const fullMax = gameConfig.fullTimeoutsPerTeam
     const twentyMax = gameConfig.twentySecTimeoutsPerTeam
-    return fc.record({
-      gamePhase: fc.oneof(
-        fc.constant('pre-game' as const),
-        fc.constant('in-game' as const),
-        fc.constant('post-game' as const),
-      ),
-      gameConfig: fc.constant(gameConfig),
-      home: arbitraryTeamState(fullMax, twentyMax),
-      away: arbitraryTeamState(fullMax, twentyMax),
-      gameClock: arbitraryClockState(),
-      shotClock: arbitraryShotClockState(),
-      period: fc.record({
-        current: fc.integer({ min: 1, max: 20 }),
-        format: fc.oneof(fc.constant('quarters' as const), fc.constant('halves' as const)),
-        isOvertime: fc.boolean(),
-        overtimeNumber: fc.integer({ min: 0, max: 10 }),
-      }),
-      volume: fc.float({ min: 0, max: 1, noNaN: true }),
-    })
+    return fc
+      .record({
+        gamePhase: fc.oneof(
+          fc.constant('pre-game' as const),
+          fc.constant('in-game' as const),
+          fc.constant('post-game' as const),
+        ),
+        gameConfig: fc.constant(gameConfig),
+        home: arbitraryTeamState(fullMax, twentyMax),
+        away: arbitraryTeamState(fullMax, twentyMax),
+        gameClock: arbitraryClockState(),
+        shotClock: arbitraryShotClockState(),
+        period: fc.record({
+          current: fc.integer({ min: 1, max: 20 }),
+          format: fc.oneof(fc.constant('quarters' as const), fc.constant('halves' as const)),
+          isOvertime: fc.boolean(),
+          overtimeNumber: fc.integer({ min: 0, max: 10 }),
+        }),
+        volume: fc.float({ min: 0, max: 1, noNaN: true }),
+      })
+      // Merge generated dynamic fields onto a complete default state so all
+      // required GameState fields (events, possession, timeout, sponsorLogos,
+      // periodSnapshots, liga context, etc.) are present.
+      .map((generated) => ({ ...fresh(), ...generated }))
   })
 
 // ---------------------------------------------------------------------------

@@ -53,8 +53,12 @@ function tickClock(clock: ClockState, delta: number): ClockState {
 
 function tickShotClock(clock: ShotClockState, delta: number): ShotClockState {
   if (!clock.running) return clock;
-  const next = Math.max(0, clock.displayMs - delta);
-  return { ...clock, displayMs: next, running: next > 0 };
+  const next = clock.displayMs - delta;
+  if (next <= 0) {
+    // Shot clock expired — stop it at 0 (violation will be handled in CLOCK_TICK)
+    return { ...clock, displayMs: 0, running: false };
+  }
+  return { ...clock, displayMs: next };
 }
 
 function resetGameClock(clock: ClockState): ClockState {
@@ -98,7 +102,11 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
 
     // ── GAME CLOCK ──
     case 'START_GAME_CLOCK': {
-      const newState = { ...state, gameClock: { ...state.gameClock, running: true } };
+      // Auto-reset shot clock if expired (basketball rules: new possession = 24s)
+      const shotClockReset = state.shotClock.displayMs === 0
+        ? { ...state.shotClock, displayMs: state.shotClock.configuredDurationSeconds * 1000, running: true }
+        : { ...state.shotClock, running: true };
+      const newState = { ...state, gameClock: { ...state.gameClock, running: true }, shotClock: shotClockReset };
       if (state.gamePhase === 'pre-game') {
         const ev = makeEvent(newState, 'GAME_START', { description: 'Game started' });
         return { ...newState, gamePhase: 'in-game', events: [...state.events, ev] };
@@ -106,7 +114,12 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       return newState;
     }
     case 'STOP_GAME_CLOCK':
-      return { ...state, gameClock: { ...state.gameClock, running: false } };
+      // Pause game clock + reset shot clock to configured duration (ready for next possession)
+      return {
+        ...state,
+        gameClock: { ...state.gameClock, running: false },
+        shotClock: { ...state.shotClock, displayMs: state.shotClock.configuredDurationSeconds * 1000, running: false },
+      };
     case 'RESET_GAME_CLOCK':
       return { ...state, gameClock: resetGameClock(state.gameClock) };
     case 'SET_GAME_CLOCK': {
@@ -121,17 +134,37 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
     case 'STOP_SHOT_CLOCK':
       return { ...state, shotClock: { ...state.shotClock, running: false } };
     case 'RESET_SHOT_CLOCK':
-      return { ...state, shotClock: resetShotClock(state.shotClock) };
+      // Reset to configured duration — keep running if game clock is running (continuous play)
+      return {
+        ...state,
+        shotClock: {
+          ...state.shotClock,
+          displayMs: state.shotClock.configuredDurationSeconds * 1000,
+          running: state.gameClock.running,
+        },
+      };
     case 'SET_SHOT_CLOCK_ENABLED':
       return { ...state, shotClock: { ...state.shotClock, enabled: command.enabled, running: false } };
 
     // ── CLOCK TICK (no undo) ──
     case 'CLOCK_TICK': {
       const { deltaMs } = command;
+      const newGameClock = tickClock(state.gameClock, deltaMs);
+      const newShotClock = tickShotClock(state.shotClock, deltaMs);
+
+      // Shot clock violation: shot clock just expired → stop game clock (dead ball)
+      if (state.shotClock.running && !newShotClock.running && newShotClock.displayMs === 0) {
+        return {
+          ...state,
+          gameClock: { ...newGameClock, running: false },
+          shotClock: newShotClock,  // stays at 0, running: false
+        };
+      }
+
       return {
         ...state,
-        gameClock: tickClock(state.gameClock, deltaMs),
-        shotClock: tickShotClock(state.shotClock, deltaMs),
+        gameClock: newGameClock,
+        shotClock: newShotClock,
       };
     }
 
@@ -675,12 +708,9 @@ export interface GameStore {
   getUndoDescription(): string | null;
 }
 
-/** Commands that should NOT be pushed to the undo stack */
-const NO_UNDO = new Set<CommandType['type']>([
-  'CLOCK_TICK', 'TIMEOUT_TICK', 'START_TIMEOUT', 'END_TIMEOUT',
-  'START_GAME_CLOCK', 'STOP_GAME_CLOCK',
-  'START_SHOT_CLOCK', 'STOP_SHOT_CLOCK', 'SET_VOLUME',
-  'SET_SPONSOR_LOGOS',
+/** Commands that CAN be undone — score changes only */
+const UNDOABLE = new Set<CommandType['type']>([
+  'ADD_PLAYER_POINTS',
 ]);
 
 export function createGameStore(initialState?: GameState): GameStore {
@@ -688,7 +718,7 @@ export function createGameStore(initialState?: GameState): GameStore {
   const undoStack: Array<{ state: GameState; description: string }> = [];
 
   function pushUndo(prevState: GameState, cmd: CommandType): void {
-    if (NO_UNDO.has(cmd.type)) return;
+    if (!UNDOABLE.has(cmd.type)) return;
     undoStack.push({ state: prevState, description: cmd.type });
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   }

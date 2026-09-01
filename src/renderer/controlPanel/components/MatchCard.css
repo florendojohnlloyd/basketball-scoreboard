@@ -1,0 +1,174 @@
+/* MatchCard — Individual match node display for tournament brackets
+ * Requirements 6.4, 6.5, 6.7 */
+
+/* ────────────────────────────────────────────────────────────────────────
+   Base card container
+   ──────────────────────────────────────────────────────────────────────── */
+
+.match-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 200px;
+  max-width: 240px;
+  padding: 0.5rem;
+  border: 1px solid #3a3a5a;
+  border-radius: 6px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 0.875rem;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  cursor: default;
+  /* Ensure keyboard focus is visible */
+  outline-offset: 2px;
+}
+
+/* Clickable card */
+.match-card[role="button"] {
+  cursor: pointer;
+}
+
+.match-card[role="button"]:hover {
+  border-color: #5b8dee;
+  box-shadow: 0 2px 8px rgba(91, 141, 238, 0.2);
+}
+
+.match-card[role="button"]:focus-visible {
+  outline: 2px solid #5b8dee;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Status-specific background colors (Requirement 6.5)
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Pending / Scheduled — default dark background */
+.match-card--pending,
+.match-card--scheduled {
+  background: #1a1a2e;
+}
+
+/* In Progress — subtle blue tint */
+.match-card--in-progress {
+  background: #1e2540;
+  border-color: #3a4f7a;
+}
+
+/* Completed — subtle green tint */
+.match-card--completed {
+  background: #1e3025;
+  border-color: #2a5540;
+}
+
+/* BYE — subtle gray tint */
+.match-card--bye {
+  background: #22222e;
+  border-color: #3a3a4a;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Team row (one per participant)
+   ──────────────────────────────────────────────────────────────────────── */
+
+.match-card__team-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.25rem;
+  min-height: 2rem;
+}
+
+/* Winner row — highlight with bold text and subtle color */
+.match-card__team-row--winner {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* TBD row — dimmed text (Requirement 6.4) */
+.match-card__team-row--tbd .match-card__team-name {
+  font-style: italic;
+  color: #7f8ea3;
+}
+
+/* BYE row — dimmed text and italic (Requirement 6.7) */
+.match-card__team-row--bye .match-card__team-name {
+  font-style: italic;
+  color: #7f8ea3;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Team row components: seed, name, score
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Seed badge (Requirement 6.4) */
+.match-card__seed {
+  flex-shrink: 0;
+  min-width: 2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #7f8ea3;
+  text-align: center;
+}
+
+/* Team name (Requirement 6.4) */
+.match-card__team-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Score (Requirement 6.4) */
+.match-card__score {
+  flex-shrink: 0;
+  min-width: 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: #ffffff;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Divider between home and away
+   ──────────────────────────────────────────────────────────────────────── */
+
+.match-card__divider {
+  height: 1px;
+  background: #3a3a5a;
+  margin: 0;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Status badge (shown for in-progress, completed, BYE)
+   ──────────────────────────────────────────────────────────────────────── */
+
+.match-card__status-badge {
+  margin-top: 0.5rem;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 3px;
+  text-align: center;
+  background: #2a2a4a;
+  color: #7f8ea3;
+}
+
+.match-card--in-progress .match-card__status-badge {
+  background: #3a4f7a;
+  color: #8bb5ff;
+}
+
+.match-card--completed .match-card__status-badge {
+  background: #2a5540;
+  color: #6fcf97;
+}
+
+.match-card--bye .match-card__status-badge {
+  background: #3a3a4a;
+  color: #9a9aaa;
+}

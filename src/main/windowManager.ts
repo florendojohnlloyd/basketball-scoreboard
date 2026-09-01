@@ -235,15 +235,15 @@ export function createWindowManager(): WindowManager {
     state.isSingleMonitor = !hasSecondaryDisplay;
 
     // ------------------------------------------------------------------
-    // Control Panel window — restore bounds if available
+    // Control Panel window — always maximize for best experience
     // ------------------------------------------------------------------
-    const savedControlPanelBounds = boundsStore.get('controlPanel');
-
     const controlPanelOptions: Electron.BrowserWindowConstructorOptions = {
-      width: savedControlPanelBounds?.width ?? 1200,
-      height: savedControlPanelBounds?.height ?? 800,
-      x: savedControlPanelBounds?.x ?? primaryDisplay.workArea.x,
-      y: savedControlPanelBounds?.y ?? primaryDisplay.workArea.y,
+      width: primaryDisplay.workArea.width,
+      height: primaryDisplay.workArea.height,
+      x: primaryDisplay.workArea.x,
+      y: primaryDisplay.workArea.y,
+      minWidth: 1024,
+      minHeight: 700,
       webPreferences: {
         preload: preloadPath,
         sandbox: false
@@ -251,10 +251,7 @@ export function createWindowManager(): WindowManager {
     };
 
     state.controlPanelWindow = new BrowserWindow(controlPanelOptions);
-
-    // Persist bounds when the operator moves/resizes the control panel
-    state.controlPanelWindow.on('moved', persistBounds);
-    state.controlPanelWindow.on('resized', persistBounds);
+    state.controlPanelWindow.maximize();
 
     // ------------------------------------------------------------------
     // Scoreboard Display window — created on demand

@@ -11,9 +11,34 @@ interface Warning {
   id: string
   message: string
   kind: 'error' | 'warning'
+  /** When true, this warning can only be dismissed automatically (not by user click) */
+  autoOnly?: boolean
 }
 
-type ScoreboardEvent = { type: string; name?: string; message?: string }
+type ScoreboardEvent = {
+  type: string
+  name?: string
+  message?: string
+  destinationFolder?: string
+  success?: boolean
+  path?: string
+  error?: string
+  status?: { active: boolean; elapsedSeconds: number; error: string | null }
+  attempt?: number
+  maxAttempts?: number
+}
+
+/** Format elapsed seconds as H:MM:SS (or M:SS below one hour). */
+function formatElapsed(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds))
+  const hours = Math.floor(s / 3600)
+  const minutes = Math.floor((s % 3600) / 60)
+  const seconds = s % 60
+  const mm = String(minutes).padStart(2, '0')
+  const ss = String(seconds).padStart(2, '0')
+  if (hours > 0) return `${hours}:${mm}:${ss}`
+  return `${minutes}:${ss}`
+}
 
 /** Minimal display info returned by GET_MONITORS. */
 interface DisplayInfo {
@@ -52,6 +77,17 @@ function StatusBar(): React.ReactElement {
 
   // ---- Persistent display-disconnected alert id (so we can clear it) ----
   const [disconnectedAlertId, setDisconnectedAlertId] = useState<string | null>(null)
+
+  // ---- Persistent backup-destination-inaccessible alert id ----
+  // Dismissed only when next backup to that destination succeeds (Req 29.5)
+  const [backupDestAlertId, setBackupDestAlertId] = useState<string | null>(null)
+
+  // ---- Live Streaming status (Requirement 33.5–33.6) ----
+  // "Streaming" badge with elapsed duration while the RTMP stream is active.
+  const [streamActive, setStreamActive] = useState(false)
+  const [streamElapsed, setStreamElapsed] = useState(0)
+  // Persistent "Stream Failed" alert after all reconnect retries are exhausted.
+  const [streamFailedAlertId, setStreamFailedAlertId] = useState<string | null>(null)
 
   // -------------------------------------------------------------------------
   // Helpers
@@ -153,6 +189,90 @@ function StatusBar(): React.ReactElement {
           break
         }
 
+        // ── Backup events (Requirement 29) ──
+
+        case 'BACKUP_DESTINATION_INACCESSIBLE': {
+          // Persistent warning — only one at a time. Cleared when next backup to that
+          // destination succeeds (see BACKUP_COMPLETE handler below).
+          setBackupDestAlertId((prevId) => {
+            if (prevId !== null) return prevId // already showing
+            const folder = event.destinationFolder ?? 'configured folder'
+            const newId = makeId()
+            setWarnings((prev) => [
+              ...prev,
+              {
+                id: newId,
+                message: `Auto-backup failed — destination folder inaccessible: ${folder}`,
+                kind: 'error',
+                autoOnly: true,
+              },
+            ])
+            return newId
+          })
+          break
+        }
+
+        case 'BACKUP_COMPLETE': {
+          if (event.success) {
+            // Clear the destination-inaccessible warning — backup to that folder succeeded
+            setBackupDestAlertId((prevId) => {
+              if (prevId !== null) {
+                setWarnings((prev) => prev.filter((w) => w.id !== prevId))
+              }
+              return null
+            })
+          }
+          break
+        }
+
+        // ── Live Streaming events (Requirement 33.5–33.6) ──
+
+        case 'RTMP_STATUS_UPDATE': {
+          const status = event.status
+          if (!status) break
+          setStreamActive(status.active)
+          setStreamElapsed(status.elapsedSeconds)
+          // A healthy, active stream clears any lingering "Stream Failed" alert.
+          if (status.active) {
+            setStreamFailedAlertId((prevId) => {
+              if (prevId !== null) {
+                setWarnings((prev) => prev.filter((w) => w.id !== prevId))
+              }
+              return null
+            })
+          }
+          break
+        }
+
+        case 'RTMP_RECONNECT_ATTEMPT': {
+          const attempt = event.attempt ?? '?'
+          const max = event.maxAttempts ?? '?'
+          addWarning(
+            `Stream connection lost — reconnecting (attempt ${attempt} of ${max})…`,
+            'warning',
+          )
+          break
+        }
+
+        case 'RTMP_FAILED': {
+          // Stream is no longer active; show a persistent error alert (Req 33.6).
+          setStreamActive(false)
+          setStreamFailedAlertId((prevId) => {
+            if (prevId !== null) return prevId // already showing
+            const newId = makeId()
+            setWarnings((prev) => [
+              ...prev,
+              {
+                id: newId,
+                message: 'Stream Failed — reconnection attempts exhausted. The stream has stopped.',
+                kind: 'error',
+              },
+            ])
+            return newId
+          })
+          break
+        }
+
         default:
           break
       }
@@ -197,6 +317,21 @@ function StatusBar(): React.ReactElement {
         <span className="status-bar__monitor-text">{monitorStatus}</span>
       </div>
 
+      {/* Live Streaming badge (Requirement 33.5) */}
+      {streamActive && (
+        <div
+          className="status-bar__streaming"
+          role="status"
+          aria-live="polite"
+          data-testid="statusbar-streaming"
+        >
+          <span className="status-bar__streaming-dot" aria-hidden="true" />
+          <span className="status-bar__streaming-text">
+            Streaming {formatElapsed(streamElapsed)}
+          </span>
+        </div>
+      )}
+
       {/* Active warnings / alerts */}
       {hasWarnings && (
         <ul className="status-bar__warnings" aria-label="System warnings" aria-live="assertive">
@@ -214,18 +349,22 @@ function StatusBar(): React.ReactElement {
                 </span>
                 <span className="status-bar__warning-text">{w.message}</span>
 
-                {/* Dismiss button — always available; required for DISPLAY_DISCONNECTED */}
-                <button
-                  className="status-bar__dismiss"
-                  onClick={
-                    isDisconnected
-                      ? handleDismissDisconnected
-                      : () => removeWarning(w.id)
-                  }
-                  aria-label={`Dismiss: ${w.message}`}
-                >
-                  ✕
-                </button>
+                {/* Dismiss button — shown for manually dismissable warnings only.
+                    autoOnly warnings (e.g. BACKUP_DESTINATION_INACCESSIBLE) are
+                    dismissed only when the system clears the condition. */}
+                {!w.autoOnly && (
+                  <button
+                    className="status-bar__dismiss"
+                    onClick={
+                      isDisconnected
+                        ? handleDismissDisconnected
+                        : () => removeWarning(w.id)
+                    }
+                    aria-label={`Dismiss: ${w.message}`}
+                  >
+                    ✕
+                  </button>
+                )}
               </li>
             )
           })}

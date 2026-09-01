@@ -312,6 +312,8 @@ export type CommandType =
   // Cloud sync (Requirement 30)
   | { type: 'CLOUD_SYNC_CONFIGURE'; config: CloudSyncConfig }
   | { type: 'CLOUD_SYNC_NOW' }
+  // Offline sync conflict resolution (Requirement 30, Task 67)
+  | { type: 'SYNC_CONFLICT_RESOLVED'; conflictId: string; choice: 'local' | 'remote' }
   // Overlay / streaming (Requirements 33–34)
   | { type: 'OVERLAY_CONFIG_SET';   config: OverlayConfig }
   | { type: 'RTMP_CONFIG_SET';      config: RtmpConfig }
@@ -338,7 +340,7 @@ export interface ValidationResult {
 export type Role = 'Admin' | 'Scorekeeper' | 'Coach' | 'Viewer';
 
 /**
- * The 10 action categories used for RBAC permission checks.
+ * The action categories used for RBAC permission checks.
  * Each IPC command maps to exactly one of these categories.
  */
 export type ActionCategory =
@@ -351,7 +353,9 @@ export type ActionCategory =
   | 'USER_MGMT'
   | 'SYSTEM'
   | 'VIEWER'
-  | 'STREAMING';
+  | 'STREAMING'
+  | 'TOURNAMENT'
+  | 'SHARE';
 
 // ---------------------------------------------------------------------------
 // Extended Player / Team Statistics (Requirements 13–17, 21)
@@ -443,6 +447,7 @@ export interface ScheduledGame {
   status: ScheduledGameStatus;
   gameLogId?: string;            // linked game log id when completed
   attendance?: number;           // 0–99999
+  matchNodeId?: string;          // link to tournament MatchNode (bidirectional, Requirement 5.2)
 }
 
 /** A venue record. */
@@ -530,6 +535,21 @@ export interface PendingChange {
   payload: unknown;              // serialised entity or delta
 }
 
+/**
+ * A record as seen from one side (local or remote) of a sync conflict.
+ * Carries enough context for the operator to choose which version to keep.
+ */
+export interface SyncRecord {
+  /** The entity type (e.g. 'gameState', 'liga', 'gameLog'). */
+  entityType: string;
+  /** The entity identifier. */
+  entityId: string;
+  /** ISO 8601 UTC timestamp of when this version was last modified. */
+  lastModifiedAt: string;
+  /** Human-readable description of the change (e.g. field name → old/new value). */
+  fields: Array<{ field: string; value: unknown }>;
+}
+
 // ---------------------------------------------------------------------------
 // Cloud Sync (Requirement 30)
 // ---------------------------------------------------------------------------
@@ -539,6 +559,27 @@ export interface CloudSyncConfig {
   enabled: boolean;
   endpointUrl: string;           // must start with https://
   apiKey: string;                // encrypted at rest via safeStorage
+}
+
+/**
+ * A single record wrapped for transmission to the Cloud Sync endpoint.
+ * The endpoint receives batches of these as a JSON array.
+ */
+export interface SyncEnvelope {
+  entityType: 'liga' | 'gameLog' | 'auditLog' | 'roster';
+  entityId: string;
+  lastModified: string;          // ISO 8601 UTC
+  operation: 'upsert' | 'delete';
+  data: unknown;                 // entity-specific payload
+}
+
+/** Outcome of a single Cloud Sync attempt. */
+export interface SyncResult {
+  success: boolean;
+  recordsTransmitted: number;
+  startedAt: string;             // ISO 8601 UTC
+  completedAt: string;           // ISO 8601 UTC
+  error?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -558,6 +599,25 @@ export interface RtmpConfig {
   streamKey: string;
 }
 
+/** Live status of the RTMP stream (Requirement 33). */
+export interface RtmpStatus {
+  active: boolean;               // true while streaming (or attempting to reconnect)
+  elapsedSeconds: number;        // seconds elapsed since the stream started
+  error: string | null;         // last error message, or null when healthy
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Viewer (Requirement 36)
+// ---------------------------------------------------------------------------
+
+/** Status of the mobile-friendly viewer server (Requirement 36). */
+export interface MobileViewerStatus {
+  running: boolean;
+  port: number;
+  localUrl: string | null;       // http://<localIPv4>:<port> when running, else null
+  qrCodeDataUri: string | null;  // base64 PNG data URI of the local URL when running, else null
+}
+
 // ---------------------------------------------------------------------------
 // REST API Keys (Requirement 35)
 // ---------------------------------------------------------------------------
@@ -565,10 +625,18 @@ export interface RtmpConfig {
 /** An API key record issued to an external system. */
 export interface ApiKey {
   id: string;
-  label: string;                 // human-readable description
-  keyHash: string;               // bcrypt hash of the raw key
+  label: string;                 // human-readable description (1–50 chars)
+  keyHash: string;               // SHA-256 hex hash of the raw key (matches ApiServer.hashApiKey)
   createdAt: string;             // ISO 8601
   active: boolean;
+}
+
+/** Status of the local REST API server (Requirement 34.1). */
+export interface ApiServerStatus {
+  running: boolean;
+  port: number;
+  enabled: boolean;
+  portConflict: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -662,3 +730,175 @@ export function DEFAULT_GAME_STATE(): GameState {
     showPhotosOnScoreboard: false,
   };
 }
+
+
+// ---------------------------------------------------------------------------
+// Tournament Bracketing (Requirements 1–10)
+// ---------------------------------------------------------------------------
+
+/** Supported bracket formats for tournament play. */
+export type BracketFormat = 'single-elimination' | 'double-elimination' | 'round-robin';
+
+/** Status of a tournament lifecycle. */
+export type TournamentStatus = 'pending' | 'seeding' | 'in-progress' | 'completed';
+
+/** Status of an individual match node within a bracket. */
+export type MatchNodeStatus = 'pending' | 'scheduled' | 'in-progress' | 'completed' | 'bye';
+
+/** Full tournament state persisted as JSON. */
+export interface Tournament {
+  id: string;
+  ligaId: string;
+  name: string;
+  format: BracketFormat;
+  status: TournamentStatus;
+  createdAt: string;
+  updatedAt: string;
+  seeds: TournamentSeed[];
+  rounds: Round[];
+  matchNodes: MatchNode[];
+  winnersBracket?: Round[];
+  losersBracket?: Round[];
+  grandFinal?: MatchNode;
+  standings?: RoundRobinStanding[];
+  championTeamId?: string;
+  options: BracketOptions;
+}
+
+/** Options controlling bracket generation behavior. */
+export interface BracketOptions {
+  consolationMatch: boolean;
+}
+
+/** Lightweight tournament metadata for listing. */
+export interface TournamentSummary {
+  id: string;
+  name: string;
+  format: BracketFormat;
+  status: TournamentStatus;
+  createdAt: string;
+  teamCount: number;
+  championTeamId?: string;
+}
+
+/** A seeded team entry within a tournament. */
+export interface TournamentSeed {
+  seedNumber: number;
+  teamId: string;
+  teamName: string;
+  record: { wins: number; losses: number };
+  pointDifferential: number;
+}
+
+/** A single match/contest within the bracket structure. */
+export interface MatchNode {
+  id: string;
+  roundIndex: number;
+  position: number;
+  bracketSection: 'winners' | 'losers' | 'final' | 'consolation' | 'round-robin';
+  homeTeamId: string | null;
+  awayTeamId: string | null;
+  homeSeed: number | null;
+  awaySeed: number | null;
+  homeSourceMatchId: string | null;
+  awaySourceMatchId: string | null;
+  homeSourceIsLoser: boolean;
+  awaySourceIsLoser: boolean;
+  status: MatchNodeStatus;
+  homeScore: number | null;
+  awayScore: number | null;
+  winnerTeamId: string | null;
+  loserTeamId: string | null;
+  scheduledGameId: string | null;
+  gameLogId: string | null;
+  isBye: boolean;
+}
+
+/** A round within the bracket (ordered set of match nodes). */
+export interface Round {
+  index: number;
+  name: string;
+  matchNodeIds: string[];
+}
+
+/** Standing entry for round-robin format tournaments. */
+export interface RoundRobinStanding {
+  teamId: string;
+  teamName: string;
+  played: number;
+  wins: number;
+  losses: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  pointDifferential: number;
+}
+
+/** Full bracket state payload sent over WebSocket on initial connection. */
+export interface BracketPayload {
+  tournamentId: string;
+  name: string;
+  format: BracketFormat;
+  status: TournamentStatus;
+  seeds: TournamentSeed[];
+  matchNodes: MatchNode[];
+  rounds: Round[];
+  winnersBracket?: Round[];
+  losersBracket?: Round[];
+  grandFinal?: MatchNode;
+  standings?: RoundRobinStanding[];
+  championTeamId?: string;
+}
+
+/** Incremental bracket update payload sent over WebSocket after match results. */
+export interface BracketUpdatePayload {
+  tournamentId: string;
+  updatedMatchNodes: MatchNode[];
+  newScheduledGames?: string[];
+  status: TournamentStatus;
+  championTeamId?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Tournament IPC Query Types
+// ---------------------------------------------------------------------------
+
+/** Discriminated union of all tournament-related IPC query messages. */
+export type TournamentQuery =
+  | { type: 'TOURNAMENT_CREATE'; ligaId: string; name: string; format: BracketFormat }
+  | { type: 'TOURNAMENT_DELETE'; tournamentId: string }
+  | { type: 'TOURNAMENT_RESET'; tournamentId: string }
+  | { type: 'TOURNAMENT_LIST'; ligaId: string }
+  | { type: 'TOURNAMENT_LOAD'; tournamentId: string }
+  | { type: 'TOURNAMENT_AUTO_SEED'; tournamentId: string }
+  | { type: 'TOURNAMENT_MANUAL_SEED'; tournamentId: string; teamIds: string[] }
+  | { type: 'TOURNAMENT_GENERATE_BRACKET'; tournamentId: string; options?: BracketOptions }
+  | { type: 'TOURNAMENT_RECORD_RESULT'; tournamentId: string; matchNodeId: string; homeScore: number; awayScore: number }
+  | { type: 'TOURNAMENT_REVERT_RESULT'; tournamentId: string; matchNodeId: string }
+  | { type: 'TOURNAMENT_EXPORT_PDF'; tournamentId: string }
+  | { type: 'TOURNAMENT_PRINT'; tournamentId: string };
+
+// ---------------------------------------------------------------------------
+// Social Media Sharing (Requirement 35)
+// ---------------------------------------------------------------------------
+
+/** Supported social media platforms for score sharing. */
+export type SocialPlatform = 'twitter' | 'facebook';
+
+/** The token status for a given platform. */
+export type SocialTokenStatus = 'valid' | 'expired' | 'missing';
+
+/** A share post assembled by the operator before dispatch. */
+export interface SharePost {
+  platform: SocialPlatform;
+  text: string;              // editable by operator before posting
+  imagePng?: Buffer;         // optional screenshot attachment
+}
+
+/** Discriminated union of all social-share IPC query messages. */
+export type SocialShareQuery =
+  | { type: 'SHARE_GENERATE_TEXT' }
+  | { type: 'SHARE_CAPTURE_SCREENSHOT' }
+  | { type: 'SHARE_POST'; platform: SocialPlatform; text: string; attachScreenshot: boolean }
+  | { type: 'SHARE_OAUTH_INITIATE'; platform: SocialPlatform }
+  | { type: 'SHARE_TOKEN_STATUS'; platform: SocialPlatform }
+  | { type: 'SHARE_TOKEN_REVOKE'; platform: SocialPlatform };

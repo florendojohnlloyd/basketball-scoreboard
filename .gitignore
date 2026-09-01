@@ -22,3 +22,12 @@ Thumbs.db
 
 # Large video files
 vid/*.mp4
+
+# Temp electron-vite config artifacts
+electron.vite.config.*.mjs
+
+# Local dev notes / credentials (not for VCS)
+dev/
+
+# Large media anywhere in the tree (exceeds GitHub file limits)
+*.mp4

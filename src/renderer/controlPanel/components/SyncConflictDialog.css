@@ -1,0 +1,229 @@
+/* ==========================================================================
+   SyncConflictDialog — Sync conflict resolution modal (Task 67, Req 30)
+   ========================================================================== */
+
+/* ── Backdrop ── */
+.sync-conflict-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* above most modals (sub-modal uses ~1000) */
+  background-color: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+/* ── Dialog container ── */
+.sync-conflict-dialog {
+  background: #1a2535;
+  border: 1px solid #2d4060;
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 90vh;
+  max-width: 800px;
+  outline: none; /* we handle keyboard focus ourselves */
+  overflow: hidden;
+  padding: 20px 24px 18px;
+  width: 100%;
+}
+
+/* ── Header ── */
+.sync-conflict-dialog__header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.sync-conflict-dialog__title {
+  color: #e0a800;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.sync-conflict-dialog__close {
+  background: none;
+  border: none;
+  color: #6b8099;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 2px 6px;
+  transition: color 0.15s;
+}
+.sync-conflict-dialog__close:hover {
+  color: #f88;
+}
+
+/* ── Description ── */
+.sync-conflict-dialog__desc {
+  color: #9ab4cc;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ── Entity metadata ── */
+.sync-conflict-dialog__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sync-conflict-dialog__meta-item {
+  background: #0f1c2d;
+  border-radius: 4px;
+  color: #c5d9ec;
+  font-size: 0.72rem;
+  padding: 3px 8px;
+}
+.sync-conflict-dialog__meta-label {
+  color: #6b8099;
+  margin-right: 5px;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+}
+.sync-conflict-dialog__meta-id {
+  font-family: monospace;
+  font-size: 0.7rem;
+  word-break: break-all;
+}
+
+/* ── Table wrapper (scrollable) ── */
+.sync-conflict-dialog__table-wrapper {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid #243247;
+  border-radius: 6px;
+}
+
+/* ── Comparison table ── */
+.sync-conflict-dialog__table {
+  border-collapse: collapse;
+  min-width: 100%;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.sync-conflict-dialog__th {
+  background: #0f1c2d;
+  color: #7aaed4;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  text-align: left;
+  text-transform: uppercase;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sync-conflict-dialog__th--field  { width: 18%; color: #5d7a99; }
+.sync-conflict-dialog__th--local  { width: 41%; color: #4caf82; }
+.sync-conflict-dialog__th--remote { width: 41%; color: #5c9ede; }
+
+.sync-conflict-dialog__version-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.sync-conflict-dialog__timestamp {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: #5d7a99;
+  margin-top: 2px;
+}
+
+/* ── Rows ── */
+.sync-conflict-dialog__row {
+  border-bottom: 1px solid #1e2e42;
+}
+.sync-conflict-dialog__row:last-child { border-bottom: none; }
+.sync-conflict-dialog__row--diff {
+  background: rgba(224, 168, 0, 0.055);
+}
+.sync-conflict-dialog__row--diff .sync-conflict-dialog__cell--local {
+  background: rgba(76, 175, 130, 0.06);
+}
+.sync-conflict-dialog__row--diff .sync-conflict-dialog__cell--remote {
+  background: rgba(92, 158, 222, 0.06);
+}
+
+/* ── Cells ── */
+.sync-conflict-dialog__cell {
+  padding: 7px 12px;
+  vertical-align: top;
+}
+.sync-conflict-dialog__cell--field {
+  color: #6b8099;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  word-break: break-word;
+}
+.sync-conflict-dialog__cell--local  { border-left: 1px solid #1e2e42; }
+.sync-conflict-dialog__cell--remote { border-left: 1px solid #1e2e42; }
+
+.sync-conflict-dialog__value {
+  color: #c5d9ec;
+  font-family: monospace;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Action buttons ── */
+.sync-conflict-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.sync-conflict-dialog__btn {
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 8px 18px;
+  transition: filter 0.15s, transform 0.1s;
+}
+.sync-conflict-dialog__btn:hover  { filter: brightness(1.15); }
+.sync-conflict-dialog__btn:active { transform: scale(0.97); }
+
+.sync-conflict-dialog__btn--local {
+  background: #1e6644;
+  color: #b2f5d4;
+}
+.sync-conflict-dialog__btn--remote {
+  background: #1a4a7a;
+  color: #a8d4f7;
+}
+.sync-conflict-dialog__btn--cancel {
+  background: #2a3a4e;
+  color: #7aaed4;
+}
+
+/* ── Responsive: collapse to single column on very narrow screens ── */
+@media (max-width: 520px) {
+  .sync-conflict-dialog {
+    padding: 14px 14px 12px;
+  }
+  .sync-conflict-dialog__th--field  { width: 25%; }
+  .sync-conflict-dialog__th--local,
+  .sync-conflict-dialog__th--remote { width: 37.5%; }
+}

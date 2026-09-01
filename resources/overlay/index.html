@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LigaControl Overlay</title>
+  <style>
+    /* Transparent background for OBS browser-source chroma-key / CSS removal */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #ffffff;
+    }
+
+    #overlay {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 8px;
+      padding: 12px 24px;
+      min-width: 600px;
+    }
+
+    .team-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 140px;
+    }
+
+    .team-name {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.9;
+    }
+
+    .team-score {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .team-details {
+      font-size: 11px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+
+    .center-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 120px;
+      margin: 0 20px;
+    }
+
+    .period-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .game-clock {
+      font-size: 32px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .shot-clock {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+
+    .separator {
+      width: 1px;
+      height: 60px;
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .hidden { display: none !important; }
+
+    #connection-status {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 10px;
+      opacity: 0.5;
+    }
+
+    /* ── Bracket overlay panel ── */
+    #bracket-overlay {
+      display: none;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.78);
+      border-radius: 8px;
+      padding: 14px 18px;
+      min-width: 260px;
+      max-width: 360px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+    }
+
+    #bracket-overlay.visible {
+      display: block;
+    }
+
+    .bracket-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .bracket-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bracket-format-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .bracket-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      opacity: 0.6;
+      margin: 8px 0 4px;
+    }
+
+    .bracket-match {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 5px;
+      padding: 6px 8px;
+      margin-bottom: 5px;
+      border-left: 3px solid transparent;
+    }
+
+    .bracket-match.status-pending {
+      border-left-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .bracket-match.status-in-progress {
+      border-left-color: #f0c040;
+      background: rgba(240, 192, 64, 0.10);
+    }
+
+    .bracket-match.status-completed {
+      border-left-color: #4caf50;
+    }
+
+    .bracket-match.status-bye {
+      border-left-color: rgba(255, 255, 255, 0.1);
+      opacity: 0.6;
+    }
+
+    .bracket-match-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bracket-seed {
+      font-size: 9px;
+      opacity: 0.55;
+      min-width: 16px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bracket-team {
+      font-size: 11px;
+      font-weight: 600;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bracket-team.winner {
+      color: #7ee87e;
+    }
+
+    .bracket-score {
+      font-size: 13px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      min-width: 22px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bracket-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+      margin: 3px 0;
+    }
+
+    .bracket-champion {
+      margin-top: 10px;
+      background: rgba(255, 215, 0, 0.15);
+      border-radius: 5px;
+      padding: 7px 10px;
+      text-align: center;
+    }
+
+    .bracket-champion-label {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #ffd700;
+      opacity: 0.8;
+    }
+
+    .bracket-champion-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffd700;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bracket-no-matches {
+      font-size: 11px;
+      opacity: 0.5;
+      text-align: center;
+      padding: 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="connection-status">Connecting...</div>
+  <div id="overlay">
+    <!-- Home Team -->
+    <div class="team-section" id="home-section">
+      <div class="team-name" id="home-name">HOME</div>
+      <div class="team-score" id="home-score">0</div>
+      <div class="team-details">
+        <span id="home-fouls-label">Fouls: </span><span id="home-fouls">0</span>
+        &nbsp;|&nbsp;
+        <span id="home-timeouts-label">TO: </span><span id="home-timeouts">0</span>
+      </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Center: Clock & Period -->
+    <div class="center-section" id="center-section">
+      <div class="period-label" id="period-label">Q1</div>
+      <div class="game-clock" id="game-clock">12:00</div>
+      <div class="shot-clock" id="shot-clock">24</div>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Away Team -->
+    <div class="team-section" id="away-section">
+      <div class="team-name" id="away-name">AWAY</div>
+      <div class="team-score" id="away-score">0</div>
+      <div class="team-details">
+        <span id="away-fouls-label">Fouls: </span><span id="away-fouls">0</span>
+        &nbsp;|&nbsp;
+        <span id="away-timeouts-label">TO: </span><span id="away-timeouts">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bracket panel — hidden until a bracket payload is received -->
+  <div id="bracket-overlay" aria-live="polite" aria-label="Tournament bracket">
+    <div class="bracket-header">
+      <div class="bracket-title" id="bracket-title"></div>
+      <div class="bracket-format-badge" id="bracket-format-badge"></div>
+    </div>
+    <div id="bracket-matches-container"></div>
+    <div id="bracket-champion" class="bracket-champion hidden">
+      <div class="bracket-champion-label">Champion</div>
+      <div class="bracket-champion-name" id="bracket-champion-name"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── Configuration state ──
+    let config = {
+      visibleElements: ['score', 'clock', 'period', 'fouls', 'timeouts'],
+      fontScaleFactor: 1.0,
+      backgroundAlpha: 0.75
+    };
+
+    // ── Bracket state ──
+    let bracketState = null;       // BracketPayload
+    let teamNameById = {};         // { [teamId]: teamName } lookup built from seeds
+
+    // ── WebSocket connection ──
+    const wsProtocol = 'ws:';
+    const wsHost = window.location.hostname || 'localhost';
+    const wsPort = window.location.port || '8080';
+    const wsUrl = wsProtocol + '//' + wsHost + ':' + wsPort + '/ws';
+
+    let ws = null;
+    let reconnectTimeout = null;
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = function() {
+        document.getElementById('connection-status').textContent = 'Connected';
+        setTimeout(function() {
+          document.getElementById('connection-status').style.opacity = '0';
+        }, 2000);
+      };
+
+      ws.onmessage = function(event) {
+        try {
+          var msg = JSON.parse(event.data);
+          if (msg.type === 'state') {
+            renderState(msg.data);
+          } else if (msg.type === 'config') {
+            config = msg.data;
+            applyConfig();
+          } else if (msg.type === 'bracket') {
+            // Full bracket payload — store and render
+            bracketState = msg.data;
+            teamNameById = buildTeamNameLookup(bracketState.seeds || []);
+            renderBracket();
+          } else if (msg.type === 'bracket-update') {
+            // Incremental update — merge changed nodes then re-render
+            if (bracketState && msg.data.tournamentId === bracketState.tournamentId) {
+              mergeBracketUpdate(msg.data);
+              renderBracket();
+            }
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+      };
+
+      ws.onclose = function() {
+        document.getElementById('connection-status').textContent = 'Disconnected';
+        document.getElementById('connection-status').style.opacity = '0.5';
+        scheduleReconnect();
+      };
+
+      ws.onerror = function() {
+        ws.close();
+      };
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      reconnectTimeout = setTimeout(function() {
+        connect();
+      }, 2000);
+    }
+
+    // ── Rendering ──
+
+    function formatClock(ms) {
+      var totalSeconds = Math.ceil(ms / 1000);
+      var minutes = Math.floor(totalSeconds / 60);
+      var seconds = totalSeconds % 60;
+      return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    }
+
+    function formatShotClock(ms) {
+      return String(Math.ceil(ms / 1000));
+    }
+
+    function getPeriodLabel(period) {
+      if (period.isOvertime) {
+        return period.overtimeNumber === 1 ? 'OT' : period.overtimeNumber + 'OT';
+      }
+      if (period.format === 'halves') {
+        return period.current === 1 ? '1st Half' : '2nd Half';
+      }
+      return 'Q' + period.current;
+    }
+
+    function renderState(state) {
+      // Home
+      document.getElementById('home-name').textContent = state.home.name;
+      document.getElementById('home-score').textContent = state.home.score;
+      document.getElementById('home-fouls').textContent = state.home.fouls;
+      document.getElementById('home-timeouts').textContent = state.home.timeouts.fullRemaining;
+
+      // Away
+      document.getElementById('away-name').textContent = state.away.name;
+      document.getElementById('away-score').textContent = state.away.score;
+      document.getElementById('away-fouls').textContent = state.away.fouls;
+      document.getElementById('away-timeouts').textContent = state.away.timeouts.fullRemaining;
+
+      // Clock
+      document.getElementById('game-clock').textContent = formatClock(state.gameClock.displayMs);
+
+      // Shot clock
+      var shotClockEl = document.getElementById('shot-clock');
+      if (state.shotClock.enabled) {
+        shotClockEl.textContent = formatShotClock(state.shotClock.displayMs);
+        shotClockEl.classList.remove('hidden');
+      } else {
+        shotClockEl.classList.add('hidden');
+      }
+
+      // Period
+      document.getElementById('period-label').textContent = getPeriodLabel(state.period);
+
+      // Apply visibility based on config
+      applyConfig();
+    }
+
+    function applyConfig() {
+      var overlay = document.getElementById('overlay');
+      overlay.style.background = 'rgba(0, 0, 0, ' + config.backgroundAlpha + ')';
+      overlay.style.fontSize = (config.fontScaleFactor * 100) + '%';
+
+      // Visibility toggles
+      var visible = config.visibleElements || [];
+
+      toggleVisibility('home-score', visible.indexOf('score') !== -1);
+      toggleVisibility('away-score', visible.indexOf('score') !== -1);
+      toggleVisibility('game-clock', visible.indexOf('clock') !== -1);
+      toggleVisibility('shot-clock', visible.indexOf('clock') !== -1);
+      toggleVisibility('period-label', visible.indexOf('period') !== -1);
+
+      var showFouls = visible.indexOf('fouls') !== -1;
+      toggleVisibility('home-fouls', showFouls);
+      toggleVisibility('home-fouls-label', showFouls);
+      toggleVisibility('away-fouls', showFouls);
+      toggleVisibility('away-fouls-label', showFouls);
+
+      var showTimeouts = visible.indexOf('timeouts') !== -1;
+      toggleVisibility('home-timeouts', showTimeouts);
+      toggleVisibility('home-timeouts-label', showTimeouts);
+      toggleVisibility('away-timeouts', showTimeouts);
+      toggleVisibility('away-timeouts-label', showTimeouts);
+    }
+
+    function toggleVisibility(elementId, visible) {
+      var el = document.getElementById(elementId);
+      if (!el) return;
+      if (visible) {
+        el.classList.remove('hidden');
+      } else {
+        el.classList.add('hidden');
+      }
+    }
+
+    // ── Bracket rendering ──
+
+    /**
+     * Build a { teamId → teamName } map from the seeds array.
+     * @param {Array} seeds - TournamentSeed[]
+     * @returns {Object}
+     */
+    function buildTeamNameLookup(seeds) {
+      var map = {};
+      for (var i = 0; i < seeds.length; i++) {
+        map[seeds[i].teamId] = seeds[i].teamName;
+      }
+      return map;
+    }
+
+    /**
+     * Merge a BracketUpdatePayload into the stored bracketState.
+     * @param {Object} update - BracketUpdatePayload
+     */
+    function mergeBracketUpdate(update) {
+      // Update status / champion
+      if (update.status) bracketState.status = update.status;
+      if (update.championTeamId !== undefined) bracketState.championTeamId = update.championTeamId;
+
+      // Replace updated match nodes by id
+      var updatedNodes = update.updatedMatchNodes || [];
+      for (var i = 0; i < updatedNodes.length; i++) {
+        var updated = updatedNodes[i];
+        var found = false;
+        for (var j = 0; j < bracketState.matchNodes.length; j++) {
+          if (bracketState.matchNodes[j].id === updated.id) {
+            bracketState.matchNodes[j] = updated;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          bracketState.matchNodes.push(updated);
+        }
+        // Also update grandFinal if applicable
+        if (bracketState.grandFinal && bracketState.grandFinal.id === updated.id) {
+          bracketState.grandFinal = updated;
+        }
+      }
+    }
+
+    /**
+     * Format a bracket format string into a readable badge label.
+     * @param {string} format
+     * @returns {string}
+     */
+    function formatBadgeLabel(format) {
+      var labels = {
+        'single-elimination': 'Single Elim',
+        'double-elimination': 'Double Elim',
+        'round-robin': 'Round Robin'
+      };
+      return labels[format] || format;
+    }
+
+    /**
+     * Resolve a team name from a teamId using the lookup, falling back to 'TBD'.
+     * @param {string|null} teamId
+     * @returns {string}
+     */
+    function resolveTeamName(teamId) {
+      if (!teamId) return 'TBD';
+      return teamNameById[teamId] || 'TBD';
+    }
+
+    /**
+     * Build and return a match card DOM element for a MatchNode.
+     * @param {Object} node - MatchNode
+     * @returns {HTMLElement}
+     */
+    function buildMatchCard(node) {
+      var card = document.createElement('div');
+      card.className = 'bracket-match status-' + (node.status || 'pending');
+
+      // Handle BYE display
+      if (node.isBye) {
+        var homeRow = buildMatchRow(
+          node.homeSeed,
+          resolveTeamName(node.homeTeamId),
+          node.homeScore,
+          node.winnerTeamId === node.homeTeamId
+        );
+        var byeDivider = document.createElement('div');
+        byeDivider.className = 'bracket-divider';
+        var byeRow = buildMatchRow(null, 'BYE', null, false);
+        byeRow.style.opacity = '0.4';
+        card.appendChild(homeRow);
+        card.appendChild(byeDivider);
+        card.appendChild(byeRow);
+        return card;
+      }
+
+      var isCompleted = node.status === 'completed';
+      var homeIsWinner = isCompleted && node.winnerTeamId === node.homeTeamId;
+      var awayIsWinner = isCompleted && node.winnerTeamId === node.awayTeamId;
+
+      var homeRow = buildMatchRow(
+        node.homeSeed,
+        resolveTeamName(node.homeTeamId),
+        node.homeScore,
+        homeIsWinner
+      );
+      var divider = document.createElement('div');
+      divider.className = 'bracket-divider';
+      var awayRow = buildMatchRow(
+        node.awaySeed,
+        resolveTeamName(node.awayTeamId),
+        node.awayScore,
+        awayIsWinner
+      );
+
+      card.appendChild(homeRow);
+      card.appendChild(divider);
+      card.appendChild(awayRow);
+      return card;
+    }
+
+    /**
+     * Build a single team row within a match card.
+     * @param {number|null} seed
+     * @param {string} name
+     * @param {number|null} score
+     * @param {boolean} isWinner
+     * @returns {HTMLElement}
+     */
+    function buildMatchRow(seed, name, score, isWinner) {
+      var row = document.createElement('div');
+      row.className = 'bracket-match-row';
+
+      var seedEl = document.createElement('div');
+      seedEl.className = 'bracket-seed';
+      seedEl.textContent = seed != null ? seed : '';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'bracket-team' + (isWinner ? ' winner' : '');
+      nameEl.textContent = name;
+
+      var scoreEl = document.createElement('div');
+      scoreEl.className = 'bracket-score';
+      scoreEl.textContent = score != null ? score : '';
+
+      row.appendChild(seedEl);
+      row.appendChild(nameEl);
+      row.appendChild(scoreEl);
+      return row;
+    }
+
+    /**
+     * Main bracket render: updates the bracket-overlay panel from bracketState.
+     */
+    function renderBracket() {
+      if (!bracketState) return;
+
+      // Show the panel
+      var panel = document.getElementById('bracket-overlay');
+      panel.classList.add('visible');
+
+      // Header
+      document.getElementById('bracket-title').textContent = bracketState.name || 'Tournament';
+      document.getElementById('bracket-format-badge').textContent = formatBadgeLabel(bracketState.format);
+
+      // Champion
+      var championEl = document.getElementById('bracket-champion');
+      var championNameEl = document.getElementById('bracket-champion-name');
+      if (bracketState.status === 'completed' && bracketState.championTeamId) {
+        championNameEl.textContent = resolveTeamName(bracketState.championTeamId);
+        championEl.classList.remove('hidden');
+      } else {
+        championEl.classList.add('hidden');
+      }
+
+      // Matches container
+      var container = document.getElementById('bracket-matches-container');
+      container.innerHTML = '';
+
+      var nodes = bracketState.matchNodes || [];
+
+      // Separate into in-progress and other active (non-bye) nodes
+      var inProgress = [];
+      var pending = [];
+      var completed = [];
+
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (n.isBye) continue;  // skip pure BYEs from the list view
+        if (n.status === 'in-progress') {
+          inProgress.push(n);
+        } else if (n.status === 'pending' || n.status === 'scheduled') {
+          // Only show pending matches that have at least one team determined
+          if (n.homeTeamId || n.awayTeamId) {
+            pending.push(n);
+          }
+        } else if (n.status === 'completed') {
+          completed.push(n);
+        }
+      }
+
+      // Render: in-progress first, then upcoming, then recent completed
+
+      if (inProgress.length > 0) {
+        var label = document.createElement('div');
+        label.className = 'bracket-section-label';
+        label.textContent = 'In Progress';
+        container.appendChild(label);
+        for (var i = 0; i < inProgress.length; i++) {
+          container.appendChild(buildMatchCard(inProgress[i]));
+        }
+      }
+
+      if (pending.length > 0) {
+        var label = document.createElement('div');
+        label.className = 'bracket-section-label';
+        label.textContent = 'Up Next';
+        container.appendChild(label);
+        // Show at most 4 upcoming matches to keep panel compact
+        var maxPending = Math.min(pending.length, 4);
+        for (var i = 0; i < maxPending; i++) {
+          container.appendChild(buildMatchCard(pending[i]));
+        }
+      }
+
+      if (completed.length > 0) {
+        var label = document.createElement('div');
+        label.className = 'bracket-section-label';
+        label.textContent = 'Recent Results';
+        container.appendChild(label);
+        // Show last 3 completed matches (most recent at end of array)
+        var start = Math.max(0, completed.length - 3);
+        for (var i = start; i < completed.length; i++) {
+          container.appendChild(buildMatchCard(completed[i]));
+        }
+      }
+
+      if (inProgress.length === 0 && pending.length === 0 && completed.length === 0) {
+        var empty = document.createElement('div');
+        empty.className = 'bracket-no-matches';
+        empty.textContent = 'No matches yet';
+        container.appendChild(empty);
+      }
+    }
+
+    // ── Init ──
+    connect();
+  </script>
+</body>
+</html>

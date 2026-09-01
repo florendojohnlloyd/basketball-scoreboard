@@ -103,7 +103,11 @@ describe('ClockEngine — shot clock independence', () => {
     vi.advanceTimersByTime(500)
     const gameClockTicksOnly = calls.length
 
-    // Reset calls, then run game clock + shot clock together for another 500 ms
+    // Reset calls, then run game clock + shot clock together for another 500 ms.
+    // ClockEngine uses a SINGLE shared 100ms interval for both clocks: a single
+    // CLOCK_TICK is dispatched per interval regardless of how many clocks are
+    // active (the reducer applies the shared tick to every running clock). So
+    // starting the shot clock must NOT change the CLOCK_TICK dispatch count.
     calls.length = 0
     engine.startShotClock()
     vi.advanceTimersByTime(500)
@@ -111,21 +115,17 @@ describe('ClockEngine — shot clock independence', () => {
 
     engine.stopShotClock()
 
-    // With shot clock also running, tick count should roughly double
-    // (each clock fires ~5 ticks per 500 ms), so bothClocksTickCount ≈ 2 × gameClockTicksOnly.
-    // Key assertion: game clock is still running — its count contribution must be within range.
-    expect(bothClocksTickCount).toBeGreaterThanOrEqual(gameClockTicksOnly) // at least as many
-    // Shot clock adds its own ticks — combined should be more than game clock alone
-    expect(bothClocksTickCount).toBeGreaterThan(gameClockTicksOnly)
+    // Shared-timer invariant: adding the shot clock does not add extra ticks.
+    expect(bothClocksTickCount).toBe(gameClockTicksOnly)
 
-    // After stopping shot clock, only game clock ticks remain
+    // After stopping the shot clock, the game clock is still running so ticks
+    // continue at the same shared rate.
     calls.length = 0
     vi.advanceTimersByTime(500)
     const afterStopShotClock = calls.length
 
-    // Should be back to ~5 ticks (game clock only) — same as the initial game-clock-only run
-    expect(afterStopShotClock).toBeGreaterThanOrEqual(gameClockTicksOnly - 2)
-    expect(afterStopShotClock).toBeLessThanOrEqual(gameClockTicksOnly + 2)
+    // Same shared rate as the game-clock-only run.
+    expect(afterStopShotClock).toBe(gameClockTicksOnly)
   })
 })
 

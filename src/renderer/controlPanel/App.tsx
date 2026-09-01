@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react'
 import { useControlPanelStore, sendCommand } from './store'
+import type { UserSession } from './store'
 import { formatClockDisplay } from '../shared/clockUtils'
-import type { Player, Liga, LigaTeam } from '@shared/types'
+import type { Player, Liga, LigaTeam, GameLogRecord, SyncRecord } from '@shared/types'
+import { SCOREBOARD_EVENT, SCOREBOARD_QUERY } from '@shared/types'
 import { SportSelector } from './components/SportSelector'
+import SyncConflictDialog from './components/SyncConflictDialog'
 import { TeamRosterModal } from './components/TeamRosterModal'
 import { EditableWidget } from './components/EditableWidget'
 import { useLayoutStore } from './components/useLayoutStore'
 import { ScoreTab } from './components/ScoreTab'
+import { LoginScreen } from './components/LoginScreen'
 import AdvancedMetricsPanel from './components/AdvancedMetricsPanel'
 import GameHistoryView from './components/GameHistoryView'
 import SeasonStatsView from './components/SeasonStatsView'
 import LeaderboardsView from './components/LeaderboardsView'
 import BoxScoreView from './components/BoxScoreView'
+import ScheduleManagementView from './components/ScheduleManagementView'
+import StaffManagementView from './components/StaffManagementView'
+import AuditLogView from './components/AuditLogView'
+import UserManagementView from './components/UserManagementView'
+import BackupPanel from './components/BackupPanel'
+import TournamentManager from './components/TournamentManager'
 import sponsorLogo from '../../../pictures/BG.png'
 import fitnessLogo from '../../../pictures/red.png'
 import './App.css'
@@ -20,15 +30,70 @@ import './audio/audioEngine'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-type Tab = 'SCORE' | 'ROSTER' | 'BRANDING' | 'HISTORY' | 'SEASON' | 'LEADERS' | 'SETTINGS'
+type Tab = 'SCORE' | 'ROSTER' | 'BRANDING' | 'HISTORY' | 'SEASON' | 'LEADERS' | 'AUDIT' | 'SETTINGS' | 'TOURNAMENT'
 type AppScreen = 'sport-selector' | 'liga-picker' | 'liga-manage' | 'matchup-picker' | 'control-panel'
 
 interface LigaSummary { id: string; name: string; year: number; teamCount: number }
 
+/** A pending sync conflict waiting for operator resolution. */
+interface SyncConflictItem {
+  conflictId: string
+  local: SyncRecord
+  remote: SyncRecord
+}
+
+// Helper: Build playerStats map from current GameState for game log record
+function buildPlayerStats(gs: import('@shared/types').GameState): Record<string, import('@shared/types').PlayerStats> {
+  const stats: Record<string, import('@shared/types').PlayerStats> = {}
+  for (const team of ['home', 'away'] as const) {
+    for (const p of gs[team].players) {
+      stats[p.id] = {
+        points: p.points,
+        rebounds: p.rebounds,
+        assists: p.assists,
+        steals: p.steals,
+        blocks: p.blocks,
+        fga: p.fga,
+        fgm: p.fgm,
+        fouls: p.fouls,
+        active: p.active,
+        jerseyNumber: p.number || null,
+        photoPath: p.photoPath ?? null,
+        minutesPlayed: p.minutesPlayed,
+        substitutions: p.substitutions ?? [],
+      }
+    }
+  }
+  return stats
+}
+
 // ---------------------------------------------------------------------------
-// APP WRAPPER (Liga Picker → Matchup → Control Panel)
+// APP WRAPPER (Login → Liga Picker → Matchup → Control Panel)
 // ---------------------------------------------------------------------------
 function App(): React.ReactElement {
+  const session = useControlPanelStore(s => s.session)
+  const setSession = useControlPanelStore(s => s.setSession)
+
+  function handleLogin(user: { id: string; username: string; role: string }): void {
+    setSession(user as UserSession)
+  }
+
+  async function handleLogout(): Promise<void> {
+    await window.electron.ipcRenderer.invoke(SCOREBOARD_QUERY, { type: 'AUTH_LOGOUT' })
+    setSession(null)
+  }
+
+  if (session === null) {
+    return <LoginScreen onLogin={handleLogin} />
+  }
+
+  return <AuthenticatedApp session={session} onLogout={handleLogout} />
+}
+
+// ---------------------------------------------------------------------------
+// AUTHENTICATED APP (Liga Picker → Matchup → Control Panel)
+// ---------------------------------------------------------------------------
+function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogout: () => void }): React.ReactElement {
   const [screen, setScreen] = useState<AppScreen>('sport-selector')
   const [ligas, setLigas] = useState<LigaSummary[]>([])
   const [currentLiga, setCurrentLiga] = useState<Liga | null>(null)
@@ -37,9 +102,94 @@ function App(): React.ReactElement {
   const [teamB, setTeamB] = useState<string>('')
   const [matchError, setMatchError] = useState('')
   const [rosterTeam, setRosterTeam] = useState<LigaTeam | null>(null)
+  const [showScheduleView, setShowScheduleView] = useState(false)
+  const [showStaffView, setShowStaffView] = useState(false)
+  const [savePrompt, setSavePrompt] = useState<{
+    homeTeam: string; awayTeam: string; homeScore: number; awayScore: number; ligaId: string | null
+  } | null>(null)
+
+  // Sync conflict queue (Requirement 30, Task 67)
+  // Multiple conflicts can arrive before the first is resolved; queue them.
+  const [syncConflicts, setSyncConflicts] = useState<SyncConflictItem[]>([])
 
   // Load ligas on mount
   useEffect(() => { refreshLigas() }, [])
+
+
+
+  // Listen for SAVE_GAME_LOG_PROMPT event from main process (Requirement 18)
+  // Also listens for SYNC_CONFLICT events (Requirement 30, Task 67)
+  useEffect(() => {
+    function handleEvent(raw: unknown): void {
+      const event = raw as { type: string; [k: string]: unknown }
+      if (event.type === 'SAVE_GAME_LOG_PROMPT') {
+        setSavePrompt({
+          homeTeam: event.homeTeam as string,
+          awayTeam: event.awayTeam as string,
+          homeScore: event.homeScore as number,
+          awayScore: event.awayScore as number,
+          ligaId: event.ligaId as string | null,
+        })
+      }
+      // Sync conflict: queue so operator can resolve one at a time (Req 30.6)
+      if (event.type === 'SYNC_CONFLICT') {
+        const item: SyncConflictItem = {
+          conflictId: event.conflictId as string,
+          local: event.local as SyncRecord,
+          remote: event.remote as SyncRecord,
+        }
+        setSyncConflicts(prev => [...prev, item])
+      }
+    }
+    window.electron.ipcRenderer.on(SCOREBOARD_EVENT, handleEvent)
+    return () => { /* cleanup handled by renderer lifecycle */ }
+  }, [])
+
+  async function handleSaveAndNewGame(): Promise<void> {
+    if (!savePrompt) return
+    const gs = useControlPanelStore.getState().gameState
+    // Build game log record from current state
+    const record: GameLogRecord = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      ligaId: gs.ligaId ?? '',
+      date: new Date().toISOString(),
+      homeTeam: gs.home.config.name,
+      awayTeam: gs.away.config.name,
+      finalScores: { home: gs.home.score, away: gs.away.score },
+      playerStats: buildPlayerStats(gs),
+      events: gs.events,
+      periodSnapshots: gs.periodSnapshots ?? [],
+    }
+    if (gs.ligaId) {
+      await window.electron.ipcRenderer.invoke('scoreboard:query', {
+        type: 'GAME_LOG_SAVE',
+        record,
+      })
+    }
+    // Now confirm the new game
+    await window.electron.ipcRenderer.invoke('scoreboard:query', {
+      type: 'NEW_GAME_CONFIRMED',
+      clearTeams: false,
+    })
+    setSavePrompt(null)
+  }
+
+  async function handleDiscardAndNewGame(): Promise<void> {
+    await window.electron.ipcRenderer.invoke('scoreboard:query', {
+      type: 'NEW_GAME_CONFIRMED',
+      clearTeams: false,
+    })
+    setSavePrompt(null)
+  }
+
+  function handleCancelNewGame(): void {
+    setSavePrompt(null)
+  }
+
+  // Sync conflict resolution: remove the resolved conflict from the queue (Req 30, Task 67)
+  function handleSyncConflictResolved(conflictId: string, _choice: 'local' | 'remote'): void {
+    setSyncConflicts(prev => prev.filter(c => c.conflictId !== conflictId))
+  }
 
   function refreshLigas(): void {
     window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LIST' })
@@ -120,11 +270,36 @@ function App(): React.ReactElement {
   // SCREEN: LIGA MANAGE (Add teams)
   // ══════════════════════════════════════════
   if (screen === 'liga-manage' && currentLiga) {
+    // Staff Management full-screen view (Requirement 26)
+    if (showStaffView) {
+      return (
+        <StaffManagementView
+          ligaId={currentLiga.id}
+          ligaName={currentLiga.name}
+          onClose={() => setShowStaffView(false)}
+        />
+      )
+    }
+
+    // Schedule Management full-screen view (Requirement 24)
+    if (showScheduleView) {
+      return (
+        <ScheduleManagementView
+          ligaId={currentLiga.id}
+          ligaName={currentLiga.name}
+          teams={currentLiga.teams}
+          onClose={() => setShowScheduleView(false)}
+        />
+      )
+    }
+
     return (
       <div className="liga-manage">
         <div className="liga-manage__header">
           <h2>{currentLiga.name} ({currentLiga.year})</h2>
           <button className="btn btn--dark" onClick={() => setScreen('matchup-picker')}>→ Start Matchup</button>
+          <button className="btn btn--dark" onClick={() => setShowScheduleView(true)}>📅 Schedule</button>
+          <button className="btn btn--dark" onClick={() => setShowStaffView(true)}>👥 Staff</button>
           <button className="btn btn--dark" onClick={() => { setCurrentLiga(null); setScreen('liga-picker'); refreshLigas() }}>← Back</button>
         </div>
 
@@ -293,24 +468,64 @@ function App(): React.ReactElement {
     )
   }
 
-  return <ControlPanel onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')} />
+  return (
+    <>
+      <ControlPanel onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')} ligaId={currentLiga?.id ?? null} />
+      {/* Save Game Log Prompt (Requirement 18) */}
+      {savePrompt && (
+        <div className="sub-modal" role="dialog" aria-label="Save game log">
+          <div className="sub-modal__content" style={{ maxWidth: 380 }}>
+            <h3 style={{ color: '#e0a800', marginBottom: 12 }}>Save Game Log?</h3>
+            <p style={{ color: '#dce8f5', fontSize: '0.85rem', marginBottom: 16 }}>
+              {savePrompt.homeTeam} {savePrompt.homeScore} — {savePrompt.awayScore} {savePrompt.awayTeam}
+            </p>
+            <p style={{ color: '#7aaed4', fontSize: '0.78rem', marginBottom: 16 }}>
+              Would you like to save this game log before starting a new game?
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn--green" onClick={handleSaveAndNewGame}>Save &amp; New Game</button>
+              <button className="btn btn--dark" onClick={handleDiscardAndNewGame}>Discard</button>
+              <button className="btn btn--red" onClick={handleCancelNewGame}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sync Conflict Resolution Dialog (Requirement 30, Task 67)
+          Shows the first queued conflict; subsequent conflicts wait until this is resolved.
+          While this dialog is open, the OfflineSyncService continues syncing non-conflicting records. */}
+      {syncConflicts.length > 0 && (
+        <SyncConflictDialog
+          conflictId={syncConflicts[0].conflictId}
+          local={syncConflicts[0].local}
+          remote={syncConflicts[0].remote}
+          onResolved={handleSyncConflictResolved}
+        />
+      )}
+    </>
+  )
 }
 
 // ---------------------------------------------------------------------------
 // CONTROL PANEL
 // ---------------------------------------------------------------------------
-function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
+function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string | null }): React.ReactElement {
   const [tab, setTab] = useState<Tab>('SCORE')
   const [showSubModal, setShowSubModal] = useState<'home' | 'away' | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<{ team: 'home' | 'away'; id: string } | null>(null)
   const [showBoxScore, setShowBoxScore] = useState(false)
+  const [showUserManagement, setShowUserManagement] = useState(false)
   const [templateInput, setTemplateInput] = useState<'save' | 'load' | null>(null)
   const [templateName, setTemplateName] = useState('')
   const { editing: layoutEditing, setEditing: setLayoutEditing, resetLayout, saveTemplate, loadTemplate, getTemplateNames, currentTemplate } = useLayoutStore()
+  const session = useControlPanelStore(s => s.session)
 
   // Swipe navigation
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null)
-  const TABS: Tab[] = ['SCORE', 'ROSTER', 'BRANDING', 'HISTORY', 'SEASON', 'LEADERS', 'SETTINGS']
+  const ALL_TABS: Tab[] = ['SCORE', 'ROSTER', 'BRANDING', 'HISTORY', 'SEASON', 'LEADERS', 'AUDIT', 'SETTINGS', 'TOURNAMENT']
+  // AUDIT tab only visible to Admin/Scorekeeper (Requirement 31)
+  const canViewAudit = session?.role === 'Admin' || session?.role === 'Scorekeeper'
+  const TABS = canViewAudit ? ALL_TABS : ALL_TABS.filter(t => t !== 'AUDIT')
 
   function handleTouchStart(e: React.TouchEvent): void {
     touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -353,7 +568,7 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
 
       {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (
-        <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} />
+        <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
       )}
 
       {/* ── ROSTER TAB ── */}
@@ -452,9 +667,37 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
         </div>
       )}
 
+      {/* ── AUDIT TAB (Audit Log — Req 31) ── */}
+      {tab === 'AUDIT' && (
+        <div className="audit-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <AuditLogView />
+        </div>
+      )}
+
+      {/* ── TOURNAMENT TAB ── */}
+      {tab === 'TOURNAMENT' && (
+        <div className="tournament-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          {ligaId
+            ? <TournamentManager ligaId={ligaId} />
+            : <p style={{ color: '#888', padding: '24px', textAlign: 'center' }}>Load a Liga to manage tournaments.</p>
+          }
+        </div>
+      )}
+
       {/* ── SETTINGS TAB ── */}
       {tab === 'SETTINGS' && (
         <div className="settings-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          {/* User Management — Admin only (Req 28, Task 60) */}
+          {useControlPanelStore.getState().session?.role === 'Admin' && (
+            <>
+              <h3>Admin</h3>
+              <button className="btn btn--dark" onClick={() => setShowUserManagement(true)}>👥 User Management</button>
+
+              {/* Backup & Restore — Admin only (Req 29, Task 65) */}
+              <h3>Backup &amp; Restore</h3>
+              <BackupPanel />
+            </>
+          )}
           <h3>Volume</h3>
           <input type="range" min="0" max="100" defaultValue={Math.round(gs.volume * 100)} onChange={e => sendCommand({ type: 'SET_VOLUME', level: parseInt(e.target.value) / 100 })} />
           <h3>Player Name Size</h3>
@@ -466,6 +709,8 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
             }} />
             <span style={{color:'#aaa',fontSize:'0.75rem'}}>{localStorage.getItem('player-name-size') || '10'} (drag to resize)</span>
           </div>
+
+
           <h3>Presets</h3>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 12, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 5, foulOutLimit: 6, fullTimeoutsPerTeam: 7, twentySecTimeoutsPerTeam: 1, timeoutDurationSeconds: 60 } })}>NBA Rules</button>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 10, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 4, foulOutLimit: 5, fullTimeoutsPerTeam: 5, twentySecTimeoutsPerTeam: 0, timeoutDurationSeconds: 60 } })}>FIBA Rules</button>
@@ -557,6 +802,8 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
         </div>
       )}
 
+
+
       {/* ── BOX SCORE MODAL — shown when gamePhase is post-game (Req 17) ── */}
       {showBoxScore && (
         <div
@@ -574,6 +821,20 @@ function ControlPanel({ onBack }: { onBack: () => void }): React.ReactElement {
               ✕ Close Box Score
             </button>
             <BoxScoreView />
+          </div>
+        </div>
+      )}
+
+      {/* ── USER MANAGEMENT — Admin only (Req 28, Task 60) ── */}
+      {showUserManagement && (
+        <div
+          className="box-score-modal"
+          role="dialog"
+          aria-label="User Management"
+          aria-modal="true"
+        >
+          <div className="box-score-modal__content">
+            <UserManagementView onClose={() => setShowUserManagement(false)} />
           </div>
         </div>
       )}

@@ -1,0 +1,1393 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Add tournament-related types to `src/shared/types.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053009
+      },
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465065329
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454747
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483466296
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483793733
+      }
+    ],
+    "1.2 Add tournament IPC query types to `src/shared/types.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053069
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454785
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483798102
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785484216087
+      }
+    ],
+    "2.1 Create `src/main/bracketAlgorithms.ts` with single-elimination bracket generation": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053120
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454824
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785484222593
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543266896
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543284706
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735217
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738746836
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785742441273
+      }
+    ],
+    "2.2 Add double-elimination bracket generation to `src/main/bracketAlgorithms.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053161
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454859
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543266930
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543286479
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735275
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738750414
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785742445155
+      }
+    ],
+    "2.3 Add round-robin schedule generation to `src/main/bracketAlgorithms.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053200
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454890
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543266976
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543286631
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735314
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738754002
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785742448834
+      }
+    ],
+    "3.1 Create `src/main/bracketEngine.ts` with tournament lifecycle methods": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053238
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454923
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267008
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735377
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785742456987
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785743623919
+      }
+    ],
+    "3.2 Implement seeding methods in `src/main/bracketEngine.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053289
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454960
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267040
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735451
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785743642938
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629237
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747758316
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747860813
+      }
+    ],
+    "3.3 Implement bracket generation in `src/main/bracketEngine.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053321
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483454999
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267071
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735509
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629373
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785748172317
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153078141
+      }
+    ],
+    "3.4 Implement match progression and auto-advance in `src/main/bracketEngine.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053354
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455030
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267098
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735562
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629461
+      },
+      {
+        "executionId": "bafb878d-f493-47e6-8a13-83d3b790d2c5",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785801924039
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153083232
+      }
+    ],
+    "4. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053386
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455059
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267129
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735620
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629564
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786157063106
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161228025
+      }
+    ],
+    "5.1 Add `TOURNAMENT` action category to roleStore permission matrix in `src/main/roleStore.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053423
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455090
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267170
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735700
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785743647720
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629635
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747762143
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747864482
+      }
+    ],
+    "5.2 Add tournament command classification to `requiredCategory()` in `src/main/ipcRouter.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053453
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455125
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267196
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735737
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629707
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785748175866
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153087152
+      }
+    ],
+    "5.3 Wire tournament query handlers in `src/main/ipcRouter.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053476
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455158
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267226
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735771
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629802
+      },
+      {
+        "executionId": "bafb878d-f493-47e6-8a13-83d3b790d2c5",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785801933997
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153095527
+      }
+    ],
+    "6.1 Extend `src/main/overlayServer.ts` with bracket broadcast support": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053507
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455182
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267258
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735827
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629894
+      },
+      {
+        "executionId": "756362ff-f83c-4b3e-ab6a-de020005391c",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785815623883
+      },
+      {
+        "executionId": "756362ff-f83c-4b3e-ab6a-de020005391c",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785830749560
+      }
+    ],
+    "6.2 Add initial bracket state delivery on client connection in `src/main/overlayServer.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053554
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455213
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267303
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735886
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747629985
+      },
+      {
+        "executionId": "756362ff-f83c-4b3e-ab6a-de020005391c",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785815624659
+      },
+      {
+        "executionId": "756362ff-f83c-4b3e-ab6a-de020005391c",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785830750630
+      }
+    ],
+    "6.3 Wire bracketEngine to overlayServer broadcast in `src/main/bracketEngine.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053585
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455243
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267327
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738735955
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630046
+      },
+      {
+        "executionId": "756362ff-f83c-4b3e-ab6a-de020005391c",
+        "chatSessionId": "sess_4341225b-8cfe-4f1f-81e2-ec71e32fdc85",
+        "timestamp": 1785830758581
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153115788
+      }
+    ],
+    "7. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053611
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455274
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267360
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736009
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630110
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161232703
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161237944
+      }
+    ],
+    "8.1 Create `src/renderer/controlPanel/components/BracketViewer.tsx` container component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053640
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455299
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267390
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736065
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630182
+      },
+      {
+        "executionId": "1b2d4c91-d885-47de-8e13-622c22a28b2b",
+        "chatSessionId": "sess_41b5dbb4-cc6f-4009-bdf1-1d2caccec933",
+        "timestamp": 1786092359976
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153119930
+      }
+    ],
+    "8.2 Create `src/renderer/controlPanel/components/SingleElimTree.tsx` sub-component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053671
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455331
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267443
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736136
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630252
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786150726760
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786152071227
+      }
+    ],
+    "8.3 Create `src/renderer/controlPanel/components/DoubleElimView.tsx` sub-component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053712
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455359
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267473
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736174
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630334
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786150730299
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786152075200
+      }
+    ],
+    "8.4 Create `src/renderer/controlPanel/components/RoundRobinGrid.tsx` sub-component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053741
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455391
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267498
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736209
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630416
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786150733922
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786152079170
+      }
+    ],
+    "8.5 Create `src/renderer/controlPanel/components/MatchCard.tsx` sub-component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053769
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455419
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267527
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736260
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630461
+      },
+      {
+        "executionId": "1b2d4c91-d885-47de-8e13-622c22a28b2b",
+        "chatSessionId": "sess_41b5dbb4-cc6f-4009-bdf1-1d2caccec933",
+        "timestamp": 1786092360849
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153123798
+      }
+    ],
+    "8.6 Create `src/renderer/controlPanel/components/BracketViewer.css` stylesheet": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053790
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455447
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267561
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736310
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630526
+      },
+      {
+        "executionId": "1b2d4c91-d885-47de-8e13-622c22a28b2b",
+        "chatSessionId": "sess_41b5dbb4-cc6f-4009-bdf1-1d2caccec933",
+        "timestamp": 1786092361683
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153127683
+      }
+    ],
+    "9.1 Create `src/renderer/controlPanel/components/TournamentManager.tsx`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053818
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455479
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267593
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736361
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630630
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786152087029
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153131295
+      }
+    ],
+    "9.2 Create `src/renderer/controlPanel/components/TournamentManager.css` stylesheet": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053843
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455509
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267624
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736427
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630678
+      },
+      {
+        "executionId": "abdef5c8-d545-4973-87b6-aae16870a0f9",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786152087902
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153134933
+      }
+    ],
+    "9.3 Integrate TournamentManager into existing App.tsx navigation": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053873
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455540
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267656
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736485
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630742
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153143844
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786154459050
+      }
+    ],
+    "10.1 Add bracket PDF generation in `src/main/exportService.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053910
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455572
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267702
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736553
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630807
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153148783
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786154463345
+      }
+    ],
+    "10.2 Wire PDF export through IPC in `src/main/ipcRouter.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053943
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455609
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267726
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736594
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630901
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786154467818
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786155054831
+      }
+    ],
+    "10.3 Implement print support in BracketViewer renderer component": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465053973
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455642
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267757
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736643
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747630979
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786154468575
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786155055381
+      }
+    ],
+    "11. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465054005
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455674
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267788
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736704
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747631044
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161247362
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161251505
+      }
+    ],
+    "12.1 Wire bracketEngine into main process startup in `src/main/index.ts`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465054028
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455700
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267821
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736755
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747631113
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786155063410
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786156674113
+      }
+    ],
+    "12.2 Update overlay HTML/JS to handle bracket WebSocket messages in `resources/overlay/index.html`": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465054055
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455732
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267846
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736805
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747631202
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786156682474
+      },
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786157049699
+      }
+    ],
+    "13. Final checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "37688527-916c-4f41-b3d8-50478b7edea2",
+        "chatSessionId": "sess_e586e082-0d98-4a9d-9c40-920dd3c92b47",
+        "timestamp": 1785465054094
+      },
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785483455764
+      },
+      {
+        "executionId": "b1c3fdd7-6fde-4445-86ed-769e55f332c1",
+        "chatSessionId": "sess_0f9d54ab-8cbc-445f-ad0f-c4de6a2444f5",
+        "timestamp": 1785543267878
+      },
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785738736859
+      },
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747631269
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161256167
+      },
+      {
+        "executionId": "a963b319-94b7-4cdd-b5b5-fc97b14ec13a",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786161562886
+      }
+    ],
+    "1. Define data models and shared types": [
+      {
+        "executionId": "090aae85-ad3f-4acd-bcc5-75af78769913",
+        "chatSessionId": "sess_167f46aa-2951-4783-94fd-c4c6661bed58",
+        "timestamp": 1785484216161
+      }
+    ],
+    "2. Implement bracket generation algorithms (pure functions)": [
+      {
+        "executionId": "c1a513d4-f290-4999-b957-7f4c94b08ac1",
+        "chatSessionId": "sess_e598702f-5598-4012-9833-139fe1489d68",
+        "timestamp": 1785742448866
+      }
+    ],
+    "2.4 Write property test: Bracket structure preserves team count (Property 1)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747681584
+      }
+    ],
+    "2.5 Write property test: Seeded placement ensures highest vs lowest (Property 2)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747685410
+      }
+    ],
+    "2.6 Write property test: BYE assignment favors higher seeds (Property 3)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747689238
+      }
+    ],
+    "2.7 Write property test: Round-robin schedule completeness (Property 5)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747692870
+      }
+    ],
+    "2.8 Write property test: Unique MatchNode identifiers (Property 9)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747696847
+      }
+    ],
+    "3.5 Write property test: Match advancement preserves bracket integrity (Property 6)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747701392
+      }
+    ],
+    "3.6 Write property test: Result reversion clears downstream (Property 7)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747704915
+      }
+    ],
+    "3.7 Write property test: Tournament persistence round-trip (Property 8)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747709066
+      }
+    ],
+    "3.8 Write property test: Double-elimination loser routing (Property 10)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747712488
+      }
+    ],
+    "3.9 Write property test: Auto-seed ordering is deterministic and total (Property 4)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747716138
+      }
+    ],
+    "3.10 Write property test: Validation rejects invalid inputs (Property 12)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747719882
+      }
+    ],
+    "5.4 Write unit tests for RBAC enforcement on tournament commands": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747723930
+      }
+    ],
+    "5.5 Write property test: ScheduledGame bidirectional linking (Property 11)": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747727620
+      }
+    ],
+    "6.4 Write unit tests for WebSocket bracket broadcast": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747731353
+      }
+    ],
+    "10.4 Write unit tests for PDF export": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747735315
+      }
+    ],
+    "12.3 Write integration tests for tournament lifecycle": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747738825
+      }
+    ],
+    "12.4 Write E2E tests with Playwright": [
+      {
+        "executionId": "4104a18b-f0e4-4b0f-9685-5225dd9e4570",
+        "chatSessionId": "sess_0132868c-6377-428b-9ea9-603b28bd2206",
+        "timestamp": 1785747742864
+      }
+    ],
+    "3. Implement bracketEngine core module": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153083284
+      }
+    ],
+    "5. Integrate with RBAC and IPC layer": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153095592
+      }
+    ],
+    "6. Implement WebSocket real-time bracket updates": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153115862
+      }
+    ],
+    "8. Implement BracketViewer renderer component": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786153127772
+      }
+    ],
+    "9. Implement TournamentManager renderer component": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786154459117
+      }
+    ],
+    "10. Implement PDF export and print support": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786155055449
+      }
+    ],
+    "12. Integration and wiring": [
+      {
+        "executionId": "2e86012d-e365-4ad6-a8bc-7afc4b53e228",
+        "chatSessionId": "sess_606a47ef-07c6-42b2-8133-7ec7e7d71ae3",
+        "timestamp": 1786157049841
+      }
+    ]
+  }
+}

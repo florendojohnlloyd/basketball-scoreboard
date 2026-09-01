@@ -14,6 +14,7 @@
  */
 
 import { SCOREBOARD_EVENT } from '@shared/types'
+import hornSound from '../../shared/sounds/horn.mp3'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -191,21 +192,17 @@ class AudioEngine {
   // -------------------------------------------------------------------------
 
   /**
-   * End-of-period buzzer: ≥ 1.5 seconds at 440 Hz (Requirement 12.1).
-   * Silent no-op when audioAvailable === false.
-   */
-  /**
-   * End-of-period buzzer — plays sounds/horn.mp3
+   * End-of-period buzzer — plays the horn sound.
    */
   playEndOfPeriod(): void {
-    this._playAudioFile('local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/sounds/horn.mp3')
+    this._playAudioFile(hornSound)
   }
 
   /**
-   * Shot-clock / substitution horn — plays sounds/horn.mp3
+   * Shot-clock / substitution horn — plays the horn sound.
    */
   playShotClockViolation(): void {
-    this._playAudioFile('local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/sounds/horn.mp3')
+    this._playAudioFile(hornSound)
   }
 
   /**

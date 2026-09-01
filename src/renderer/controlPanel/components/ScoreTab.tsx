@@ -9,9 +9,13 @@ interface ScoreTabProps {
   selectedPlayer: { team: 'home' | 'away'; id: string } | null
   setSelectedPlayer: (p: { team: 'home' | 'away'; id: string } | null) => void
   setShowSubModal: (t: 'home' | 'away' | null) => void
+  currentTab: Tab
+  onTabChange: (tab: Tab) => void
 }
 
-export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }: ScoreTabProps): React.ReactElement {
+type Tab = 'SCORE' | 'ROSTER' | 'BRANDING' | 'HISTORY' | 'SEASON' | 'LEADERS' | 'SETTINGS'
+
+export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal, currentTab, onTabChange }: ScoreTabProps): React.ReactElement {
   const { layouts, editing, updateWidget } = useLayoutStore()
   const gs = useControlPanelStore(s => s.gameState)
   const { home, away, gameClock, shotClock, period } = gs
@@ -20,9 +24,10 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
   const [homePlayerPage, setHomePlayerPage] = useState(0)
   const [awayPlayerPage, setAwayPlayerPage] = useState(0)
   const PLAYERS_PER_PAGE = 5
+  const TABS: Tab[] = ['SCORE', 'ROSTER', 'BRANDING', 'HISTORY', 'SEASON', 'LEADERS', 'SETTINGS']
 
   return (
-    <div className="score-tab">
+    <div className={`score-tab${editing ? ' score-tab--editing' : ''}`}>
       {/* Score displays */}
       <EditableWidget id="home-label" rect={layouts['home-label']} editing={editing} onUpdate={updateWidget} label="Home">
         <span className="console-score__label">{home.config.name}:</span>
@@ -95,7 +100,7 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
       </EditableWidget>
 
       {/* Info buttons */}
-      <EditableWidget id="shot-play" rect={layouts['shot-play']} editing={editing} onUpdate={updateWidget} label="Shot Play"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'START_SHOT_CLOCK' })}>▶ Shot</button></EditableWidget>
+
       <EditableWidget id="shot-reset" rect={layouts['shot-reset']} editing={editing} onUpdate={updateWidget} label="Shot Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'RESET_SHOT_CLOCK' })}>↺ Shot</button></EditableWidget>
       <EditableWidget id="next-q" rect={layouts['next-q']} editing={editing} onUpdate={updateWidget} label="Next Q"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'ADVANCE_PERIOD' })}>NEXT Q</button></EditableWidget>
       <EditableWidget id="bonus-h-plus" rect={layouts['bonus-h-plus']} editing={editing} onUpdate={updateWidget} label="Foul H +"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}>+Foul H</button></EditableWidget>
@@ -104,11 +109,10 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
       <EditableWidget id="bonus-a-minus" rect={layouts['bonus-a-minus']} editing={editing} onUpdate={updateWidget} label="Foul A -"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}>-Foul A</button></EditableWidget>
 
       {/* Clock */}
-      <EditableWidget id="clock" rect={layouts['clock']} editing={editing} onUpdate={updateWidget} label="Clock"><div className="clock-panel" style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}><span className="clock-led">{clockStr}</span></div></EditableWidget>
-      <EditableWidget id="btn-start" rect={layouts['btn-start']} editing={editing} onUpdate={updateWidget} label="Start"><button className="btn btn--start btn--fill" onClick={() => { sendCommand({ type: 'START_GAME_CLOCK' }) }}>Start</button></EditableWidget>
-      <EditableWidget id="btn-pause" rect={layouts['btn-pause']} editing={editing} onUpdate={updateWidget} label="Pause"><button className="btn btn--pause btn--fill" onClick={() => { sendCommand({ type: 'STOP_GAME_CLOCK' }); sendCommand({ type: 'STOP_SHOT_CLOCK' }) }}>Pause</button></EditableWidget>
-      <EditableWidget id="btn-reset" rect={layouts['btn-reset']} editing={editing} onUpdate={updateWidget} label="Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'RESET_GAME_CLOCK' })}>Reset</button></EditableWidget>
-      <EditableWidget id="btn-switch" rect={layouts['btn-switch']} editing={editing} onUpdate={updateWidget} label="Switch"><button className="btn btn--sw btn--fill" onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}><span className="sw-shadow"></span><span className="sw-edge"></span><span className="sw-front">SWITCH</span></button></EditableWidget>
+      <EditableWidget id="clock" rect={layouts['clock']} editing={editing} onUpdate={updateWidget} label="Clock"><div className="clock-panel clock-panel--clickable" style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}} onClick={() => { if (gameClock.running) { sendCommand({ type: 'STOP_GAME_CLOCK' }); sendCommand({ type: 'STOP_SHOT_CLOCK' }) } else { sendCommand({ type: 'START_GAME_CLOCK' }); sendCommand({ type: 'START_SHOT_CLOCK' }) } }}><span className="clock-led">{clockStr}</span></div></EditableWidget>
+      <EditableWidget id="btn-start" rect={layouts['btn-start']} editing={editing} onUpdate={updateWidget} label="Start/Pause"><button className={`btn btn--fill ${gameClock.running ? 'btn--pause' : 'btn--start'}`} onClick={() => { if (gameClock.running) { sendCommand({ type: 'STOP_GAME_CLOCK' }); sendCommand({ type: 'STOP_SHOT_CLOCK' }) } else { sendCommand({ type: 'START_GAME_CLOCK' }); sendCommand({ type: 'START_SHOT_CLOCK' }) } }}>{gameClock.running ? 'PAUSE' : 'START'}</button></EditableWidget>
+      <EditableWidget id="btn-reset" rect={layouts['btn-reset']} editing={editing} onUpdate={updateWidget} label="Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'RESET_GAME_CLOCK' })}>RESET</button></EditableWidget>
+      <EditableWidget id="btn-switch" rect={layouts['btn-switch']} editing={editing} onUpdate={updateWidget} label="Switch"><button className="btn btn--sw btn--fill" onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}>SWITCH</button></EditableWidget>
 
       {/* Players */}
       <EditableWidget id="home-players" rect={layouts['home-players']} editing={editing} onUpdate={updateWidget} label="Home Players">
@@ -118,7 +122,7 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
             const totalPages = Math.max(1, Math.ceil(activePlayers.length / PLAYERS_PER_PAGE))
             const page = Math.min(homePlayerPage, totalPages - 1)
             const pagePlayers = activePlayers.slice(page * PLAYERS_PER_PAGE, (page + 1) * PLAYERS_PER_PAGE)
-            return (<>
+            return (
               <div className="side-col__players">
                 {pagePlayers.map(p => (
                   <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({team:'home',id:p.id})}>
@@ -128,14 +132,7 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
                   </div>
                 ))}
               </div>
-              {totalPages > 1 && (
-                <div className="player-pagination">
-                  {Array.from({length: totalPages}).map((_, i) => (
-                    <button key={i} className={`player-pagination__num${page === i ? ' player-pagination__num--active' : ''}`} onClick={() => setHomePlayerPage(i)}>{i + 1}</button>
-                  ))}
-                </div>
-              )}
-            </>)
+            )
           })()}
         </div>
       </EditableWidget>
@@ -146,7 +143,7 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
             const totalPages = Math.max(1, Math.ceil(activePlayers.length / PLAYERS_PER_PAGE))
             const page = Math.min(awayPlayerPage, totalPages - 1)
             const pagePlayers = activePlayers.slice(page * PLAYERS_PER_PAGE, (page + 1) * PLAYERS_PER_PAGE)
-            return (<>
+            return (
               <div className="side-col__players">
                 {pagePlayers.map(p => (
                   <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({team:'away',id:p.id})}>
@@ -156,17 +153,12 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
                   </div>
                 ))}
               </div>
-              {totalPages > 1 && (
-                <div className="player-pagination">
-                  {Array.from({length: totalPages}).map((_, i) => (
-                    <button key={i} className={`player-pagination__num${page === i ? ' player-pagination__num--active' : ''}`} onClick={() => setAwayPlayerPage(i)}>{i + 1}</button>
-                  ))}
-                </div>
-              )}
-            </>)
+            )
           })()}
         </div>
       </EditableWidget>
+
+
 
       {/* Stats buttons - HOME */}
       <EditableWidget id="btn-reb" rect={layouts['btn-reb']} editing={editing} onUpdate={updateWidget} label="H REB"><button className="btn btn--stat-reb btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_REBOUND', team: 'home', playerId: selectedPlayer.id })}>+REB</button></EditableWidget>
@@ -235,24 +227,25 @@ export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal }:
       </EditableWidget>
 
       {/* Footer */}
-      {/* Footer */}
-      <EditableWidget id="btn-horn" rect={layouts['btn-horn']} editing={editing} onUpdate={updateWidget} label="Horn">
+      <EditableWidget id="btn-horn" rect={layouts['btn-horn']} editing={editing} onUpdate={updateWidget} label="Buzzer">
         <button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod()) }}>
-          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg>
-          HORN
+          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg> BUZZER
         </button>
       </EditableWidget>
       <EditableWidget id="btn-game-reset" rect={layouts['btn-game-reset']} editing={editing} onUpdate={updateWidget} label="Reset">
         <button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>RESET</button>
       </EditableWidget>
-      <EditableWidget id="btn-sub-horn" rect={layouts['btn-sub-horn']} editing={editing} onUpdate={updateWidget} label="Sub Horn">
-        <button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playShotClockViolation()) }}>
-          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg>
-          SUB
-        </button>
-      </EditableWidget>
       <EditableWidget id="btn-replay" rect={layouts['btn-replay']} editing={editing} onUpdate={updateWidget} label="Replay">
         <button className="btn btn--replay btn--fill" onClick={() => window.electron.ipcRenderer.send('scoreboard:event', { type: 'REPLAY_TRIGGER' })}>REPLAY</button>
+      </EditableWidget>
+
+      {/* Tab Navigation — draggable/resizable */}
+      <EditableWidget id="tab-nav" rect={layouts['tab-nav']} editing={editing} onUpdate={updateWidget} label="Tab Nav">
+        <div className="cp-bottom-nav" style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'flex-start',gap:'2px'}}>
+          {TABS.map((t, i) => (
+            <button key={t} className={`cp-bottom-nav__btn${currentTab === t ? ' cp-bottom-nav__btn--active' : ''}`} onClick={() => onTabChange(t)}>{i + 1}</button>
+          ))}
+        </div>
       </EditableWidget>
     </div>
   )

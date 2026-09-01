@@ -139,3 +139,38 @@
 .status-bar__dismiss:focus-visible {
   outline: 2px solid #5b8dee;
 }
+
+/* ---------------------------------------------------------------------------
+   Live Streaming badge (Requirement 33.5)
+   Text: #ff8f8f on #0d0d1e → contrast ≈ 6.4:1 ✓ WCAG AA
+--------------------------------------------------------------------------- */
+
+.status-bar__streaming {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #ff8f8f;
+  font-weight: 700;
+}
+
+.status-bar__streaming-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4d4d; /* live red */
+  flex-shrink: 0;
+  animation: status-bar-blink 1.4s ease-in-out infinite;
+}
+
+@keyframes status-bar-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .status-bar__streaming-dot {
+    animation: none;
+  }
+}

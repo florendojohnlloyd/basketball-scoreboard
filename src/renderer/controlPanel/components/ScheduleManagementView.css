@@ -343,3 +343,140 @@
   gap: 0.5rem;
   justify-content: flex-end;
 }
+
+
+/* ---- Staff column (Requirement 26) ---- */
+.smv__td--staff {
+  text-align: center;
+}
+
+.smv__staff-count-btn {
+  background: #1a2540;
+  border: 1px solid #2a4070;
+  color: #7aaed4;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.15em 0.6em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  min-width: 28px;
+}
+.smv__staff-count-btn:hover { background: #1e3060; }
+
+/* ---- Staff section in detail dialog ---- */
+.smv__staff-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.smv__staff-heading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5a6880;
+  margin: 0;
+}
+
+.smv__staff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.smv__staff-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: #0f0f16;
+  border: 1px solid #1e1e28;
+  border-radius: 5px;
+}
+
+.smv__staff-item-name {
+  font-weight: 600;
+  color: #c8d8e8;
+  flex: 1;
+}
+
+.smv__staff-item-role {
+  font-size: 0.75rem;
+  color: #6080a0;
+  font-style: italic;
+}
+
+.smv__btn--small {
+  font-size: 0.7rem !important;
+  padding: 0.15em 0.4em !important;
+}
+
+/* ---- Staff assign row ---- */
+.smv__staff-assign {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+
+/* ---- Venue Management section (Requirement 25) ---- */
+.smv__venue-section {
+  padding: 0.75rem 0.9rem 0.8rem;
+  border-bottom: 1px solid #242432;
+  background: #0e0e16;
+  flex-shrink: 0;
+}
+
+.smv__venue-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.smv__venue-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.smv__venue-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.5rem;
+  background: #0f0f16;
+  border: 1px solid #1e1e28;
+  border-radius: 5px;
+}
+
+.smv__venue-item-name {
+  font-weight: 600;
+  color: #c8d8e8;
+  flex-shrink: 0;
+}
+
+.smv__venue-item-address {
+  font-size: 0.75rem;
+  color: #6080a0;
+  font-style: italic;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smv__court-label {
+  font-size: 0.78rem;
+  color: #7aaed4;
+  font-weight: 600;
+}

@@ -52,50 +52,50 @@
 - [x] 44. Player jersey numbers on Scoreboard Display (Req 15)
 - [x] 45. Player photos — upload, storage, and display (Req 16)
 - [x] 46. Box score generation — period snapshots and view (Req 17)
-- [ ] 47. LigaStore and game log persistence (Req 18)
+- [x] 47. LigaStore and game log persistence (Req 18)
 - [x] 48. Season averages view (Req 19)
 - [x] 49. Statistical leaderboards view (Req 20)
 - [x] 50. Advanced player metrics — PEI, plus/minus, efficiency (Req 21)
 - [x] 51. Export reports — PDF and Excel (Req 22)
 - [x] 52. Team roster management UI (Req 23)
 - [x] 53. Schedule management UI (Req 24)
-- [ ] 54. Venue and court assignment (Req 25)
-- [ ] 55. Referee and staff assignment (Req 26)
-- [ ] 56. Attendance tracking (Req 27)
-- [ ] 57. RoleStore — user accounts and RBAC (Req 28)
-- [ ] 58. Login screen and session management (Req 28)
-- [ ] 59. IPC role enforcement middleware (Req 28)
-- [ ] 60. User management UI (Req 28)
+- [x] 54. Venue and court assignment (Req 25)
+- [x] 55. Referee and staff assignment (Req 26)
+- [x] 56. Attendance tracking (Req 27)
+- [x] 57. RoleStore — user accounts and RBAC (Req 28)
+- [x] 58. Login screen and session management (Req 28)
+- [x] 59. IPC role enforcement middleware (Req 28)
+- [x] 60. User management UI (Req 28)
 - [x] 61. AuditStore — append-only SQLite audit log (Req 31)
-- [ ] 62. Audit log view and CSV export UI (Req 31)
-- [ ] 63. BackupService — manual and scheduled zip backup (Req 29)
-- [ ] 64. Restore flow and manifest validation (Req 29)
-- [ ] 65. Backup/restore UI (Req 29)
-- [ ] 66. OfflineSyncService — connectivity monitoring and pending-changes queue (Req 30)
-- [ ] 67. Sync conflict resolution UI (Req 30)
-- [ ] 68. CloudSyncService — incremental TLS sync (Req 32)
-- [ ] 69. Cloud sync settings and status UI (Req 32)
-- [ ] 70. OverlayServer — HTTP + WebSocket browser-source overlay (Req 33)
-- [ ] 71. RTMP streaming via ffmpeg (Req 33)
-- [ ] 72. Live streaming settings and status UI (Req 33)
-- [ ] 73. ApiServer — local REST API with authentication (Req 34)
-- [ ] 74. API key management UI (Req 34)
-- [ ] 75. SocialShareService — OAuth 2.0 and post dispatch (Req 35)
-- [ ] 76. Social sharing UI (Req 35)
-- [ ] 77. MobileViewerServer — responsive web page and WebSocket (Req 36)
-- [ ] 78. Mobile viewer QR code display in Control Panel (Req 36)
-- [ ] 79. PBT — roleStore.test.ts (Properties 25–28)
-- [ ] 80. PBT — backupService.test.ts (Properties 29–30)
-- [ ] 81. PBT — offlineSyncService.test.ts (Property 31)
-- [ ] 82. PBT — auditStore.test.ts (Properties 32–34)
-- [ ] 83. PBT — cloudSyncService.test.ts (Property 35)
-- [ ] 84. PBT — apiServer.test.ts (Properties 36–37)
-- [ ] 85. PBT — socialShareService.test.ts (Property 38)
-- [ ] 86. PBT — mobileViewerServer.test.ts (Property 39)
-- [ ] 87. Example-based unit tests — extended features
-- [ ] 88. Integration tests — servers and WebSocket push
-- [ ] 89. E2E tests — extended features (Playwright)
-- [ ] 90. Final packaging update for extended features
+- [x] 62. Audit log view and CSV export UI (Req 31)
+- [x] 63. BackupService — manual and scheduled zip backup (Req 29)
+- [x] 64. Restore flow and manifest validation (Req 29)
+- [x] 65. Backup/restore UI (Req 29)
+- [x] 66. OfflineSyncService — connectivity monitoring and pending-changes queue (Req 30)
+- [x] 67. Sync conflict resolution UI (Req 30)
+- [x] 68. CloudSyncService — incremental TLS sync (Req 32)
+- [x] 69. Cloud sync settings and status UI (Req 32)
+- [x] 70. OverlayServer — HTTP + WebSocket browser-source overlay (Req 33)
+- [x] 71. RTMP streaming via ffmpeg (Req 33)
+- [x] 72. Live streaming settings and status UI (Req 33)
+- [x] 73. ApiServer — local REST API with authentication (Req 34)
+- [x] 74. API key management UI (Req 34)
+- [x] 75. SocialShareService — OAuth 2.0 and post dispatch (Req 35)
+- [x] 76. Social sharing UI (Req 35)
+- [x] 77. MobileViewerServer — responsive web page and WebSocket (Req 36)
+- [x] 78. Mobile viewer QR code display in Control Panel (Req 36)
+- [x] 79. PBT — roleStore.test.ts (Properties 25–28)
+- [x] 80. PBT — backupService.test.ts (Properties 29–30)
+- [x] 81. PBT — offlineSyncService.test.ts (Property 31)
+- [x] 82. PBT — auditStore.test.ts (Properties 32–34)
+- [x] 83. PBT — cloudSyncService.test.ts (Property 35)
+- [-] 84. PBT — apiServer.test.ts (Properties 36–37)
+- [-] 85. PBT — socialShareService.test.ts (Property 38)
+- [-] 86. PBT — mobileViewerServer.test.ts (Property 39)
+- [-] 87. Example-based unit tests — extended features
+- [-] 88. Integration tests — servers and WebSocket push
+- [x] 89. E2E tests — extended features (Playwright)
+- [x] 90. Final packaging update for extended features
 
 
 ## Task Dependency Graph
@@ -870,3 +870,10 @@ Update the production build configuration to include all new resources and depen
 - Update `README.md` with: new feature summary, required ports (3000 API, 8080 overlay, 8081 mobile viewer), OAuth URL scheme registration note, ffmpeg installation instructions
 
 **Requires:** Tasks 39, 70, 71, 73, 77, 87, 88, 89
+
+## Notes
+
+- Tasks 1–39 are fully implemented covering the original core features.
+- Tasks marked with `[~]` are stub/skeleton implementations that need full completion.
+- Tasks marked with `[-]` are not yet started.
+- Extended features (Tasks 40–90) depend on the core being stable and passing all tests.

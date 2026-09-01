@@ -1,9 +1,15 @@
 import React, { useState } from 'react'
 import { useControlPanelStore, sendCommand } from '../store'
+import BackupPanel from './BackupPanel'
+import CloudSyncPanel from './CloudSyncPanel'
+import MobileViewerPanel from './MobileViewerPanel'
+import ApiKeysPanel from './ApiKeysPanel'
+import SocialSharePanel from './SocialSharePanel'
+import LiveStreamingPanel from './LiveStreamingPanel'
 import './SettingsPanel.css'
 
 const TABS = ['General', 'Design', 'Team/Player', 'Sound', 'Time', 'Display'] as const
-type Tab = typeof TABS[number]
+type Tab = typeof TABS[number] | 'Backup' | 'Cloud Sync' | 'Live Streaming' | 'Mobile Viewer' | 'API Keys' | 'Social Sharing'
 
 interface SettingsPanelProps {
   onClose: () => void
@@ -12,7 +18,22 @@ interface SettingsPanelProps {
 function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactElement {
   const [activeTab, setActiveTab] = useState<Tab>('General')
   const gs = useControlPanelStore((s) => s.gameState)
+  const session = useControlPanelStore((s) => s.session)
   const { gameConfig } = gs
+
+  // Build tab list — include Backup tab only for Admin users
+  const tabs: Tab[] = ['General', 'Design', 'Team/Player', 'Sound', 'Time', 'Display']
+  if (session?.role === 'Admin') {
+    tabs.push('Backup')
+    tabs.push('Cloud Sync')
+    tabs.push('Live Streaming')
+    tabs.push('Mobile Viewer')
+    tabs.push('API Keys')
+  }
+  // Social Sharing — available to Admin and Scorekeeper (SHARE capability, Req 35.1)
+  if (session?.role === 'Admin' || session?.role === 'Scorekeeper') {
+    tabs.push('Social Sharing')
+  }
 
   return (
     <div className="settings">
@@ -25,7 +46,7 @@ function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactElement {
       <div className="settings__body">
         {/* Sidebar */}
         <div className="settings__sidebar">
-          {TABS.map(tab => (
+          {tabs.map(tab => (
             <button
               key={tab}
               className={`settings__tab${activeTab === tab ? ' settings__tab--active' : ''}`}
@@ -322,6 +343,49 @@ function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactElement {
                   <button className="btn btn--red-sq" style={{ width: 'auto', height: 'auto', padding: '0.4em 1.5em', fontSize: '0.8rem' }} onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: true })}>Reset to Factory Settings</button>
                 </div>
               </fieldset>
+            </div>
+          )}
+
+          {/* Backup tab — Admin only (Requirement 29, Task 65) */}
+          {activeTab === 'Backup' && session?.role === 'Admin' && (
+            <div className="settings__section">
+              <BackupPanel />
+            </div>
+          )}
+
+          {/* Cloud Sync tab — Admin only (Requirement 32, Task 69) */}
+          {activeTab === 'Cloud Sync' && session?.role === 'Admin' && (
+            <div className="settings__section">
+              <CloudSyncPanel />
+            </div>
+          )}
+
+          {/* Live Streaming tab — Admin only (Requirement 33, Task 72) */}
+          {activeTab === 'Live Streaming' && session?.role === 'Admin' && (
+            <div className="settings__section">
+              <LiveStreamingPanel />
+            </div>
+          )}
+
+          {/* Mobile Viewer tab — Admin only (Requirement 36, Task 78) */}
+          {activeTab === 'Mobile Viewer' && session?.role === 'Admin' && (
+            <div className="settings__section">
+              <MobileViewerPanel />
+            </div>
+          )}
+
+          {/* API Keys tab — Admin only (Requirement 34, Task 74) */}
+          {activeTab === 'API Keys' && session?.role === 'Admin' && (
+            <div className="settings__section">
+              <ApiKeysPanel />
+            </div>
+          )}
+
+          {/* Social Sharing tab — Admin + Scorekeeper (Requirement 35, Task 76) */}
+          {activeTab === 'Social Sharing' &&
+            (session?.role === 'Admin' || session?.role === 'Scorekeeper') && (
+            <div className="settings__section">
+              <SocialSharePanel />
             </div>
           )}
 

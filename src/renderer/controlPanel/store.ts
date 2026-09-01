@@ -1,6 +1,16 @@
 import { create } from 'zustand'
-import { DEFAULT_GAME_STATE, SCOREBOARD_STATE, SCOREBOARD_COMMAND, SCOREBOARD_QUERY } from '@shared/types'
-import type { GameState, CommandType } from '@shared/types'
+import { DEFAULT_GAME_STATE, SCOREBOARD_STATE, SCOREBOARD_COMMAND, SCOREBOARD_QUERY, SCOREBOARD_EVENT } from '@shared/types'
+import type { GameState, CommandType, Role } from '@shared/types'
+
+// ---------------------------------------------------------------------------
+// Session types (Requirement 28)
+// ---------------------------------------------------------------------------
+
+export interface UserSession {
+  id: string;
+  username: string;
+  role: Role;
+}
 
 // ---------------------------------------------------------------------------
 // Store shape
@@ -9,6 +19,8 @@ import type { GameState, CommandType } from '@shared/types'
 interface ControlPanelStore {
   gameState: GameState
   setGameState: (state: GameState) => void
+  session: UserSession | null
+  setSession: (session: UserSession | null) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -18,6 +30,8 @@ interface ControlPanelStore {
 export const useControlPanelStore = create<ControlPanelStore>((set) => ({
   gameState: DEFAULT_GAME_STATE(),
   setGameState: (state: GameState) => set({ gameState: state }),
+  session: null,
+  setSession: (session: UserSession | null) => set({ session }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -53,6 +67,14 @@ function attachIpc(): void {
     // Listen for ongoing state broadcasts
     window.electron.ipcRenderer.on(SCOREBOARD_STATE, (rawState: unknown) => {
       useControlPanelStore.getState().setGameState(rawState as GameState)
+    })
+
+    // Listen for AUTH_STATE events (Requirement 28)
+    window.electron.ipcRenderer.on(SCOREBOARD_EVENT, (rawEvent: unknown) => {
+      const event = rawEvent as { type: string; user?: UserSession | null }
+      if (event.type === 'AUTH_STATE') {
+        useControlPanelStore.getState().setSession(event.user ?? null)
+      }
     })
 
     // Request initial state snapshot from main process on load

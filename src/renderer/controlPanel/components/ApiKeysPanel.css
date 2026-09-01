@@ -1,0 +1,300 @@
+/* ApiKeysPanel — Admin-only REST API key management UI (Task 74, Requirement 34)
+   Colours mirror CloudSyncPanel for a consistent dark theme.
+   Text #dce8f5 on #161c2e → contrast ≈ 12:1  ✓ WCAG AA */
+
+.api-keys-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.75rem 0;
+}
+
+/* ── Fieldset ── */
+.api-keys-panel__fieldset {
+  border: 1px solid #2a3550;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  background: #161c2e;
+}
+
+.api-keys-panel__fieldset legend {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8db4e0;
+  padding: 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Rows ── */
+.api-keys-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0;
+}
+
+.api-keys-panel__row--actions {
+  margin-top: 0.5rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.api-keys-panel__row--status {
+  padding: 0.2rem 0 0.5rem 0;
+}
+
+/* ── Labels & inputs ── */
+.api-keys-panel__label {
+  font-size: 0.78rem;
+  color: #b0c4de;
+  min-width: 5rem;
+}
+
+.api-keys-panel__input {
+  flex: 1;
+  min-width: 10rem;
+  background: #0e1421;
+  border: 1px solid #2a3550;
+  border-radius: 4px;
+  color: #dce8f5;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+}
+
+.api-keys-panel__input--port {
+  flex: 0 0 8rem;
+  min-width: 6rem;
+}
+
+.api-keys-panel__input:focus {
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.25);
+}
+
+.api-keys-panel__input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.api-keys-panel__input::placeholder {
+  color: #48607e;
+}
+
+/* ── Hint text ── */
+.api-keys-panel__hint {
+  display: block;
+  font-size: 0.7rem;
+  color: #5a7898;
+  margin: 0.1rem 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.api-keys-panel__count {
+  font-size: 0.74rem;
+  color: #8aa0be;
+}
+
+/* ── Buttons ── */
+.api-keys-panel__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.api-keys-panel__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.api-keys-panel__btn--sm {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.72rem;
+}
+
+/* Primary — blue. White on #1a6bcc ≈ 4.7:1 ✓ */
+.api-keys-panel__btn--primary {
+  background: #1a6bcc;
+  color: #fff;
+}
+.api-keys-panel__btn--primary:not(:disabled):hover {
+  background: #2278e0;
+}
+
+/* Secondary — dark slate */
+.api-keys-panel__btn--secondary {
+  background: #2a3550;
+  color: #b0c8e8;
+  border: 1px solid #3a4a68;
+}
+.api-keys-panel__btn--secondary:not(:disabled):hover {
+  background: #36446a;
+}
+
+/* Danger — red. White on #b02020 ≈ 5.9:1 ✓ */
+.api-keys-panel__btn--danger {
+  background: #b02020;
+  color: #fff;
+}
+.api-keys-panel__btn--danger:not(:disabled):hover {
+  background: #cc2626;
+}
+
+/* ── Status indicator ── */
+.api-keys-panel__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.api-keys-panel__status--running {
+  color: #6ecf8e;
+}
+
+.api-keys-panel__status--stopped {
+  color: #8aa0be;
+}
+
+/* ── Notice blocks ── */
+.api-keys-panel__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-radius: 5px;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin-top: 0.5rem;
+}
+
+/* Error — #f87171 on dark red ≈ 7:1 ✓ */
+.api-keys-panel__notice--error {
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+}
+
+.api-keys-panel__notice-icon {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* ── One-time raw key reveal ── */
+.api-keys-panel__reveal {
+  margin-top: 0.6rem;
+  border: 1px solid rgba(230, 190, 90, 0.4);
+  border-radius: 6px;
+  background: rgba(230, 190, 90, 0.08);
+  padding: 0.6rem 0.7rem;
+}
+
+/* #f0d48a on dark ≈ 9:1 ✓ */
+.api-keys-panel__reveal-warning {
+  font-size: 0.74rem;
+  color: #f0d48a;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.api-keys-panel__reveal-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.api-keys-panel__reveal-key {
+  flex: 1;
+  min-width: 12rem;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.76rem;
+  color: #dce8f5;
+  background: #0e1421;
+  border: 1px solid #2a3550;
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  word-break: break-all;
+}
+
+/* ── Table ── */
+.api-keys-panel__empty {
+  font-size: 0.78rem;
+  color: #8aa0be;
+  margin: 0.4rem 0;
+}
+
+.api-keys-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+  color: #dce8f5;
+}
+
+.api-keys-panel__table th,
+.api-keys-panel__table td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #2a3550;
+}
+
+.api-keys-panel__table th {
+  color: #8db4e0;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.api-keys-panel__row--revoked td {
+  opacity: 0.55;
+}
+
+.api-keys-panel__actions-cell {
+  text-align: right;
+}
+
+/* ── Badges ── */
+.api-keys-panel__badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.api-keys-panel__badge--active {
+  background: rgba(56, 142, 60, 0.2);
+  color: #6ecf8e;
+  border: 1px solid rgba(110, 207, 142, 0.35);
+}
+
+.api-keys-panel__badge--revoked {
+  background: rgba(120, 130, 150, 0.15);
+  color: #9aa8be;
+  border: 1px solid rgba(120, 130, 150, 0.3);
+}
+
+.api-keys-panel__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

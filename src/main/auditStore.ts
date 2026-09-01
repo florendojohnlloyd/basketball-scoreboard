@@ -155,9 +155,12 @@ export function createAuditStore(
   }
 
   // ── Ensure parent directory exists ──
-  const parentDir = resolvedPath.replace(/[/\\][^/\\]+$/, '');
-  if (parentDir && !existsSync(parentDir)) {
-    mkdirSync(parentDir, { recursive: true });
+  // ':memory:' is an in-memory SQLite sentinel, not a filesystem path — skip mkdir.
+  if (resolvedPath !== ':memory:') {
+    const parentDir = resolvedPath.replace(/[/\\][^/\\]+$/, '');
+    if (parentDir && !existsSync(parentDir)) {
+      mkdirSync(parentDir, { recursive: true });
+    }
   }
 
   // ── Send event to Control Panel helper ──

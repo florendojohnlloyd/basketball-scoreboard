@@ -1,0 +1,284 @@
+/* RoundRobinGrid — Round-robin matrix grid and standings table
+ * Requirements 6.3, 6.4
+ * Task: 8.4 */
+
+/* ────────────────────────────────────────────────────────────────────────
+   Root container
+   ──────────────────────────────────────────────────────────────────────── */
+
+.rr-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  width: 100%;
+  color: #dce8f5;
+  font-size: 0.875rem;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Sections (Results matrix, Standings)
+   ──────────────────────────────────────────────────────────────────────── */
+
+.rr-grid__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rr-grid__section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e0a800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #2a3347;
+}
+
+.rr-grid__matrix-legend {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #7aaed4;
+}
+
+.rr-grid__empty-text {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+  color: #7aaed4;
+  font-style: italic;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Results matrix
+   ──────────────────────────────────────────────────────────────────────── */
+
+.rr-grid__matrix-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.rr-grid__matrix {
+  border-collapse: collapse;
+  white-space: nowrap;
+  min-width: 100%;
+}
+
+/* ── Corner cell ──────────────────────────────────────────────────────── */
+
+.rr-grid__corner {
+  background: #1a1f2e;
+  border: 1px solid #2a3347;
+  min-width: 120px;
+}
+
+/* ── Header cells (row and column) ───────────────────────────────────── */
+
+.rr-grid__col-header,
+.rr-grid__row-header {
+  background: #1e2540;
+  border: 1px solid #2a3347;
+  padding: 8px 10px;
+  font-weight: 600;
+  text-align: center;
+  color: #dce8f5;
+  max-width: 140px;
+}
+
+.rr-grid__col-header {
+  vertical-align: bottom;
+  min-width: 90px;
+}
+
+.rr-grid__row-header {
+  text-align: left;
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+/* Seed + name stacked in headers */
+
+.rr-grid__header-seed {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #7aaed4;
+  margin-bottom: 2px;
+}
+
+.rr-grid__header-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+/* ── Data cells ───────────────────────────────────────────────────────── */
+
+.rr-grid__cell {
+  border: 1px solid #2a3347;
+  padding: 8px 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  transition: background 0.15s;
+  min-width: 70px;
+}
+
+/* Diagonal — same team vs itself, greyed out */
+.rr-grid__cell--diagonal {
+  background: #242935;
+  color: #444e62;
+  cursor: default;
+}
+
+/* Pending match */
+.rr-grid__cell--pending {
+  background: #1a1f2e;
+  color: #7aaed4;
+}
+
+/* In-progress match */
+.rr-grid__cell--in-progress {
+  background: #1e2540;
+  color: #8bb5ff;
+  font-weight: 600;
+}
+
+/* Completed match — score displayed */
+.rr-grid__cell--completed {
+  background: #1e3025;
+  color: #6fcf97;
+  font-weight: 600;
+}
+
+/* Hover highlight on non-diagonal cells */
+.rr-grid__cell:not(.rr-grid__cell--diagonal):hover {
+  filter: brightness(1.15);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Standings table
+   ──────────────────────────────────────────────────────────────────────── */
+
+.rr-grid__standings-wrapper {
+  overflow-x: auto;
+}
+
+.rr-grid__standings {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 380px;
+}
+
+/* ── Standings header ─────────────────────────────────────────────────── */
+
+.rr-grid__standings-th {
+  background: #1e2540;
+  border: 1px solid #2a3347;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7aaed4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.rr-grid__standings-th--rank {
+  min-width: 36px;
+}
+
+.rr-grid__standings-th--team {
+  text-align: left;
+  min-width: 140px;
+}
+
+.rr-grid__standings-th--num {
+  min-width: 48px;
+}
+
+/* ── Standings rows ───────────────────────────────────────────────────── */
+
+.rr-grid__standings-row {
+  border-bottom: 1px solid #2a3347;
+  transition: background 0.15s;
+}
+
+.rr-grid__standings-row:hover {
+  background: #1e2540;
+}
+
+/* Leader (first place) gets a highlighted left border */
+.rr-grid__standings-row--leader {
+  border-left: 3px solid #e0a800;
+}
+
+/* ── Standings data cells ─────────────────────────────────────────────── */
+
+.rr-grid__standings-td {
+  padding: 8px 12px;
+  border: 1px solid #2a3347;
+  color: #dce8f5;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.rr-grid__standings-td--rank {
+  color: #7aaed4;
+  font-weight: 600;
+}
+
+.rr-grid__standings-td--team {
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.rr-grid__standings-td--num {
+  min-width: 48px;
+}
+
+/* Positive point differential */
+.rr-grid__standings-td--diff.rr-grid__standings-td--pos {
+  color: #6fcf97;
+  font-weight: 600;
+}
+
+/* Negative point differential */
+.rr-grid__standings-td--diff.rr-grid__standings-td--neg {
+  color: #d46d6d;
+  font-weight: 600;
+}
+
+/* Zero point differential */
+.rr-grid__standings-td--diff {
+  color: #9aaec8;
+  font-weight: 500;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   Print media query
+   ──────────────────────────────────────────────────────────────────────── */
+
+@media print {
+  .rr-grid__matrix-wrapper,
+  .rr-grid__standings-wrapper {
+    overflow: visible;
+    max-height: none;
+  }
+
+  .rr-grid__cell--pending {
+    color: #555;
+  }
+
+  .rr-grid__cell--completed {
+    font-weight: 700;
+  }
+}

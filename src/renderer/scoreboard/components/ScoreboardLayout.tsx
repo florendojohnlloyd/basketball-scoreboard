@@ -2,13 +2,15 @@ import React from 'react'
 import { useScoreboardStore } from '../store'
 import { useTvLayoutStore } from '../tvLayoutStore'
 import { EditableWidget } from './EditableWidget'
-import { formatClockPrecise } from '@renderer/shared/clockUtils'
+import { formatClockDisplay, formatClockPrecise } from '@renderer/shared/clockUtils'
 import { formatPeriodLabel } from '@renderer/shared/periodUtils'
 import './ScoreboardLayout.css'
+import timeoutVideo from '../../shared/vid/FitnessExclusive.mp4'
 
 function ScoreboardLayout(): React.ReactElement {
   const gs = useScoreboardStore(s => s.gameState)
   const replayActive = useScoreboardStore(s => s.replayActive)
+  const videoSrc = timeoutVideo
   const { home, away, gameClock, shotClock, period, gameConfig, possession, gamePhase } = gs
 
   const clockDisplay = formatClockPrecise(gameClock.displayMs)
@@ -32,10 +34,6 @@ function ScoreboardLayout(): React.ReactElement {
 
   // TV Layout store (must be called before any conditional returns — Rules of Hooks)
   const { layouts: tvLayouts, editing: tvEditing, setEditing: setTvEditing, updateWidget: updateTvWidget, resetLayout: resetTvLayout } = useTvLayoutStore()
-  const appPath = useScoreboardStore(s => s.appPath)
-  const videoSrc = appPath
-    ? `local-file:///${appPath.replace(/\\/g, '/').replace(/\/$/, '')}/vid/FitnessExclusive_qr.mp4`
-    : 'local-file:///C:/Users/Owner/Desktop/Scoreboard%20App/vid/FitnessExclusive_qr.mp4'
 
   // ═══ PRE-GAME ═══
   if (gamePhase === 'pre-game') {
@@ -207,28 +205,55 @@ function ScoreboardLayout(): React.ReactElement {
         </div>
       </EditableWidget>
 
-      {/* Timeout overlay — fully opaque, scores at bottom */}
+      {/* Timeout overlay — split layout with video on right + bottom bar */}
       {gs.timeout && (
         <div className="tv-timeout tv-timeout--split">
-          <div className="tv-timeout__left">
-            <div className="tv-timeout__flash">TIMEOUT</div>
-            <div className="tv-timeout__team">{gs[gs.timeout.team].config.name}</div>
-            <div className="tv-timeout__countdown">{Math.ceil(gs.timeout.remainingMs / 1000)}</div>
-            <div className="tv-timeout__scores">
-              <span style={{color: home.config.color || '#4a9eff'}}>{home.config.name}: <strong>{home.score}</strong></span>
-              <span style={{margin: '0 16px', color: '#555'}}>|</span>
-              <span style={{color: away.config.color || '#ff4a4a'}}>{away.config.name}: <strong>{away.score}</strong></span>
+          <div className="tv-timeout__top">
+            <div className="tv-timeout__left">
+              <div className="tv-timeout__flash">TIMEOUT</div>
+              <div className="tv-timeout__team">{gs.timeout.team === 'home' ? 'HOME' : 'AWAY'}: {gs[gs.timeout.team].config.name}</div>
+              <div className="tv-timeout__ring">
+                <svg className="tv-timeout__ring-svg" viewBox="0 0 200 200">
+                  <circle className="tv-timeout__ring-bg" cx="100" cy="100" r="90" />
+                  <circle
+                    className="tv-timeout__ring-progress"
+                    cx="100" cy="100" r="90"
+                    strokeDasharray={2 * Math.PI * 90}
+                    strokeDashoffset={2 * Math.PI * 90 * (1 - (gs.timeout.remainingMs / 60000))}
+                  />
+                </svg>
+                <div className="tv-timeout__ring-time">
+                  {String(Math.floor(gs.timeout.remainingMs / 60000)).padStart(2, '0')}:{String(Math.ceil((gs.timeout.remainingMs % 60000) / 1000)).padStart(2, '0')}
+                </div>
+              </div>
+              <div className="tv-timeout__remaining-label">TIME REMAINING</div>
+            </div>
+            <div className="tv-timeout__right">
+              <video
+                className="tv-timeout__video"
+                autoPlay
+                loop
+                muted
+                playsInline
+                src={videoSrc}
+              />
             </div>
           </div>
-          <div className="tv-timeout__right">
-            <video
-              className="tv-timeout__video"
-              autoPlay
-              loop
-              muted
-              playsInline
-              src={videoSrc}
-            />
+          <div className="tv-timeout__bar">
+            <div className="tv-timeout__bar-team tv-timeout__bar-team--home">
+              {home.config.logoPath && <img className="tv-timeout__bar-logo" src={`local-file:///${home.config.logoPath.replace(/\\/g, '/')}`} alt="" />}
+              <span>{home.config.name}</span>
+              <span className="tv-timeout__bar-score">{home.score}</span>
+            </div>
+            <div className="tv-timeout__bar-center">
+              <span className="tv-timeout__bar-period">Q{period.current}</span>
+              <span className="tv-timeout__bar-clock">{formatClockDisplay(gameClock.displayMs)}</span>
+            </div>
+            <div className="tv-timeout__bar-team tv-timeout__bar-team--away">
+              <span className="tv-timeout__bar-score">{away.score}</span>
+              <span>{away.config.name}</span>
+              {away.config.logoPath && <img className="tv-timeout__bar-logo" src={`local-file:///${away.config.logoPath.replace(/\\/g, '/')}`} alt="" />}
+            </div>
           </div>
         </div>
       )}

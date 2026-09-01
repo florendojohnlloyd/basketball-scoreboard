@@ -8,7 +8,7 @@
 import { app } from 'electron';
 import { join } from 'path';
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync, unlinkSync } from 'fs';
-import type { Liga, LigaTeam, LigaPlayer, GameLogRecord, ScheduledGame, Venue } from '../shared/types';
+import type { Liga, LigaTeam, LigaPlayer, GameLogRecord, ScheduledGame, Venue, StaffMember } from '../shared/types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -65,6 +65,13 @@ export interface LigaStore {
   updateVenue(ligaId: string, venueId: string, updates: Partial<Omit<Venue, 'id'>>): void;
   removeVenue(ligaId: string, venueId: string): { affectedGameIds: string[] };
   listVenues(ligaId: string): Venue[];
+  // Staff methods (Requirement 26)
+  addStaff(ligaId: string, staff: Omit<StaffMember, 'id'>): StaffMember;
+  updateStaff(ligaId: string, staffId: string, updates: Partial<Omit<StaffMember, 'id'>>): void;
+  removeStaff(ligaId: string, staffId: string): { affectedGameIds: string[] };
+  listStaff(ligaId: string): StaffMember[];
+  assignStaffToGame(ligaId: string, gameId: string, staffId: string): void;
+  unassignStaffFromGame(ligaId: string, gameId: string, staffId: string): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -309,6 +316,72 @@ export function createLigaStore(): LigaStore {
     listVenues(ligaId: string): Venue[] {
       const liga = this.loadLiga(ligaId);
       return liga.venues ?? [];
+    },
+
+    // ── Staff Methods (Requirement 26) ──
+
+    addStaff(ligaId: string, staff: Omit<StaffMember, 'id'>): StaffMember {
+      const liga = this.loadLiga(ligaId);
+      const newStaff: StaffMember = { ...staff, id: generateId() };
+      liga.staff = [...(liga.staff ?? []), newStaff];
+      writeLigaFile(liga);
+      return newStaff;
+    },
+
+    updateStaff(ligaId: string, staffId: string, updates: Partial<Omit<StaffMember, 'id'>>): void {
+      const liga = this.loadLiga(ligaId);
+      const staffList = liga.staff ?? [];
+      const idx = staffList.findIndex(s => s.id === staffId);
+      if (idx === -1) throw new Error(`Staff "${staffId}" not found in liga.`);
+      staffList[idx] = { ...staffList[idx], ...updates };
+      liga.staff = staffList;
+      writeLigaFile(liga);
+    },
+
+    removeStaff(ligaId: string, staffId: string): { affectedGameIds: string[] } {
+      const liga = this.loadLiga(ligaId);
+      // Remove staff from list
+      liga.staff = (liga.staff ?? []).filter(s => s.id !== staffId);
+      // Remove from all scheduled game assignedStaff arrays
+      const affectedGameIds: string[] = [];
+      liga.schedule = (liga.schedule ?? []).map(game => {
+        if (game.assignedStaff.includes(staffId)) {
+          affectedGameIds.push(game.id);
+          return { ...game, assignedStaff: game.assignedStaff.filter(id => id !== staffId) };
+        }
+        return game;
+      });
+      writeLigaFile(liga);
+      return { affectedGameIds };
+    },
+
+    listStaff(ligaId: string): StaffMember[] {
+      const liga = this.loadLiga(ligaId);
+      return liga.staff ?? [];
+    },
+
+    assignStaffToGame(ligaId: string, gameId: string, staffId: string): void {
+      const liga = this.loadLiga(ligaId);
+      const schedule = liga.schedule ?? [];
+      const idx = schedule.findIndex(g => g.id === gameId);
+      if (idx === -1) throw new Error(`Scheduled game "${gameId}" not found in liga.`);
+      // Prevent duplicate assignment
+      if (schedule[idx].assignedStaff.includes(staffId)) {
+        throw new Error(`Staff member already assigned to this game.`);
+      }
+      schedule[idx] = { ...schedule[idx], assignedStaff: [...schedule[idx].assignedStaff, staffId] };
+      liga.schedule = schedule;
+      writeLigaFile(liga);
+    },
+
+    unassignStaffFromGame(ligaId: string, gameId: string, staffId: string): void {
+      const liga = this.loadLiga(ligaId);
+      const schedule = liga.schedule ?? [];
+      const idx = schedule.findIndex(g => g.id === gameId);
+      if (idx === -1) throw new Error(`Scheduled game "${gameId}" not found in liga.`);
+      schedule[idx] = { ...schedule[idx], assignedStaff: schedule[idx].assignedStaff.filter(id => id !== staffId) };
+      liga.schedule = schedule;
+      writeLigaFile(liga);
     },
   };
 }

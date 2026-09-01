@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>Live Scoreboard</title>
+  <style>
+    /*
+     * Colour palette chosen for WCAG AA contrast (>= 4.5:1) against the
+     * #0d1117 background:
+     *   #f0f6fc on #0d1117  -> ~16:1
+     *   #adbac7 on #0d1117  -> ~8:1
+     *   #58a6ff on #0d1117  -> ~5:1
+     */
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-alt: #21262d;
+      --text: #f0f6fc;
+      --text-muted: #adbac7;
+      --accent: #58a6ff;
+      --danger: #ff6b6b;
+      --warn: #ffd166;
+      --ok: #7ee787;
+      --border: #30363d;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body { padding: 12px; }
+
+    /* ── Connection banner ── */
+    #offline-banner {
+      display: none;
+      background: var(--danger);
+      color: #1a0000;
+      font-weight: 700;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    #offline-banner.visible { display: block; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      min-height: 44px; /* touch target */
+    }
+    .tab-btn[aria-selected="true"] {
+      background: var(--accent);
+      color: #001;
+      border-color: var(--accent);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Center: period + clocks ── */
+    .center {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .period-label {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+    }
+    .game-clock {
+      font-size: 44px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .shot-clock {
+      font-size: 18px;
+      color: var(--warn);
+      font-variant-numeric: tabular-nums;
+    }
+    .shot-clock.hidden { display: none; }
+
+    /* ── Teams: responsive grid ── */
+    .teams {
+      display: grid;
+      grid-template-columns: 1fr; /* single column on narrow screens */
+      gap: 12px;
+    }
+
+    .team-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+    .team-card.home { border-top: 4px solid var(--accent); }
+    .team-card.away { border-top: 4px solid var(--warn); }
+
+    .team-name {
+      font-size: 18px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      word-break: break-word;
+    }
+    .team-score {
+      font-size: 64px;
+      font-weight: 800;
+      line-height: 1;
+      margin: 6px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .team-meta {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .team-meta .value { color: var(--text); font-weight: 700; }
+    .team-meta .bonus { color: var(--danger); font-weight: 700; }
+
+    /* ── Box score tables ── */
+    .box-team-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 14px 0 6px;
+    }
+    table.boxscore {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: var(--surface);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    table.boxscore th, table.boxscore td {
+      padding: 8px 6px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    table.boxscore th {
+      background: var(--surface-alt);
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.4px;
+    }
+    table.boxscore td.name, table.boxscore th.name {
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 120px;
+    }
+    .empty-row td {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 14px;
+    }
+
+    /* ── Two-column team layout at >= 600px ── */
+    @media (min-width: 600px) {
+      body { padding: 20px; max-width: 1024px; margin: 0 auto; }
+      .teams { grid-template-columns: 1fr 1fr; }
+      .box-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    }
+    @media (max-width: 599px) {
+      .box-tables { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div id="offline-banner" role="status" aria-live="assertive">Scoreboard Offline</div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn" id="tab-live" role="tab" aria-selected="true" aria-controls="panel-live">Live</button>
+    <button class="tab-btn" id="tab-box" role="tab" aria-selected="false" aria-controls="panel-box">Box Score</button>
+  </div>
+
+  <!-- ── Live panel ── -->
+  <section id="panel-live" class="tab-panel active" role="tabpanel" aria-labelledby="tab-live">
+    <div class="center">
+      <div class="period-label" id="period-label">--</div>
+      <div class="game-clock" id="game-clock">--:--</div>
+      <div class="shot-clock" id="shot-clock">24</div>
+    </div>
+
+    <div class="teams">
+      <div class="team-card home">
+        <div class="team-name" id="home-name">HOME</div>
+        <div class="team-score" id="home-score">0</div>
+        <div class="team-meta">
+          <span>Fouls: <span class="value" id="home-fouls">0</span></span>
+          <span>Timeouts: <span class="value" id="home-timeouts">0</span></span>
+        </div>
+      </div>
+      <div class="team-card away">
+        <div class="team-name" id="away-name">AWAY</div>
+        <div class="team-score" id="away-score">0</div>
+        <div class="team-meta">
+          <span>Fouls: <span class="value" id="away-fouls">0</span></span>
+          <span>Timeouts: <span class="value" id="away-timeouts">0</span></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Box score panel ── -->
+  <section id="panel-box" class="tab-panel" role="tabpanel" aria-labelledby="tab-box">
+    <div class="box-tables">
+      <div>
+        <div class="box-team-title" id="box-home-title">Home</div>
+        <table class="boxscore" aria-label="Home team box score">
+          <thead>
+            <tr>
+              <th>#</th><th class="name">Player</th><th>PTS</th><th>REB</th>
+              <th>AST</th><th>STL</th><th>BLK</th><th>PF</th>
+            </tr>
+          </thead>
+          <tbody id="box-home-body"></tbody>
+        </table>
+      </div>
+      <div>
+        <div class="box-team-title" id="box-away-title">Away</div>
+        <table class="boxscore" aria-label="Away team box score">
+          <thead>
+            <tr>
+              <th>#</th><th class="name">Player</th><th>PTS</th><th>REB</th>
+              <th>AST</th><th>STL</th><th>BLK</th><th>PF</th>
+            </tr>
+          </thead>
+          <tbody id="box-away-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ── Tab switching ──
+    var tabLive = document.getElementById('tab-live');
+    var tabBox = document.getElementById('tab-box');
+    var panelLive = document.getElementById('panel-live');
+    var panelBox = document.getElementById('panel-box');
+
+    function selectTab(which) {
+      var liveSelected = which === 'live';
+      tabLive.setAttribute('aria-selected', String(liveSelected));
+      tabBox.setAttribute('aria-selected', String(!liveSelected));
+      panelLive.classList.toggle('active', liveSelected);
+      panelBox.classList.toggle('active', !liveSelected);
+    }
+    tabLive.addEventListener('click', function () { selectTab('live'); });
+    tabBox.addEventListener('click', function () { selectTab('box'); });
+
+    // ── WebSocket connection ──
+    var wsHost = window.location.hostname || 'localhost';
+    var wsPort = window.location.port || '8081';
+    var wsUrl = 'ws://' + wsHost + ':' + wsPort + '/ws';
+
+    var ws = null;
+    var reconnectTimeout = null;
+    var offlineBanner = document.getElementById('offline-banner');
+
+    function setOffline(isOffline) {
+      offlineBanner.classList.toggle('visible', isOffline);
+    }
+
+    function connect() {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = function () { setOffline(false); };
+
+      ws.onmessage = function (event) {
+        try {
+          var msg = JSON.parse(event.data);
+          if (msg.type === 'state') {
+            renderState(msg.data);
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+      };
+
+      ws.onclose = function () {
+        setOffline(true);
+        scheduleReconnect();
+      };
+
+      ws.onerror = function () {
+        setOffline(true);
+        if (ws) ws.close();
+      };
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      reconnectTimeout = setTimeout(connect, 2000);
+    }
+
+    // ── Formatting helpers ──
+    function formatClock(ms) {
+      var totalSeconds = Math.ceil(ms / 1000);
+      var minutes = Math.floor(totalSeconds / 60);
+      var seconds = totalSeconds % 60;
+      return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+    }
+
+    function formatShotClock(ms) {
+      return String(Math.ceil(ms / 1000));
+    }
+
+    function getPeriodLabel(period) {
+      if (period.isOvertime) {
+        return period.overtimeNumber === 1 ? 'OT' : period.overtimeNumber + 'OT';
+      }
+      if (period.format === 'halves') {
+        return period.current === 1 ? '1st Half' : '2nd Half';
+      }
+      return 'Q' + period.current;
+    }
+
+    function setText(id, value) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    // ── Rendering ──
+    function renderState(state) {
+      // Home
+      setText('home-name', state.home.name);
+      setText('home-score', state.home.score);
+      setText('home-fouls', state.home.fouls);
+      setText('home-timeouts', state.home.timeouts.fullRemaining);
+
+      // Away
+      setText('away-name', state.away.name);
+      setText('away-score', state.away.score);
+      setText('away-fouls', state.away.fouls);
+      setText('away-timeouts', state.away.timeouts.fullRemaining);
+
+      // Clock
+      setText('game-clock', formatClock(state.gameClock.displayMs));
+
+      // Shot clock
+      var shotClockEl = document.getElementById('shot-clock');
+      if (state.shotClock.enabled) {
+        shotClockEl.textContent = formatShotClock(state.shotClock.displayMs);
+        shotClockEl.classList.remove('hidden');
+      } else {
+        shotClockEl.classList.add('hidden');
+      }
+
+      // Period
+      setText('period-label', getPeriodLabel(state.period));
+
+      // Box score
+      setText('box-home-title', state.home.name);
+      setText('box-away-title', state.away.name);
+      renderBoxScore('box-home-body', state.home.players);
+      renderBoxScore('box-away-body', state.away.players);
+    }
+
+    function renderBoxScore(tbodyId, players) {
+      var tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!players || players.length === 0) {
+        var emptyRow = document.createElement('tr');
+        emptyRow.className = 'empty-row';
+        var td = document.createElement('td');
+        td.colSpan = 8;
+        td.textContent = 'No players';
+        emptyRow.appendChild(td);
+        tbody.appendChild(emptyRow);
+        return;
+      }
+
+      for (var i = 0; i < players.length; i++) {
+        var p = players[i];
+        var tr = document.createElement('tr');
+        tr.appendChild(cell(p.number || ''));
+        tr.appendChild(cell(p.name || '', 'name'));
+        tr.appendChild(cell(p.points));
+        tr.appendChild(cell(p.rebounds));
+        tr.appendChild(cell(p.assists));
+        tr.appendChild(cell(p.steals));
+        tr.appendChild(cell(p.blocks));
+        tr.appendChild(cell(p.fouls));
+        tbody.appendChild(tr);
+      }
+    }
+
+    function cell(value, className) {
+      var td = document.createElement('td');
+      if (className) td.className = className;
+      td.textContent = value == null ? '' : String(value);
+      return td;
+    }
+
+    // ── Init ──
+    setOffline(true); // assume offline until first message arrives
+    connect();
+  </script>
+</body>
+</html>

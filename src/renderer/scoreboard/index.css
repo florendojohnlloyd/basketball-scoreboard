@@ -2,6 +2,14 @@
 /* Oswald font for scoreboard (offline: embed via @font-face in production) */
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&display=swap');
 
+@font-face {
+  font-family: 'Cursed Timer ULiL';
+  src: url('../shared/fonts/CursedTimerUlil-Aznm.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

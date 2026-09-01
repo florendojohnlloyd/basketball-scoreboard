@@ -169,7 +169,7 @@ test('Property 23 — WCAG AA contrast ratio ≥ 4.5:1 is met for any team accen
   // result under a white/black constraint.
   fc.assert(
     fc.property(
-      fc.hexaString({ minLength: 6, maxLength: 6 }),
+      fc.string({ unit: fc.constantFrom(...'0123456789abcdef'), minLength: 6, maxLength: 6 }),
       (hexChars) => {
         const accentColor = '#' + hexChars;
         const textColor = getContrastTextColor(accentColor);
