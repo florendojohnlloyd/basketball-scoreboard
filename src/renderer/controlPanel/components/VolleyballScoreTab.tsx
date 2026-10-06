@@ -1,6 +1,5 @@
 import React from 'react'
 import { useControlPanelStore, sendCommand } from '../store'
-import { formatClockDisplay } from '@renderer/shared/clockUtils'
 
 interface VolleyballScoreTabProps {
   selectedPlayer: { team: 'home' | 'away'; id: string } | null
@@ -14,6 +13,7 @@ export function VolleyballScoreTab({
   selectedPlayer,
   setSelectedPlayer,
   setShowSubModal,
+  onTabChange,
 }: VolleyballScoreTabProps): React.ReactElement {
   const gs = useControlPanelStore(s => s.gameState)
   const { home, away, volleyball } = gs
@@ -22,11 +22,11 @@ export function VolleyballScoreTab({
     return <div style={{ padding: '20px', color: '#d0dce8' }}>Volleyball state not initialized</div>
   }
 
-  const { currentSet, setsWon, timeoutsUsed, substitutionsUsed, servingTeam, pointsCurrentSet } = volleyball
+  const { currentSet, setsWon, timeoutsUsed, substitutionsUsed, servingTeam } = volleyball
 
-  // Get active non-fouled-out players (up to 5)
-  const homePlayers = home.players.filter(p => p.active && !p.fouledOut).slice(0, 5)
-  const awayPlayers = away.players.filter(p => p.active && !p.fouledOut).slice(0, 5)
+  // Get active non-fouled-out players (up to 6 for volleyball)
+  const homePlayers = home.players.filter(p => p.active && !p.fouledOut).slice(0, 6)
+  const awayPlayers = away.players.filter(p => p.active && !p.fouledOut).slice(0, 6)
 
   return (
     <div
@@ -34,623 +34,727 @@ export function VolleyballScoreTab({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
-        overflow: 'hidden',
+        height: '100%',
+        overflow: 'auto',
         background: 'var(--cp-bg)',
-        padding: '8px',
-        gap: '6px',
+        padding: '12px',
+        gap: '16px',
         boxSizing: 'border-box',
       }}
     >
-      {/* ROW 1 — Header strip (set info) */}
+      {/* Header - Game Info */}
       <div
-        className="vb-header"
         style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '12px',
-          padding: '8px',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          gap: '16px',
+          padding: '16px',
           background: 'var(--cp-panel)',
           borderRadius: 'var(--r-md)',
+          border: '2px solid var(--accent-orange)',
         }}
       >
-        {/* Home side */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <div style={{ fontSize: '1.2rem', color: home.config.color || '#1a4fd6', fontWeight: 700 }}>
+        {/* Home Team */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ fontSize: '1.1rem', color: home.config.color || '#1a4fd6', fontWeight: 700 }}>
             {home.config.name}
           </div>
           <div
             style={{
-              fontSize: '3rem',
-              color: 'var(--led-amber)',
-              fontFamily: 'Orbitron, monospace',
+              fontSize: '4rem',
+              color: 'var(--led-red)',
+              fontFamily: 'var(--font-led)',
               fontWeight: 900,
               lineHeight: 1,
             }}
           >
             {home.score}
           </div>
-        </div>
-
-        {/* Center — SET display */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-          <div
-            style={{
-              fontSize: '2.5rem',
-              color: 'var(--led-amber)',
-              fontFamily: 'Orbitron, monospace',
-              fontWeight: 900,
-              background: 'var(--cp-led-bg)',
-              padding: '8px 16px',
-              borderRadius: 'var(--r-sm)',
-            }}
-          >
-            SET {currentSet}
-          </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px' }}>
-            <div style={{ fontSize: '0.9rem', color: 'var(--text-label)' }}>Sets Won:</div>
-            <div style={{ fontSize: '1.2rem', color: 'var(--led-amber)', fontFamily: 'Orbitron' }}>
-              {setsWon.home} - {setsWon.away}
-            </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Sets: <span style={{ color: 'var(--led-amber)', fontWeight: 700 }}>{setsWon.home}</span>
           </div>
         </div>
 
-        {/* Away side */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-          <div style={{ fontSize: '1.2rem', color: away.config.color || '#c0392b', fontWeight: 700 }}>
-            {away.config.name}
-          </div>
+        {/* Center - SET */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
           <div
             style={{
               fontSize: '3rem',
               color: 'var(--led-amber)',
-              fontFamily: 'Orbitron, monospace',
+              fontFamily: 'var(--font-led)',
+              fontWeight: 900,
+              background: 'var(--cp-led-bg)',
+              padding: '12px 24px',
+              borderRadius: 'var(--r-md)',
+              border: '2px solid var(--accent-orange)',
+            }}
+          >
+            SET {currentSet}
+          </div>
+        </div>
+
+        {/* Away Team */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+          <div style={{ fontSize: '1.1rem', color: away.config.color || '#c0392b', fontWeight: 700 }}>
+            {away.config.name}
+          </div>
+          <div
+            style={{
+              fontSize: '4rem',
+              color: 'var(--led-red)',
+              fontFamily: 'var(--font-led)',
               fontWeight: 900,
               lineHeight: 1,
             }}
           >
             {away.score}
           </div>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            Sets: <span style={{ color: 'var(--led-amber)', fontWeight: 700 }}>{setsWon.away}</span>
+          </div>
         </div>
       </div>
 
-      {/* ROW 2 — Serving indicator */}
+      {/* Serving Controls */}
       <div
-        className="vb-serve-bar"
         style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          gap: '16px',
           alignItems: 'center',
-          gap: '12px',
-          padding: '6px',
-          background: 'var(--cp-panel)',
-          borderRadius: 'var(--r-sm)',
         }}
       >
         <button
-          className="btn"
+          className="vb-btn vb-btn--serve"
           style={{
-            minHeight: '48px',
-            padding: '8px 16px',
+            minHeight: '80px',
+            padding: '16px',
             background: servingTeam === 'home' ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
             color: '#fff',
-            border: 'none',
-            borderRadius: 'var(--r-sm)',
-            fontSize: '1rem',
-            fontWeight: 600,
+            border: servingTeam === 'home' ? '3px solid var(--accent-gold)' : '2px solid var(--btn-ctrl-bdr)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.3rem',
+            fontWeight: 700,
             cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
           }}
           onClick={() => sendCommand({ type: 'SET_SERVING_TEAM', team: 'home' })}
         >
-          ◄ HOME SERVE
+          <span style={{ fontSize: '2rem' }}>◀</span>
+          <span>HOME SERVE</span>
         </button>
+
         <div
           style={{
             fontSize: '1rem',
             color: 'var(--led-amber)',
-            fontFamily: 'Orbitron',
+            fontFamily: 'var(--font-led)',
             background: 'var(--cp-led-bg)',
-            padding: '6px 12px',
-            borderRadius: 'var(--r-sm)',
+            padding: '12px 16px',
+            borderRadius: 'var(--r-md)',
+            textAlign: 'center',
+            border: '2px solid var(--accent-orange)',
+            fontWeight: 700,
           }}
         >
-          SERVING: {servingTeam ? servingTeam.toUpperCase() : '---'}
+          SERVING:<br/>
+          {servingTeam ? servingTeam.toUpperCase() : '---'}
         </div>
+
         <button
-          className="btn"
+          className="vb-btn vb-btn--serve"
           style={{
-            minHeight: '48px',
-            padding: '8px 16px',
+            minHeight: '80px',
+            padding: '16px',
             background: servingTeam === 'away' ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
             color: '#fff',
-            border: 'none',
-            borderRadius: 'var(--r-sm)',
-            fontSize: '1rem',
-            fontWeight: 600,
+            border: servingTeam === 'away' ? '3px solid var(--accent-gold)' : '2px solid var(--btn-ctrl-bdr)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.3rem',
+            fontWeight: 700,
             cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
           }}
           onClick={() => sendCommand({ type: 'SET_SERVING_TEAM', team: 'away' })}
         >
-          AWAY SERVE ►
+          <span style={{ fontSize: '2rem' }}>▶</span>
+          <span>AWAY SERVE</span>
         </button>
       </div>
 
-      {/* ROW 3 — Score controls (main action row) */}
+      {/* Score Controls Grid */}
       <div
-        className="vb-score-row"
         style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          gap: '12px',
-          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
         }}
       >
-        {/* Home column */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {/* Home Score Buttons */}
+        <button
+          className="vb-btn vb-btn--score"
+          style={{
+            minHeight: '100px',
+            padding: '20px',
+            background: 'var(--btn-green)',
+            color: '#fff',
+            border: '3px solid var(--btn-green-dk)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '2rem',
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'home' })}
+        >
+          <span style={{ fontSize: '2.5rem' }}>+</span>
+          <span>POINT HOME</span>
+        </button>
+
+        {/* Away Score Buttons */}
+        <button
+          className="vb-btn vb-btn--score"
+          style={{
+            minHeight: '100px',
+            padding: '20px',
+            background: 'var(--btn-green)',
+            color: '#fff',
+            border: '3px solid var(--btn-green-dk)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '2rem',
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'away' })}
+        >
+          <span style={{ fontSize: '2.5rem' }}>+</span>
+          <span>POINT AWAY</span>
+        </button>
+
+        {/* Home Subtract */}
+        <button
+          className="vb-btn vb-btn--subtract"
+          style={{
+            minHeight: '80px',
+            padding: '16px',
+            background: 'var(--btn-switch)',
+            color: '#fff',
+            border: '2px solid #801000',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'SUBTRACT_VB_POINT', team: 'home' })}
+          disabled={home.score <= 0}
+        >
+          <span>−</span>
+          <span>HOME</span>
+        </button>
+
+        {/* Away Subtract */}
+        <button
+          className="vb-btn vb-btn--subtract"
+          style={{
+            minHeight: '80px',
+            padding: '16px',
+            background: 'var(--btn-switch)',
+            color: '#fff',
+            border: '2px solid #801000',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'SUBTRACT_VB_POINT', team: 'away' })}
+          disabled={away.score <= 0}
+        >
+          <span>−</span>
+          <span>AWAY</span>
+        </button>
+      </div>
+
+      {/* Timeouts Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
+        }}
+      >
+        {/* Home Timeout */}
+        <div
+          style={{
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid #6b3fa0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700 }}>HOME TIMEOUTS</div>
+            <div style={{ fontSize: '2rem', color: 'var(--led-amber)', fontFamily: 'var(--font-led)' }}>
+              {2 - timeoutsUsed.home}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {Array.from({ length: 2 - timeoutsUsed.home }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'var(--led-amber)',
+                  boxShadow: '0 0 10px var(--led-glow)',
+                }}
+              />
+            ))}
+          </div>
           <button
-            className="btn btn--g"
+            className="vb-btn vb-btn--timeout"
             style={{
-              minHeight: '64px',
-              background: 'var(--btn-green)',
+              minHeight: '80px',
+              padding: '16px',
+              background: '#6b3fa0',
               color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1.5rem',
+              border: '2px solid #4a2870',
+              borderRadius: 'var(--r-md)',
+              fontSize: '1.3rem',
               fontWeight: 700,
               cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
             }}
-            onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'home' })}
+            onClick={() => sendCommand({ type: 'USE_VB_TIMEOUT', team: 'home' })}
+            disabled={timeoutsUsed.home >= 2}
           >
-            +1 HOME
+            <span style={{ fontSize: '1.5rem' }}>⏸</span>
+            <span>USE TIMEOUT</span>
           </button>
-          <button
-            className="btn btn--r"
-            style={{
-              minHeight: '64px',
-              background: 'var(--btn-switch)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1.2rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'SUBTRACT_VB_POINT', team: 'home' })}
-            disabled={home.score <= 0}
-          >
-            -1 HOME
-          </button>
+        </div>
 
-          {/* Home player list */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-label)', marginBottom: '4px' }}>
-              HOME PLAYERS:
+        {/* Away Timeout */}
+        <div
+          style={{
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid #6b3fa0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700 }}>AWAY TIMEOUTS</div>
+            <div style={{ fontSize: '2rem', color: 'var(--led-amber)', fontFamily: 'var(--font-led)' }}>
+              {2 - timeoutsUsed.away}
             </div>
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {Array.from({ length: 2 - timeoutsUsed.away }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'var(--led-amber)',
+                  boxShadow: '0 0 10px var(--led-glow)',
+                }}
+              />
+            ))}
+          </div>
+          <button
+            className="vb-btn vb-btn--timeout"
+            style={{
+              minHeight: '80px',
+              padding: '16px',
+              background: '#6b3fa0',
+              color: '#fff',
+              border: '2px solid #4a2870',
+              borderRadius: 'var(--r-md)',
+              fontSize: '1.3rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => sendCommand({ type: 'USE_VB_TIMEOUT', team: 'away' })}
+            disabled={timeoutsUsed.away >= 2}
+          >
+            <span style={{ fontSize: '1.5rem' }}>⏸</span>
+            <span>USE TIMEOUT</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Substitutions Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
+        }}
+      >
+        {/* Home Subs */}
+        <div
+          style={{
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid var(--accent-cyan)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700 }}>HOME SUBS</div>
+            <div style={{ fontSize: '2rem', color: 'var(--led-amber)', fontFamily: 'var(--font-led)' }}>
+              {6 - substitutionsUsed.home}
+            </div>
+          </div>
+          <button
+            className="vb-btn vb-btn--sub"
+            style={{
+              minHeight: '80px',
+              padding: '16px',
+              background: 'var(--accent-cyan)',
+              color: '#fff',
+              border: '2px solid #0d7a8a',
+              borderRadius: 'var(--r-md)',
+              fontSize: '1.3rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => setShowSubModal('home')}
+          >
+            <span style={{ fontSize: '1.5rem' }}>⇄</span>
+            <span>SUBSTITUTE</span>
+          </button>
+        </div>
+
+        {/* Away Subs */}
+        <div
+          style={{
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid var(--accent-cyan)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700 }}>AWAY SUBS</div>
+            <div style={{ fontSize: '2rem', color: 'var(--led-amber)', fontFamily: 'var(--font-led)' }}>
+              {6 - substitutionsUsed.away}
+            </div>
+          </div>
+          <button
+            className="vb-btn vb-btn--sub"
+            style={{
+              minHeight: '80px',
+              padding: '16px',
+              background: 'var(--accent-cyan)',
+              color: '#fff',
+              border: '2px solid #0d7a8a',
+              borderRadius: 'var(--r-md)',
+              fontSize: '1.3rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+            }}
+            onClick={() => setShowSubModal('away')}
+          >
+            <span style={{ fontSize: '1.5rem' }}>⇄</span>
+            <span>SUBSTITUTE</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Control Buttons Grid */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '16px',
+        }}
+      >
+        <button
+          className="vb-btn vb-btn--advance"
+          style={{
+            minHeight: '100px',
+            padding: '20px',
+            background: '#6b3fa0',
+            color: '#fff',
+            border: '3px solid #4a2870',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.5rem',
+            fontWeight: 900,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'ADVANCE_SET' })}
+        >
+          <span style={{ fontSize: '2rem' }}>⏭</span>
+          <span>NEXT SET</span>
+        </button>
+
+        <button
+          className="vb-btn vb-btn--horn"
+          style={{
+            minHeight: '100px',
+            padding: '20px',
+            background: '#6b3fa0',
+            color: '#fff',
+            border: '3px solid #4a2870',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => {
+            import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod())
+          }}
+        >
+          <span style={{ fontSize: '2rem' }}>📢</span>
+          <span>HORN</span>
+        </button>
+
+        <button
+          className="vb-btn vb-btn--switch"
+          style={{
+            minHeight: '100px',
+            padding: '20px',
+            background: 'var(--btn-switch)',
+            color: '#fff',
+            border: '3px solid #801000',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.5rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}
+        >
+          <span style={{ fontSize: '2rem' }}>⇄</span>
+          <span>SWITCH</span>
+        </button>
+      </div>
+
+      {/* Bottom Controls */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
+        }}
+      >
+        <button
+          className="vb-btn vb-btn--undo"
+          style={{
+            minHeight: '80px',
+            padding: '16px',
+            background: 'var(--btn-ctrl)',
+            color: '#fff',
+            border: '2px solid var(--btn-ctrl-bdr)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.3rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'UNDO' })}
+        >
+          <span style={{ fontSize: '1.5rem' }}>↶</span>
+          <span>UNDO</span>
+        </button>
+
+        <button
+          className="vb-btn vb-btn--reset"
+          style={{
+            minHeight: '80px',
+            padding: '16px',
+            background: 'var(--btn-ctrl)',
+            color: '#fff',
+            border: '2px solid var(--btn-ctrl-bdr)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1.3rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+          onClick={() => sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })}
+        >
+          <span style={{ fontSize: '1.5rem' }}>🔄</span>
+          <span>RESET</span>
+        </button>
+      </div>
+
+      {/* Player Lists */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '16px',
+        }}
+      >
+        {/* Home Players */}
+        <div
+          style={{
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid #1a4fd6',
+          }}
+        >
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700, marginBottom: '12px' }}>
+            HOME PLAYERS
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {homePlayers.map(p => (
               <div
                 key={p.id}
                 style={{
-                  padding: '6px 8px',
+                  padding: '12px',
                   background:
                     selectedPlayer?.id === p.id ? 'var(--accent-orange)' : 'var(--cp-bg2)',
                   color: '#fff',
                   borderRadius: 'var(--r-sm)',
                   cursor: 'pointer',
-                  fontSize: '0.9rem',
+                  fontSize: '1rem',
+                  fontWeight: 600,
                   display: 'flex',
                   justifyContent: 'space-between',
+                  border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid #2a3040',
+                  transition: 'all 0.2s ease',
                 }}
                 onClick={() => setSelectedPlayer({ team: 'home', id: p.id })}
               >
                 <span>
                   #{p.number} {p.name}
                 </span>
-                <span>{p.points}</span>
+                <span style={{ color: 'var(--led-amber)' }}>{p.points}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Center column */}
+        {/* Away Players */}
         <div
           style={{
-            flex: 0.6,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            alignItems: 'center',
+            background: 'var(--cp-panel)',
+            padding: '16px',
+            borderRadius: 'var(--r-md)',
+            border: '2px solid #c0392b',
           }}
         >
-          <button
-            className="btn"
-            style={{
-              minHeight: '80px',
-              width: '100%',
-              background: '#6b3fa0',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-md)',
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'ADVANCE_SET' })}
-          >
-            ADVANCE SET
-          </button>
-          <button
-            className="btn"
-            style={{
-              minHeight: '64px',
-              width: '100%',
-              background: '#6b3fa0',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1.2rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => {
-              import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod())
-            }}
-          >
-            <svg
-              viewBox="0 0 512 512"
-              fill="currentColor"
-              style={{ width: '1.2em', height: '1.2em', marginRight: '4px' }}
-            >
-              <path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z" />
-            </svg>
-            HORN
-          </button>
-          <button
-            className="btn btn--sw"
-            style={{
-              minHeight: '64px',
-              width: '100%',
-              background: 'var(--btn-switch)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}
-          >
-            SWITCH
-          </button>
-          <button
-            className="btn"
-            style={{
-              minHeight: '64px',
-              width: '100%',
-              background: 'var(--btn-ctrl)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'UNDO' })}
-          >
-            ↶ UNDO
-          </button>
-
-          {/* Mini scoreboard preview */}
-          <div
-            style={{
-              marginTop: '12px',
-              padding: '12px',
-              background: 'var(--cp-led-bg)',
-              borderRadius: 'var(--r-sm)',
-              width: '100%',
-              fontSize: '0.85rem',
-              color: 'var(--led-amber)',
-              fontFamily: 'Orbitron',
-              textAlign: 'center',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span>{home.config.name}</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>{home.score}</span>
-              <span>VS</span>
-              <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>{away.score}</span>
-              <span>{away.config.name}</span>
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              SET {currentSet} | SERVE: {servingTeam?.toUpperCase() ?? '---'}
-            </div>
+          <div style={{ fontSize: '0.9rem', color: 'var(--text-label)', fontWeight: 700, marginBottom: '12px' }}>
+            AWAY PLAYERS
           </div>
-        </div>
-
-        {/* Away column */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <button
-            className="btn btn--g"
-            style={{
-              minHeight: '64px',
-              background: 'var(--btn-green)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'away' })}
-          >
-            +1 AWAY
-          </button>
-          <button
-            className="btn btn--r"
-            style={{
-              minHeight: '64px',
-              background: 'var(--btn-switch)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1.2rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'SUBTRACT_VB_POINT', team: 'away' })}
-            disabled={away.score <= 0}
-          >
-            -1 AWAY
-          </button>
-
-          {/* Away player list */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '8px' }}>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-label)', marginBottom: '4px' }}>
-              AWAY PLAYERS:
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {awayPlayers.map(p => (
               <div
                 key={p.id}
                 style={{
-                  padding: '6px 8px',
+                  padding: '12px',
                   background:
                     selectedPlayer?.id === p.id ? 'var(--accent-orange)' : 'var(--cp-bg2)',
                   color: '#fff',
                   borderRadius: 'var(--r-sm)',
                   cursor: 'pointer',
-                  fontSize: '0.9rem',
+                  fontSize: '1rem',
+                  fontWeight: 600,
                   display: 'flex',
                   justifyContent: 'space-between',
+                  border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid #2a3040',
+                  transition: 'all 0.2s ease',
                 }}
                 onClick={() => setSelectedPlayer({ team: 'away', id: p.id })}
               >
                 <span>
                   #{p.number} {p.name}
                 </span>
-                <span>{p.points}</span>
+                <span style={{ color: 'var(--led-amber)' }}>{p.points}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ROW 4 — Timeouts */}
-      <div
-        className="vb-stats-row"
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          gap: '12px',
-          padding: '8px',
-        }}
-      >
-        {/* Home timeouts */}
-        <div
-          style={{
-            flex: 1,
-            background: 'var(--cp-panel)',
-            padding: '12px',
-            borderRadius: 'var(--r-sm)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-label)' }}>TIMEOUTS (HOME)</div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            {Array.from({ length: 2 - timeoutsUsed.home }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  background: 'var(--led-amber)',
-                }}
-              />
-            ))}
-            <span style={{ marginLeft: '8px', color: 'var(--led-amber)', fontSize: '1.2rem' }}>
-              {2 - timeoutsUsed.home} / 2
-            </span>
-          </div>
-          <button
-            className="btn"
-            style={{
-              minHeight: '48px',
-              background: 'var(--btn-amber)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'USE_VB_TIMEOUT', team: 'home' })}
-            disabled={timeoutsUsed.home >= 2}
-          >
-            USE TIMEOUT
-          </button>
-        </div>
-
-        {/* Center — RESET */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <button
-            className="btn"
-            style={{
-              minHeight: '64px',
-              padding: '12px 24px',
-              background: 'var(--btn-ctrl)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-md)',
-              fontSize: '1.2rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })}
-          >
-            RESET
-          </button>
-        </div>
-
-        {/* Away timeouts */}
-        <div
-          style={{
-            flex: 1,
-            background: 'var(--cp-panel)',
-            padding: '12px',
-            borderRadius: 'var(--r-sm)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-          }}
-        >
-          <div style={{ fontSize: '0.8rem', color: 'var(--text-label)' }}>TIMEOUTS (AWAY)</div>
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            {Array.from({ length: 2 - timeoutsUsed.away }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: '16px',
-                  height: '16px',
-                  borderRadius: '50%',
-                  background: 'var(--led-amber)',
-                }}
-              />
-            ))}
-            <span style={{ marginLeft: '8px', color: 'var(--led-amber)', fontSize: '1.2rem' }}>
-              {2 - timeoutsUsed.away} / 2
-            </span>
-          </div>
-          <button
-            className="btn"
-            style={{
-              minHeight: '48px',
-              background: 'var(--btn-amber)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => sendCommand({ type: 'USE_VB_TIMEOUT', team: 'away' })}
-            disabled={timeoutsUsed.away >= 2}
-          >
-            USE TIMEOUT
-          </button>
-        </div>
-      </div>
-
-      {/* ROW 5 — Substitutions */}
-      <div
-        className="vb-subs-row"
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          gap: '12px',
-          padding: '8px',
-        }}
-      >
-        {/* Home subs */}
-        <div
-          style={{
-            flex: 1,
-            background: 'var(--cp-panel)',
-            padding: '12px',
-            borderRadius: 'var(--r-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <button
-            className="btn"
-            style={{
-              minHeight: '56px',
-              flex: 1,
-              background: 'var(--accent-cyan)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => setShowSubModal('home')}
-          >
-            SUB HOME
-          </button>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Remaining</div>
-            <div style={{ fontSize: '1.5rem', color: 'var(--led-amber)', fontFamily: 'Orbitron' }}>
-              {6 - substitutionsUsed.home}
-            </div>
-          </div>
-        </div>
-
-        {/* Away subs */}
-        <div
-          style={{
-            flex: 1,
-            background: 'var(--cp-panel)',
-            padding: '12px',
-            borderRadius: 'var(--r-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Remaining</div>
-            <div style={{ fontSize: '1.5rem', color: 'var(--led-amber)', fontFamily: 'Orbitron' }}>
-              {6 - substitutionsUsed.away}
-            </div>
-          </div>
-          <button
-            className="btn"
-            style={{
-              minHeight: '56px',
-              flex: 1,
-              background: 'var(--accent-cyan)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 'var(--r-sm)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-            onClick={() => setShowSubModal('away')}
-          >
-            SUB AWAY
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

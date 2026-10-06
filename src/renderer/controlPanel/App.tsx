@@ -630,8 +630,19 @@ function ControlPanel({
         {layoutEditing && currentTemplate && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8f8' }} onClick={() => saveTemplate(currentTemplate)}>💾 Save</button>}
         {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#adf' }} onClick={() => { setTemplateName(''); setTemplateInput('save') }}>💾 Save As</button>}
         {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8cf' }} onClick={() => { setTemplateName(''); setTemplateInput('load') }}>📂 Load</button>}
-        <button className="cp-tabs__btn cp-tabs__btn--right" style={{ fontSize: '1.4em' }} onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺 TV</button>
+        <button className="cp-tabs__btn cp-tabs__btn--right" style={{ fontSize: '1.6em' }} onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺</button>
         <button className="cp-tabs__btn cp-tabs__btn--right" onClick={onBack}>← Liga</button>
+        <button 
+          className="cp-tabs__btn cp-tabs__btn--right" 
+          style={{ color: '#f0a020', fontWeight: 900 }}
+          onClick={() => {
+            if (confirm('Return to Sport Selection? Game progress will be kept.')) {
+              window.location.reload()
+            }
+          }}
+        >
+          🏀 SELECT SPORT
+        </button>
       </div>
 
       {/* ── SCORE TAB — per-button editable ── */}

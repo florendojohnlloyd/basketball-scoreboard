@@ -161,6 +161,32 @@
 .vb-tv--live {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* ESC button */
+.vb-tv__esc {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  background: rgba(192, 48, 16, 0.9);
+  border: 2px solid #cc6600;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 900;
+  padding: 8px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Orbitron', monospace;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.vb-tv__esc:hover {
+  background: rgba(255, 60, 20, 0.95);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 60, 20, 0.4);
 }
 
 /* Top bar */
@@ -170,16 +196,10 @@
   border-bottom: 2px solid #cc6600;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 40px;
   flex-shrink: 0;
-}
-
-.vb-tv__sport-title {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: #ffcc00;
-  letter-spacing: 0.15em;
+  gap: 60px;
 }
 
 .vb-tv__set-display {
@@ -446,4 +466,166 @@
   font-size: 1rem;
   color: #5a7090;
   letter-spacing: 0.1em;
+}
+
+
+/* ══════════════════════════════════════════
+   TIMEOUT OVERLAY WITH VIDEO/ADS
+   ══════════════════════════════════════════ */
+
+.vb-tv-timeout {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vb-tv-timeout__content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.vb-tv-timeout__video-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.vb-tv-timeout__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+.vb-tv-timeout__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 70%);
+  z-index: 1;
+}
+
+.vb-tv-timeout__flash {
+  font-family: 'Orbitron', 'Courier New', monospace;
+  font-size: clamp(3rem, 8vw, 8rem);
+  font-weight: 900;
+  color: #ffcc00;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 40px rgba(255,204,0,0.8), 0 0 80px rgba(255,204,0,0.4);
+  margin-bottom: 2vh;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.vb-tv-timeout__team {
+  font-family: 'Orbitron', 'Arial Black', sans-serif;
+  font-size: clamp(1.5rem, 4vw, 4rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+  margin-bottom: 4vh;
+  letter-spacing: 0.08em;
+}
+
+.vb-tv-timeout__countdown {
+  position: relative;
+  width: clamp(120px, 20vw, 240px);
+  height: clamp(120px, 20vw, 240px);
+  margin-bottom: 3vh;
+}
+
+.vb-tv-timeout__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.vb-tv-timeout__time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255,255,255,0.6);
+}
+
+.vb-tv-timeout__label {
+  font-family: 'Orbitron', 'Arial Black', sans-serif;
+  font-size: clamp(0.9rem, 1.8vw, 1.8rem);
+  font-weight: 700;
+  color: #7ab8d4;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 4vh;
+}
+
+.vb-tv-timeout__scorebar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3vh 4vw;
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 80%, transparent 100%);
+  border-top: 3px solid #17a2b8;
+}
+
+.vb-tv-timeout__score-team {
+  display: flex;
+  align-items: center;
+  gap: 2vw;
+  font-family: 'Orbitron', 'Arial Black', sans-serif;
+  font-weight: 900;
+}
+
+.vb-tv-timeout__score-name {
+  font-size: clamp(1.2rem, 2.5vw, 2.5rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.vb-tv-timeout__score-num {
+  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+.vb-tv-timeout__score-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.4rem, 2.8vw, 2.8rem);
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 12px rgba(255,204,0,0.5);
+  line-height: 1.2;
 }

@@ -1,11 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useScoreboardStore } from '../store'
 import { getImageUrl } from '../../shared/imageUtils'
 import './VolleyballScoreboardLayout.css'
+import timeoutVideo from '../../shared/vid/FitnessExclusive.mp4'
 
 function VolleyballScoreboardLayout(): React.ReactElement {
   const gs = useScoreboardStore(s => s.gameState)
-  const { home, away, gamePhase, volleyball } = gs
+  const { home, away, gamePhase, volleyball, timeout } = gs
+
+  // ESC key handler to close window
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        window.close()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Early return if not volleyball mode
   if (gs.sport !== 'volleyball') {
@@ -93,13 +105,6 @@ function VolleyballScoreboardLayout(): React.ReactElement {
   // ═══ LIVE ═══
   return (
     <div className="vb-tv vb-tv--live">
-      {/* Top bar */}
-      <div className="vb-tv__topbar">
-        <div className="vb-tv__sport-title">VOLLEYBALL</div>
-        <div className="vb-tv__set-display">SET {currentSet}</div>
-        <div className="vb-tv__liga-name">{gs.ligaName || 'SCOREBOARD'}</div>
-      </div>
-
       {/* Main content area */}
       <div className="vb-tv__main">
         {/* Left panel — Home team */}
@@ -235,6 +240,80 @@ function VolleyballScoreboardLayout(): React.ReactElement {
       <div className="vb-tv__bottombar">
         <div className="vb-tv__sponsor">Powered by LigaControl</div>
       </div>
+
+      {/* Timeout Overlay with Video/Ads */}
+      {timeout && (
+        <div className="vb-tv-timeout">
+          <div className="vb-tv-timeout__content">
+            {/* Video/Ad */}
+            <div className="vb-tv-timeout__video-container">
+              <video 
+                className="vb-tv-timeout__video" 
+                autoPlay 
+                loop 
+                muted 
+                playsInline 
+                src={timeoutVideo} 
+              />
+            </div>
+
+            {/* Timeout Info Overlay */}
+            <div className="vb-tv-timeout__overlay">
+              <div className="vb-tv-timeout__flash">TIMEOUT</div>
+              <div className="vb-tv-timeout__team" style={{ color: gs[timeout.team].config.color }}>
+                {gs[timeout.team].config.name}
+              </div>
+              
+              {/* Countdown Circle */}
+              <div className="vb-tv-timeout__countdown">
+                <svg className="vb-tv-timeout__ring" viewBox="0 0 200 200">
+                  <circle 
+                    className="vb-tv-timeout__ring-bg" 
+                    cx="100" cy="100" r="90" 
+                    fill="none" 
+                    stroke="rgba(100,180,255,0.15)" 
+                    strokeWidth="8"
+                  />
+                  <circle 
+                    className="vb-tv-timeout__ring-progress" 
+                    cx="100" cy="100" r="90"
+                    fill="none"
+                    stroke="#4dc9f6"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 90}`}
+                    strokeDashoffset={`${2 * Math.PI * 90 * (1 - timeout.remainingMs / 30000)}`}
+                    transform="rotate(-90 100 100)"
+                  />
+                </svg>
+                <div className="vb-tv-timeout__time">
+                  {Math.ceil(timeout.remainingMs / 1000)}
+                </div>
+              </div>
+              
+              <div className="vb-tv-timeout__label">TIME REMAINING</div>
+
+              {/* Score Bar */}
+              <div className="vb-tv-timeout__scorebar">
+                <div className="vb-tv-timeout__score-team" style={{ color: home.config.color }}>
+                  <span className="vb-tv-timeout__score-name">{home.config.name}</span>
+                  <span className="vb-tv-timeout__score-num">{home.score}</span>
+                </div>
+                <div className="vb-tv-timeout__score-center">
+                  <div>SET {volleyball.currentSet}</div>
+                  <div style={{ fontSize: '0.7em', color: '#bbb' }}>
+                    {setsWon.home} - {setsWon.away}
+                  </div>
+                </div>
+                <div className="vb-tv-timeout__score-team" style={{ color: away.config.color }}>
+                  <span className="vb-tv-timeout__score-num">{away.score}</span>
+                  <span className="vb-tv-timeout__score-name">{away.config.name}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
