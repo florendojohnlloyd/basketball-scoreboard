@@ -1,0 +1,449 @@
+/* ============================================================
+   Volleyball Scoreboard Layout — TV Display
+   Dark hardware scoreboard aesthetic with LED amber displays
+   ============================================================ */
+
+.vb-tv {
+  width: 100vw;
+  height: 100vh;
+  background: #0c0f14;
+  color: #d0dce8;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  overflow: hidden;
+  display: flex;
+  flexDirection: column;
+}
+
+.vb-tv-fallback {
+  width: 100vw;
+  height: 100vh;
+  background: #0c0f14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d0dce8;
+  font-size: 2rem;
+}
+
+/* ══════════════════════════════════════════
+   PRE-GAME STATE
+   ══════════════════════════════════════════ */
+
+.vb-tv--pregame {
+  align-items: center;
+  justify-content: center;
+}
+
+.vb-pre {
+  text-align: center;
+  padding: 40px;
+}
+
+.vb-pre__title {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffcc00;
+  margin-bottom: 60px;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
+}
+
+.vb-pre__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+}
+
+.vb-pre__team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.vb-pre__logo-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(26, 32, 48, 0.8);
+  border: 4px solid #ffcc00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.vb-pre__logo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.vb-pre__logo-circle span {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #ffcc00;
+}
+
+.vb-pre__name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.vb-pre__vs {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffcc00;
+}
+
+/* ══════════════════════════════════════════
+   POST-GAME STATE
+   ══════════════════════════════════════════ */
+
+.vb-tv--gameover {
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0c0f14 0%, #1a2030 100%);
+}
+
+.vb-go__title {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 30px rgba(255, 204, 0, 0.8);
+}
+
+.vb-go__scores {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 60px;
+  margin-bottom: 40px;
+}
+
+.vb-go__name {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.vb-go__sets {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-align: center;
+}
+
+.vb-go__sep {
+  font-size: 3rem;
+  color: #5a7090;
+}
+
+.vb-go__winner {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #22ff55;
+  text-align: center;
+  margin-top: 20px;
+  text-shadow: 0 0 20px rgba(34, 255, 85, 0.5);
+}
+
+/* ══════════════════════════════════════════
+   LIVE STATE — Main Layout
+   ══════════════════════════════════════════ */
+
+.vb-tv--live {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar */
+.vb-tv__topbar {
+  height: 80px;
+  background: linear-gradient(180deg, #1a2030 0%, #141820 100%);
+  border-bottom: 2px solid #cc6600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  flex-shrink: 0;
+}
+
+.vb-tv__sport-title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #ffcc00;
+  letter-spacing: 0.15em;
+}
+
+.vb-tv__set-display {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+}
+
+.vb-tv__liga-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #d0dce8;
+  text-align: right;
+}
+
+/* Main content area */
+.vb-tv__main {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+/* Side panels (home/away) */
+.vb-tv__side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  gap: 20px;
+}
+
+.vb-tv__side--home {
+  border-right: 3px solid #1a4fd6;
+  background: linear-gradient(90deg, rgba(26, 79, 214, 0.05) 0%, transparent 100%);
+}
+
+.vb-tv__side--away {
+  border-left: 3px solid #c0392b;
+  background: linear-gradient(270deg, rgba(192, 57, 43, 0.05) 0%, transparent 100%);
+}
+
+/* Serving arrow indicator */
+.vb-tv__serve-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 6rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 30px rgba(255, 204, 0, 0.8);
+  animation: pulse-serve 1.5s ease-in-out infinite;
+}
+
+.vb-tv__serve-arrow--home {
+  left: 20px;
+}
+
+.vb-tv__serve-arrow--away {
+  right: 20px;
+}
+
+@keyframes pulse-serve {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translateY(-50%) scale(1.1);
+  }
+}
+
+/* Team name */
+.vb-tv__team-name {
+  font-size: 2.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  max-width: 90%;
+  word-wrap: break-word;
+}
+
+/* Logo */
+.vb-tv__logo {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.vb-tv__logo img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+.vb-tv__logo-placeholder {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+/* Score */
+.vb-tv__score {
+  font-size: 8rem;
+  font-weight: 900;
+  color: #ffcc00;
+  font-family: 'Orbitron', monospace;
+  line-height: 1;
+  text-shadow: 0 0 25px rgba(255, 204, 0, 0.6);
+  margin: 20px 0;
+}
+
+/* Sets won */
+.vb-tv__sets-won {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vb-tv__sets-label {
+  font-size: 1rem;
+  color: #5a7090;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.vb-tv__sets-dots {
+  display: flex;
+  gap: 12px;
+}
+
+.vb-tv__sets-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #ffcc00;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.vb-tv__sets-dot--filled {
+  background: #ffcc00;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
+}
+
+.vb-tv__sets-count {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffcc00;
+}
+
+/* Timeouts */
+.vb-tv__timeouts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.vb-tv__timeouts-label {
+  font-size: 0.9rem;
+  color: #5a7090;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.vb-tv__timeouts-dots {
+  display: flex;
+  gap: 10px;
+}
+
+.vb-tv__timeout-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffcc00;
+  box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+}
+
+.vb-tv__timeouts-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffcc00;
+}
+
+/* Center panel */
+.vb-tv__center {
+  flex: 0.5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  background: rgba(12, 15, 20, 0.5);
+}
+
+.vb-tv__center-set {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vb-tv__center-set-label {
+  font-size: 1.5rem;
+  color: #5a7090;
+  letter-spacing: 0.15em;
+}
+
+.vb-tv__center-set-number {
+  font-size: 6rem;
+  font-weight: 900;
+  color: #ffcc00;
+  text-shadow: 0 0 25px rgba(255, 204, 0, 0.7);
+}
+
+.vb-tv__center-serve {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vb-tv__center-serve-arrow {
+  font-size: 4rem;
+  color: #ffcc00;
+  animation: pulse-serve 1.5s ease-in-out infinite;
+}
+
+.vb-tv__center-serve-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffcc00;
+  letter-spacing: 0.2em;
+}
+
+/* Bottom bar */
+.vb-tv__bottombar {
+  height: 60px;
+  background: linear-gradient(0deg, #1a2030 0%, #141820 100%);
+  border-top: 2px solid #cc6600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vb-tv__sponsor {
+  font-size: 1rem;
+  color: #5a7090;
+  letter-spacing: 0.1em;
+}

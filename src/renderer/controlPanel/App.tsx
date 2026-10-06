@@ -7,9 +7,10 @@ import { SCOREBOARD_EVENT, SCOREBOARD_QUERY } from '@shared/types'
 import { SportSelector } from './components/SportSelector'
 import SyncConflictDialog from './components/SyncConflictDialog'
 import { TeamRosterModal } from './components/TeamRosterModal'
-import { EditableWidget } from './components/EditableWidget'
 import { useLayoutStore } from './components/useLayoutStore'
 import { ScoreTab } from './components/ScoreTab'
+import { VolleyballScoreTab } from './components/VolleyballScoreTab'
+import { getImageUrl, readFileAsDataUrl } from '../shared/imageUtils'
 import { LoginScreen } from './components/LoginScreen'
 import AdvancedMetricsPanel from './components/AdvancedMetricsPanel'
 import GameHistoryView from './components/GameHistoryView'
@@ -22,6 +23,8 @@ import AuditLogView from './components/AuditLogView'
 import UserManagementView from './components/UserManagementView'
 import BackupPanel from './components/BackupPanel'
 import TournamentManager from './components/TournamentManager'
+import { TimeoutSettings } from './components/TimeoutSettings'
+import { LanguagePicker } from './components/LanguagePicker'
 import sponsorLogo from '../../../pictures/BG.png'
 import fitnessLogo from '../../../pictures/red.png'
 import './App.css'
@@ -95,6 +98,7 @@ function App(): React.ReactElement {
 // ---------------------------------------------------------------------------
 function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogout: () => void }): React.ReactElement {
   const [screen, setScreen] = useState<AppScreen>('sport-selector')
+  const [selectedSport, setSelectedSport] = useState<'basketball' | 'volleyball'>('basketball')
   const [ligas, setLigas] = useState<LigaSummary[]>([])
   const [currentLiga, setCurrentLiga] = useState<Liga | null>(null)
   const [newLigaName, setNewLigaName] = useState('')
@@ -202,7 +206,10 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
   // ══════════════════════════════════════════
   if (screen === 'sport-selector') {
     return (
-      <SportSelector onSelectSport={() => setScreen('liga-picker')} />
+      <SportSelector onSelectSport={(sportId) => {
+        setSelectedSport(sportId as 'basketball' | 'volleyball')
+        setScreen('liga-picker')
+      }} />
     )
   }
 
@@ -238,25 +245,42 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
               <div className="liga-picker__list">
                 <h3>Load Existing Liga</h3>
                 {ligas.map(l => (
-                  <button key={l.id} className="liga-picker__liga-btn" onClick={async () => {
-                    const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LOAD', id: l.id }) as any
-                    if (result?.success) {
-                      setCurrentLiga(result.liga)
-                      setScreen('matchup-picker')
-                    } else {
-                      alert(result?.error ?? 'Failed to load liga')
-                    }
-                  }}>
-                    <span className="liga-picker__liga-name">{l.name} ({l.year})</span>
-                    <span className="liga-picker__liga-teams">{l.teamCount} teams</span>
-                  </button>
+                  <div key={l.id} className="liga-picker__liga-row">
+                    <button className="liga-picker__liga-btn" onClick={async () => {
+                      const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LOAD', id: l.id }) as any
+                      if (result?.success) {
+                        setCurrentLiga(result.liga)
+                        setScreen('matchup-picker')
+                      } else {
+                        alert(result?.error ?? 'Failed to load liga')
+                      }
+                    }}>
+                      <span className="liga-picker__liga-name">{l.name} ({l.year})</span>
+                      <span className="liga-picker__liga-teams">{l.teamCount} teams</span>
+                    </button>
+                    <button
+                      className="btn btn--red btn--xs liga-picker__liga-del"
+                      title={`Delete ${l.name}`}
+                      onClick={async () => {
+                        if (!window.confirm(`Delete "${l.name}"?\n\nThis will permanently remove this liga and all its data.`)) return
+                        await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_DELETE', id: l.id })
+                        // Also reset game state so deleted liga data doesn't persist
+                        sendCommand({ type: 'NEW_GAME', clearTeams: true })
+                        refreshLigas()
+                      }}
+                    >✕</button>
+                  </div>
                 ))}
               </div>
             )}
 
             {/* TRIAL MODE */}
             <button className="btn btn--dark btn--lg" onClick={() => {
-              sendCommand({ type: 'NEW_GAME', clearTeams: false })
+              if (selectedSport === 'volleyball') {
+                sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })
+              } else {
+                sendCommand({ type: 'NEW_GAME', clearTeams: false })
+              }
               setScreen('control-panel')
             }}>TRIAL MODE (Quick Game)</button>
             <p style={{ fontSize: '0.65rem', color: '#556', textAlign: 'center' }}>Trial mode: keeps teams, resets scores</p>
@@ -456,6 +480,13 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
               ligaName: currentLiga.name,
             })
 
+            // Start appropriate game type based on selected sport
+            if (selectedSport === 'volleyball') {
+              sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })
+            } else {
+              sendCommand({ type: 'NEW_GAME', clearTeams: false })
+            }
+
             setScreen('control-panel')
           }}>🏀 START GAME</button>
 
@@ -470,7 +501,15 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
 
   return (
     <>
-      <ControlPanel onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')} ligaId={currentLiga?.id ?? null} />
+      <ControlPanel
+        onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')}
+        ligaId={currentLiga?.id ?? null}
+        ligaName={currentLiga?.name ?? null}
+        onSelectLiga={(liga) => setCurrentLiga(liga)}
+        ligas={ligas}
+        refreshLigas={refreshLigas}
+        selectedSport={selectedSport}
+      />
       {/* Save Game Log Prompt (Requirement 18) */}
       {savePrompt && (
         <div className="sub-modal" role="dialog" aria-label="Save game log">
@@ -509,7 +548,36 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
 // ---------------------------------------------------------------------------
 // CONTROL PANEL
 // ---------------------------------------------------------------------------
-function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string | null }): React.ReactElement {
+function ControlPanel({
+  onBack,
+  ligaId,
+  ligaName,
+  onSelectLiga,
+  ligas,
+  refreshLigas,
+  selectedSport,
+}: {
+  onBack: () => void
+  ligaId: string | null
+  ligaName?: string | null
+  onSelectLiga: (liga: Liga) => void
+  ligas: LigaSummary[]
+  refreshLigas: () => void
+  selectedSport: 'basketball' | 'volleyball'
+}): React.ReactElement {
+  const gsLigaId = useControlPanelStore(s => s.gameState.ligaId)
+  const gsLigaName = useControlPanelStore(s => s.gameState.ligaName)
+  const [selectedLigaId, setSelectedLigaId] = useState<string | null>(ligaId || gsLigaId || null)
+  const [currentLigaName, setCurrentLigaName] = useState<string | null>(ligaName || gsLigaName || null)
+  const [tabLigaName, setTabLigaName] = useState('')
+
+  useEffect(() => {
+    if (ligaId) setSelectedLigaId(ligaId)
+    if (ligaName) setCurrentLigaName(ligaName)
+  }, [ligaId, ligaName])
+
+  const effectiveLigaId = selectedLigaId || gsLigaId || null
+
   const [tab, setTab] = useState<Tab>('SCORE')
   const [showSubModal, setShowSubModal] = useState<'home' | 'away' | null>(null)
   const [selectedPlayer, setSelectedPlayer] = useState<{ team: 'home' | 'away'; id: string } | null>(null)
@@ -548,7 +616,7 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
   const shotSec = Math.ceil(shotClock.displayMs / 1000)
 
   return (
-    <div className="cp" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div className="cp" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ background: '#0e0e0e' }}>
 
       {/* ── TAB BAR ── */}
       <div className="cp-tabs">
@@ -562,13 +630,15 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
         {layoutEditing && currentTemplate && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8f8' }} onClick={() => saveTemplate(currentTemplate)}>💾 Save</button>}
         {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#adf' }} onClick={() => { setTemplateName(''); setTemplateInput('save') }}>💾 Save As</button>}
         {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8cf' }} onClick={() => { setTemplateName(''); setTemplateInput('load') }}>📂 Load</button>}
-        <button className="cp-tabs__btn cp-tabs__btn--right" onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺 TV</button>
+        <button className="cp-tabs__btn cp-tabs__btn--right" style={{ fontSize: '1.4em' }} onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺 TV</button>
         <button className="cp-tabs__btn cp-tabs__btn--right" onClick={onBack}>← Liga</button>
       </div>
 
       {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (
-        <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
+        gs.sport === 'volleyball'
+          ? <VolleyballScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
+          : <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
       )}
 
       {/* ── ROSTER TAB ── */}
@@ -608,40 +678,104 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
       )}
 
       {/* ── BRANDING TAB ── */}
-      {tab === 'BRANDING' && (        <div className="brand-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      {tab === 'BRANDING' && (
+        <div className="brand-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
           {(['home', 'away'] as const).map(team => (
             <div key={team} className="brand-tab__team">
               <h3>{team === 'home' ? 'Home' : 'Away'} Team</h3>
               <label>Name: <input defaultValue={gs[team].config.name} onBlur={e => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { name: e.target.value } })} /></label>
               <label>Color: <input type="color" defaultValue={gs[team].config.color} onChange={e => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { color: e.target.value } })} /></label>
-              <label>Logo: <input type="file" accept="image/*" onChange={e => {
-                const f = e.target.files?.[0]
-                if (f) sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { logoPath: (f as any).path ?? f.name } })
-              }} /></label>
-              <label>Player Image (PNG): <input type="file" accept=".png" onChange={e => {
-                const f = e.target.files?.[0]
-                if (f) sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { playerImagePath: (f as any).path ?? f.name } })
-              }} /></label>
+              
+              <label>
+                Logo:
+                <input type="file" accept="image/*" onChange={async (e) => {
+                  const f = e.target.files?.[0]
+                  if (!f) return
+                  try {
+                    const dataUrl = await readFileAsDataUrl(f)
+                    sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { logoPath: dataUrl } })
+                  } catch {
+                    const path = (f as any).path ?? f.name
+                    sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { logoPath: path } })
+                  }
+                }} />
+              </label>
+              {gs[team].config.logoPath && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 10px', background: '#0a0a10', padding: 6, borderRadius: 6 }}>
+                  <img src={getImageUrl(gs[team].config.logoPath)} alt="Logo" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+                  <span style={{ fontSize: '0.75rem', color: '#6fcf97' }}>✓ Logo preview</span>
+                  <button className="btn btn--xs btn--red" style={{ marginLeft: 'auto' }} onClick={() => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { logoPath: null } })}>✕</button>
+                </div>
+              )}
+
+              <label>
+                Player Image (PNG):
+                <input type="file" accept=".png,image/png" onChange={async (e) => {
+                  const f = e.target.files?.[0]
+                  if (!f) return
+                  try {
+                    const dataUrl = await readFileAsDataUrl(f)
+                    sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { playerImagePath: dataUrl } })
+                  } catch {
+                    const path = (f as any).path ?? f.name
+                    sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { playerImagePath: path } })
+                  }
+                }} />
+              </label>
+              {gs[team].config.playerImagePath && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0 10px', background: '#0a0a10', padding: 6, borderRadius: 6 }}>
+                  <img src={getImageUrl(gs[team].config.playerImagePath)} alt="Cutout" style={{ width: 32, height: 32, objectFit: 'contain' }} />
+                  <span style={{ fontSize: '0.75rem', color: '#6fcf97' }}>✓ Cutout preview</span>
+                  <button className="btn btn--xs btn--red" style={{ marginLeft: 'auto' }} onClick={() => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { playerImagePath: null } })}>✕</button>
+                </div>
+              )}
             </div>
           ))}
+
           {/* Sponsor Logos Section */}
           <div className="brand-tab__sponsors">
             <h3>Sponsor / Partner Logos (up to 5)</h3>
             <p style={{ fontSize: '0.65rem', color: '#888', marginBottom: '8px' }}>Upload sponsor images — they appear on the TV Display.</p>
-            {[0, 1, 2, 3, 4].map(i => (
-              <label key={i} className="brand-tab__sponsor-row">
-                Sponsor {i + 1}: <input type="file" accept="image/*" onChange={e => {
-                  const f = e.target.files?.[0]
-                  if (f) {
-                    const path = (f as any).path ?? f.name
-                    const current = [...(gs.sponsorLogos || [])]
-                    current[i] = path
-                    sendCommand({ type: 'SET_SPONSOR_LOGOS', logos: current.filter(Boolean) })
-                  }
-                }} />
-                {(gs.sponsorLogos || [])[i] && <span style={{ fontSize: '0.55rem', color: '#4a4' }}>✓ loaded</span>}
-              </label>
-            ))}
+            {[0, 1, 2, 3, 4].map(i => {
+              const currentLogo = (gs.sponsorLogos || [])[i]
+              return (
+                <div key={i} style={{ marginBottom: 8, background: '#12121a', padding: 8, borderRadius: 6, border: '1px solid #222233' }}>
+                  <label className="brand-tab__sponsor-row">
+                    Sponsor {i + 1}:
+                    <input type="file" accept="image/*" onChange={async (e) => {
+                      const f = e.target.files?.[0]
+                      if (!f) return
+                      let path: string
+                      try {
+                        path = await readFileAsDataUrl(f)
+                      } catch {
+                        path = (f as any).path ?? f.name
+                      }
+                      const current = [...(gs.sponsorLogos || [])]
+                      current[i] = path
+                      sendCommand({ type: 'SET_SPONSOR_LOGOS', logos: current.filter(Boolean) })
+                    }} />
+                  </label>
+                  {currentLogo && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+                      <img src={getImageUrl(currentLogo)} alt={`Sponsor ${i + 1}`} style={{ height: 28, maxWidth: 80, objectFit: 'contain', background: '#000', padding: 2, borderRadius: 4 }} />
+                      <span style={{ fontSize: '0.7rem', color: '#6fcf97' }}>✓ Active</span>
+                      <button
+                        className="btn btn--xs btn--red"
+                        style={{ marginLeft: 'auto', padding: '1px 6px', fontSize: '0.68rem' }}
+                        onClick={() => {
+                          const current = [...(gs.sponsorLogos || [])]
+                          current.splice(i, 1)
+                          sendCommand({ type: 'SET_SPONSOR_LOGOS', logos: current.filter(Boolean) })
+                        }}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -677,25 +811,51 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
       {/* ── TOURNAMENT TAB ── */}
       {tab === 'TOURNAMENT' && (
         <div className="tournament-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          {ligaId
-            ? <TournamentManager ligaId={ligaId} />
-            : <p style={{ color: '#888', padding: '24px', textAlign: 'center' }}>Load a Liga to manage tournaments.</p>
-          }
+          {effectiveLigaId ? (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: '#111119', borderBottom: '1px solid #242432' }}>
+                <span style={{ fontSize: '0.82rem', color: '#7aaed4', fontWeight: 700 }}>
+                  ACTIVE LIGA: <strong style={{ color: '#ffd21c' }}>{currentLigaName || 'Selected Liga'}</strong>
+                </span>
+                <button
+                  className="btn btn--xs btn--dark"
+                  onClick={() => setSelectedLigaId(null)}
+                  style={{ fontSize: '0.75rem', padding: '2px 8px' }}
+                >
+                  🔄 Switch Liga
+                </button>
+              </div>
+              <TournamentManager ligaId={effectiveLigaId} />
+            </div>
+          ) : (
+            <TournamentLigaPicker
+              ligas={ligas}
+              tabLigaName={tabLigaName}
+              setTabLigaName={setTabLigaName}
+              onSelectLiga={(liga) => {
+                onSelectLiga(liga)
+                setSelectedLigaId(liga.id)
+                setCurrentLigaName(liga.name)
+              }}
+              refreshLigas={refreshLigas}
+            />
+          )}
         </div>
       )}
 
       {/* ── SETTINGS TAB ── */}
       {tab === 'SETTINGS' && (
         <div className="settings-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+         <SafeWrap name="Settings">
           {/* User Management — Admin only (Req 28, Task 60) */}
-          {useControlPanelStore.getState().session?.role === 'Admin' && (
+          {session?.role === 'Admin' && (
             <>
               <h3>Admin</h3>
               <button className="btn btn--dark" onClick={() => setShowUserManagement(true)}>👥 User Management</button>
-
-              {/* Backup & Restore — Admin only (Req 29, Task 65) */}
               <h3>Backup &amp; Restore</h3>
-              <BackupPanel />
+              <SafeWrap name="Backup">
+                <BackupPanel />
+              </SafeWrap>
             </>
           )}
           <h3>Volume</h3>
@@ -714,14 +874,24 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
           <h3>Presets</h3>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 12, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 5, foulOutLimit: 6, fullTimeoutsPerTeam: 7, twentySecTimeoutsPerTeam: 1, timeoutDurationSeconds: 60 } })}>NBA Rules</button>
           <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { periodDurationMinutes: 10, periodCount: 4, overtimeDurationMinutes: 5, shotClockDurationSeconds: 24, bonusThreshold: 4, foulOutLimit: 5, fullTimeoutsPerTeam: 5, twentySecTimeoutsPerTeam: 0, timeoutDurationSeconds: 60 } })}>FIBA Rules</button>
+          <h3>Shot Clock</h3>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { ...gs.gameConfig, shotClockDurationSeconds: 24 } })}>24 sec</button>
+            <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { ...gs.gameConfig, shotClockDurationSeconds: 14 } })}>14 sec</button>
+            <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { ...gs.gameConfig, shotClockDurationSeconds: 12 } })}>12 sec</button>
+            <button className="btn btn--dark" onClick={() => sendCommand({ type: 'LOAD_PRESET', preset: { ...gs.gameConfig, shotClockDurationSeconds: 8 } })}>8 sec</button>
+          </div>
           <h3>Display</h3>
           <button className="btn btn--dark" onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>Open TV Display</button>
+          <SafeLanguagePicker />
+          <SafeTimeoutSettings />
           <h3>Game Event Log ({gs.events.length} events)</h3>
           <div className="settings-tab__log">
             {gs.events.slice(-20).reverse().map(ev => (
               <div key={ev.id} className="log-entry"><small>{ev.timestamp.slice(11, 19)}</small> {ev.description}</div>
             ))}
           </div>
+         </SafeWrap>
         </div>
       )}
 
@@ -840,6 +1010,169 @@ function ControlPanel({ onBack, ligaId }: { onBack: () => void; ligaId: string |
       )}
 
     </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// TournamentLigaPicker — shown inside the TOURNAMENT tab when no liga is
+// selected yet.  Extracted so it can call useEffect for auto-refresh.
+// ---------------------------------------------------------------------------
+function TournamentLigaPicker({
+  ligas: initialLigas,
+  tabLigaName,
+  setTabLigaName,
+  onSelectLiga,
+  refreshLigas,
+}: {
+  ligas: LigaSummary[]
+  tabLigaName: string
+  setTabLigaName: (v: string) => void
+  onSelectLiga: (liga: Liga) => void
+  refreshLigas: () => void
+}): React.ReactElement {
+  const [ligas, setLigas] = useState<LigaSummary[]>(initialLigas)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  // Refresh liga list every time this panel mounts so it's always up-to-date
+  useEffect(() => {
+    setLoading(true)
+    window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LIST' })
+      .then((result: unknown) => {
+        setLigas(result as LigaSummary[])
+        refreshLigas() // keep parent in sync too
+      })
+      .catch(() => setError('Could not load ligas.'))
+      .finally(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function handleSelectLiga(id: string): Promise<void> {
+    const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
+      type: 'LIGA_LOAD',
+      id,
+    }) as any
+    if (result?.success && result.liga) {
+      onSelectLiga(result.liga)
+    } else {
+      alert(result?.error ?? 'Failed to load liga')
+    }
+  }
+
+  async function handleCreateLiga(): Promise<void> {
+    if (!tabLigaName.trim()) return
+    const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
+      type: 'LIGA_CREATE',
+      name: tabLigaName.trim(),
+      year: new Date().getFullYear(),
+    }) as any
+    if (result?.success && result.liga) {
+      onSelectLiga(result.liga)
+      setTabLigaName('')
+      refreshLigas()
+    }
+  }
+
+  return (
+    <div style={{ padding: '24px 20px', maxWidth: 620, margin: '0 auto' }}>
+      <h2 style={{ color: '#ffd21c', fontSize: '1.3rem', fontWeight: 900, marginBottom: 6, textAlign: 'center' }}>
+        🏆 TOURNAMENT MANAGER
+      </h2>
+      <p style={{ color: '#8899aa', fontSize: '0.85rem', marginBottom: 20, textAlign: 'center' }}>
+        Select a Liga below to manage its tournament brackets.
+      </p>
+
+      {/* Create new liga */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        <input
+          className="liga-picker__inp"
+          placeholder="New Liga Name (e.g. MCBL 2026)"
+          value={tabLigaName}
+          onChange={e => setTabLigaName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleCreateLiga()}
+          style={{ flex: 1 }}
+        />
+        <button className="btn btn--green" disabled={!tabLigaName.trim()} onClick={handleCreateLiga}>
+          + Create
+        </button>
+      </div>
+
+      {/* Liga list */}
+      {loading && <p style={{ color: '#556677', fontSize: '0.82rem', textAlign: 'center' }}>Loading ligas…</p>}
+      {error && <p style={{ color: '#eb5757', fontSize: '0.82rem' }}>{error}</p>}
+
+      {!loading && ligas.length === 0 && (
+        <p style={{ color: '#556677', fontSize: '0.82rem', textAlign: 'center' }}>
+          No Ligas found. Create one above to start your first tournament.
+        </p>
+      )}
+
+      {ligas.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <h3 style={{ color: '#dce8f5', fontSize: '0.85rem', fontWeight: 700, marginBottom: 2 }}>
+            Select Liga ({ligas.length})
+          </h3>
+          {ligas.map(l => (
+            <button
+              key={l.id}
+              className="liga-picker__liga-btn"
+              onClick={() => handleSelectLiga(l.id)}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px' }}
+            >
+              <span style={{ fontWeight: 700, color: '#fff' }}>🏀 {l.name} <small style={{ color: '#8899aa' }}>({l.year})</small></span>
+              <span className="btn btn--xs btn--primary" style={{ fontSize: '0.75rem', pointerEvents: 'none' }}>
+                {l.teamCount} teams — Open →
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <button
+        className="btn btn--xs btn--dark"
+        style={{ marginTop: 14, fontSize: '0.72rem' }}
+        onClick={() => {
+          setLoading(true)
+          window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LIST' })
+            .then((result: unknown) => { setLigas(result as LigaSummary[]); refreshLigas() })
+            .catch(() => setError('Refresh failed.'))
+            .finally(() => setLoading(false))
+        }}
+      >
+        🔄 Refresh List
+      </button>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Safe wrappers — catch errors from cross-bundle imports gracefully
+// ---------------------------------------------------------------------------
+class SafeWrap extends React.Component<{ children: React.ReactNode; name: string }, { err: boolean }> {
+  constructor(props: { children: React.ReactNode; name: string }) {
+    super(props)
+    this.state = { err: false }
+  }
+  static getDerivedStateFromError(): { err: boolean } { return { err: true } }
+  render(): React.ReactNode {
+    if (this.state.err) return <p style={{ color: '#f66', fontSize: '0.75rem' }}>⚠ {this.props.name} unavailable</p>
+    return this.props.children
+  }
+}
+
+function SafeLanguagePicker(): React.ReactElement {
+  return (
+    <SafeWrap name="Language Picker">
+      <LanguagePicker />
+    </SafeWrap>
+  )
+}
+
+function SafeTimeoutSettings(): React.ReactElement {
+  return (
+    <SafeWrap name="Timeout Settings">
+      <TimeoutSettings />
+    </SafeWrap>
   )
 }
 
