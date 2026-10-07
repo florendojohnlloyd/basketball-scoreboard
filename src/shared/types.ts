@@ -176,7 +176,22 @@ export interface GameConfig {
   timeoutDurationSeconds: number; // timeout countdown duration (default 60)
 }
 
+// ---------------------------------------------------------------------------
+// Volleyball State (Volleyball Support)
+// ---------------------------------------------------------------------------
+
+export interface VolleyballState {
+  currentSet: number;
+  setsWon: { home: number; away: number };
+  timeoutsUsed: { home: number; away: number };
+  substitutionsUsed: { home: number; away: number };
+  servingTeam: 'home' | 'away' | null;
+  pointsCurrentSet: { home: number; away: number };
+  setScores?: Array<{ set: number; homeScore: number; awayScore: number }>;
+}
+
 export interface GameState {
+  sport: 'basketball' | 'volleyball';
   gamePhase: 'pre-game' | 'in-game' | 'post-game';
   gameConfig: GameConfig;
   home: TeamState;
@@ -198,6 +213,8 @@ export interface GameState {
   periodSnapshots: PeriodSnapshot[];
   // Settings
   showPhotosOnScoreboard: boolean;  // Requirement 16
+  // Volleyball state (only populated when sport === 'volleyball')
+  volleyball?: VolleyballState;
 }
 
 export interface TimeoutActiveState {
@@ -243,6 +260,7 @@ export type CommandType =
   | { type: 'STOP_SHOT_CLOCK' }
   | { type: 'RESET_SHOT_CLOCK' }
   | { type: 'SET_SHOT_CLOCK_ENABLED'; enabled: boolean }
+  | { type: 'SET_SHOT_CLOCK_DURATION'; seconds: number }
   // Internal tick
   | { type: 'CLOCK_TICK'; deltaMs: number }
   // Fouls (team-level)
@@ -321,7 +339,24 @@ export type CommandType =
   | { type: 'RTMP_STOP' }
   // REST API keys (Requirement 35)
   | { type: 'API_KEY_CREATE'; label: string }
-  | { type: 'API_KEY_REVOKE';  keyId: string };
+  | { type: 'API_KEY_REVOKE';  keyId: string }
+  // Layout file export/import
+  | { type: 'LAYOUT_SAVE_FILE'; layoutData: string; defaultName: string }
+  | { type: 'LAYOUT_LOAD_FILE' }
+  // Scoreboard window state
+  | { type: 'GET_WINDOW_STATE' }
+  | { type: 'SET_WINDOW_FULLSCREEN' }
+  | { type: 'SET_WINDOW_WINDOWED' }
+  // Liga management
+  | { type: 'LIGA_DELETE'; id: string }
+  // Volleyball commands
+  | { type: 'NEW_VOLLEYBALL_GAME'; clearTeams: boolean }
+  | { type: 'ADD_VB_POINT'; team: 'home' | 'away' }
+  | { type: 'SUBTRACT_VB_POINT'; team: 'home' | 'away' }
+  | { type: 'ADVANCE_SET' }
+  | { type: 'USE_VB_TIMEOUT'; team: 'home' | 'away' }
+  | { type: 'USE_VB_SUBSTITUTION'; team: 'home' | 'away'; playerId: string }
+  | { type: 'SET_SERVING_TEAM'; team: 'home' | 'away' | null };
 
 // ---------------------------------------------------------------------------
 // ValidationResult
@@ -698,7 +733,8 @@ export function DEFAULT_GAME_STATE(): GameState {
   });
 
   return {
-    gamePhase: 'pre-game',
+    sport: 'basketball',
+    gamePhase: 'in-game',  // Changed from 'pre-game' - skip pre-game screen by default
     gameConfig: config,
     home: defaultTeam('Home', '#1D428A'),
     away: defaultTeam('Away', '#C8102E'),
@@ -728,6 +764,7 @@ export function DEFAULT_GAME_STATE(): GameState {
     sponsorLogos: [],
     periodSnapshots: [],
     showPhotosOnScoreboard: false,
+    volleyball: undefined,
   };
 }
 
