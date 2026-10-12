@@ -21,28 +21,47 @@
 
 /* ═══ BACKGROUND TEXTURE ═══ */
 .tv--live {
-  display: grid;
-  grid-template-rows: 7vh 1fr auto auto;
-  /* Carbon fiber / dot-grid texture + navy gradient */
-  background:
-    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,188,212,0.015) 3px, rgba(0,188,212,0.015) 4px),
-    repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(0,188,212,0.015) 3px, rgba(0,188,212,0.015) 4px),
-    radial-gradient(ellipse at 25% 50%, rgba(192,57,43,0.1) 0%, transparent 40%),
-    radial-gradient(ellipse at 75% 50%, rgba(46,134,193,0.1) 0%, transparent 40%),
-    linear-gradient(180deg, #06101e 0%, #0a1a30 40%, #06101e 100%);
+  display: block;
+  position: relative;
+  /* Pure black background — no dot texture */
+  background: #000000;
 }
+
+
 
 /* ═══ HEADER ═══ */
 .tv-hdr {
-  display: flex; align-items: center; justify-content: center;
-  border-bottom: 3px solid #17a2b8;
-  background: rgba(0,0,0,0.4); z-index: 1;
+  display: flex; flex-direction: row;
+  align-items: center; justify-content: center;
+  gap: 0.45em;
+  background: transparent; z-index: 2;
+  padding-bottom: 0.6vh;
 }
+/* Broadcast title */
 .tv-hdr__text {
-  font-size: clamp(0.9rem, 2.2vw, 2.2rem);
-  font-weight: 900; letter-spacing: 0.14em;
-  color: #f4d03f;
-  text-shadow: 0 0 16px rgba(244,208,63,0.6), 0 2px 4px rgba(0,0,0,0.8);
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: inherit;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  text-align: center;
+  color: #ffffff;
+  text-shadow: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Gold spaced "• SEASON 20XX •" sub-line */
+.tv-hdr__season {
+  display: block;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-weight: 900;
+  font-size: 0.46em;
+  letter-spacing: 0.35em;
+  margin-top: 0.25em;
+  color: #ffd21c;
+  text-shadow: 0 0 10px rgba(255,210,28,0.5);
 }
 
 /* ═══ MAIN BOARD ═══ */
@@ -66,7 +85,7 @@
 .tv-side--home .tv-side__top { flex-direction: row-reverse; }
 
 .tv-side__label {
-  font-size: clamp(0.5rem, 0.8vw, 0.8rem);
+  font-size: clamp(0.85rem, 1.3vw, 1.3rem);
   font-weight: 700; color: #f4d03f;
   letter-spacing: 0.2em; position: absolute;
   top: 0; left: 0;
@@ -92,52 +111,152 @@
   border-radius: 50%;
 }
 
-/* Score — LED segment style */
+/* Upload logo button overlay on logo widgets */
+.tv-logo-container {
+  position: relative;
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.tv-logo-upload-btn {
+  position: absolute;
+  bottom: 4px; right: 4px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffd21c;
+  border: 1px solid #ffd21c;
+  border-radius: 4px;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: clamp(0.6rem, 1vw, 0.85rem);
+  font-weight: 900;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  z-index: 30;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.tv-logo-container:hover .tv-logo-upload-btn,
+.tv--editing .tv-logo-upload-btn {
+  opacity: 1;
+}
+.tv-logo-upload-btn:hover {
+  background: #ffd21c;
+  color: #000;
+  transform: scale(1.05);
+}
+
+/* Score — big LED digits */
 .tv-side__score {
   font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
-  font-size: clamp(7vh, 12vw, 16vh);
+  font-size: inherit;
   font-weight: 900;
-  line-height: 0.9;
-  color: #fff;
-  text-shadow:
-    0 0 8px rgba(255,255,255,0.8),
-    0 0 20px rgba(255,255,255,0.4),
-    0 0 40px rgba(200,220,255,0.2),
-    0 3px 6px rgba(0,0,0,0.6);
-  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #ffffff;
+  text-shadow: none;
+  white-space: nowrap;
+  letter-spacing: 0;
+  display: inline-block;
 }
+/* Plain blue (home) / red (away) */
+.tv-side__score--home { color: #2f8bff; }
+.tv-side__score--away { color: #ff2f4d; }
 
-/* Team name banner */
+/* Team name */
 .tv-side__banner {
-  padding: 0.5vh 1.5vw;
-  font-size: clamp(0.8rem, 1.6vw, 1.8rem);
-  font-weight: 900; text-transform: uppercase; color: #fff;
-  background: var(--team-clr, #c0392b);
-  clip-path: polygon(0 0, calc(100% - 1.5vw) 0, 100% 50%, calc(100% - 1.5vw) 100%, 0 100%);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  width: 100%;
+  height: 100%;
+  padding: 0.05em 0.2em;
+  font-family: 'Arial Black', Impact, sans-serif;
+  /* Inherit font-size from EditableWidget's computed size */
+  font-size: inherit;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: transparent;
+  border-radius: 0;
+  clip-path: none;
+  text-shadow: none;
+  box-shadow: none;
+  white-space: nowrap;
+  overflow: visible;
+  display: flex;
+  align-items: center;
 }
 .tv-side__banner--right {
-  clip-path: polygon(1.5vw 0, 100% 0, 100% 100%, 1.5vw 100%, 0 50%);
-  text-align: right;
+  justify-content: flex-end;
+}
+/* Inner span — color and scale come from FitText via inline style */
+.tv-side__banner__inner {
+  display: inline-block;
+  white-space: nowrap;
+  line-height: 1;
+  color: inherit;
 }
 
-/* Timeouts — "TIME OUTS | F: 4 Q: 3" format */
+/* Timeouts — clean dark bar, "TIME OUTS" label on top, stats below */
 .tv-side__timeouts {
-  font-size: clamp(0.5rem, 0.85vw, 0.85rem);
-  font-weight: 700; color: #b0c4de;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-weight: 900; color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.6em 2vw;
+  background: #030a14;
+  border: none;
+  clip-path: polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%);
 }
-.tv-side__timeouts--right { text-align: right; }
+.tv-side__timeouts--right { text-align: center; }
+.tv-side__to-title {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 0.4em; /* Further reduced timeout label size */
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tv-side__to-stats {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: inherit;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.tv-side__to-key {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 2.6em;
+  font-weight: 900;
+  color: #ffd21c;
+  white-space: nowrap;
+  padding: 0;
+  margin: 0;
+}
+.tv-side__to-val {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 2.6em;
+  font-weight: 900;
+  color: #ffffff;
+  white-space: nowrap;
+  padding: 0;
+  margin: 0;
+}
 
 /* Player stats rows */
 .tv-side__scorers { display: flex; flex-direction: column; gap: 0.3vh; }
 .tv-side__scorers--right { align-items: flex-end; }
 .tv-side__scorer {
-  display: flex; justify-content: space-between; gap: 2vw;
-  font-size: clamp(0.55rem, 1vw, 1rem);
-  font-weight: 700; color: #ddd;
+  display: flex; justify-content: space-between; gap: 0.5em;
+  font-size: inherit;
+  font-weight: 700; color: #e6e6e6;
 }
 .tv-side__scorers--right .tv-side__scorer { flex-direction: row-reverse; }
 .tv-side__scorer-pts {
@@ -152,36 +271,79 @@
   gap: 0.6vh; padding: 1vh 1.5vw;
   min-width: 18vw;
 }
+/* Period */
 .tv-mid__period {
-  font-size: clamp(0.6rem, 1.1vw, 1.2rem);
-  font-weight: 800; color: #f4d03f;
-  letter-spacing: 0.12em;
-  text-shadow: 0 0 8px rgba(244,208,63,0.4);
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: inherit;
+  font-weight: 900; color: #ffffff;
+  letter-spacing: 0.14em;
+  padding: 0.1em 0.4em;
+  background: transparent;
+  border: none;
+  clip-path: none;
+  box-shadow: none;
+  text-shadow: none;
 }
+/* Shot clock */
 .tv-mid__shot {
   font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
-  font-size: clamp(2rem, 4.5vw, 5.5rem);
+  font-size: inherit;
   font-weight: 900; line-height: 1;
-  text-shadow: 0 0 10px rgba(255,255,255,0.5), 0 0 25px rgba(200,220,255,0.2);
+  color: #ffffff;
+  text-shadow: none;
+  gap: 0.35em;
 }
-.tv-mid__shot--warn { color: #ff2020; text-shadow: 0 0 14px rgba(255,30,30,0.8), 0 0 30px rgba(255,0,0,0.4); }
+.tv-mid__shot--warn { color: #ff3030; text-shadow: none; }
+.tv-mid__shot-label {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 0.3em;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #ffd21c;
+  text-shadow: none;
+  line-height: 1;
+  margin-bottom: 0.6em;
+}
+.tv-mid__shot-num { line-height: 1; letter-spacing: 0.06em; }
+.tv-mid__shot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  width: 100%;
+}
+/* Possession arrows — gold by default, highlight the active side */
+.tv-mid__shot-arrow {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 1em;
+  flex-shrink: 0;
+  line-height: 1;
+  color: #c9a227;
+}
+.tv-mid__shot-arrow--left.is-active { color: #2f8bff; }
+.tv-mid__shot-arrow--right.is-active { color: #ff2f4d; }
 .tv-mid__clock-label {
-  font-size: clamp(0.4rem, 0.65vw, 0.65rem);
-  font-weight: 700; color: #17a2b8;
-  text-transform: uppercase; letter-spacing: 0.2em;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: clamp(0.9rem, 1.5vw, 1.9rem);
+  font-weight: 900; color: #ffd21c;
+  text-transform: uppercase; letter-spacing: 0.16em;
 }
+/* Game clock */
 .tv-mid__clock {
   font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
-  font-size: clamp(2rem, 4.5vw, 5.5rem);
-  font-weight: 900; letter-spacing: 0.04em;
-  text-shadow:
-    0 0 10px rgba(255,255,255,0.7),
-    0 0 25px rgba(200,220,255,0.3),
-    0 0 50px rgba(100,180,255,0.15);
+  font-size: 1.25em;
+  font-weight: 900; letter-spacing: 0.08em;
+  color: #ffffff;
+  padding: 0.05em 0.2em;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  text-shadow: none;
 }
 @keyframes clockFlash { 0%, 100% { color: #fff; } 50% { color: #ff2020; text-shadow: 0 0 20px rgba(255,30,30,0.9); } }
 .tv-mid__clock--flash { animation: clockFlash 1s ease-in-out infinite; }
-.tv-mid__poss { font-size: clamp(0.55rem, 0.9vw, 0.9rem); font-weight: 800; color: #ffd700; text-shadow: 0 0 8px rgba(255,200,0,0.5); }
+.tv-mid__poss { font-size: inherit; font-weight: 800; color: #ffd700; text-shadow: 0 0 8px rgba(255,200,0,0.5); }
 
 /* ═══ EVENT INFO ROW ═══ */
 .tv-event {
@@ -191,8 +353,8 @@
   border-top: 2px solid #17a2b8;
   z-index: 1;
 }
-.tv-event__label { font-size: clamp(0.5rem, 0.8vw, 0.8rem); font-weight: 900; color: #f4d03f; letter-spacing: 0.1em; }
-.tv-event__item { font-size: clamp(0.5rem, 0.85vw, 0.85rem); color: #b0c4de; }
+.tv-event__label { font-size: inherit; font-weight: 900; color: #f4d03f; letter-spacing: 0.1em; }
+.tv-event__item { font-size: inherit; color: #cddaf0; }
 .tv-event__item strong { color: #fff; }
 .tv-event__sep { color: #17a2b8; }
 
@@ -204,12 +366,12 @@
   border-top: 1px solid rgba(23,162,184,0.3);
   z-index: 1;
 }
-.tv-partners__label { font-size: clamp(0.45rem, 0.7vw, 0.7rem); font-weight: 900; color: #f4d03f; letter-spacing: 0.12em; }
+.tv-partners__label { font-size: inherit; font-weight: 900; color: #f4d03f; letter-spacing: 0.12em; }
 .tv-partners__logos { display: flex; gap: 2vw; align-items: center; }
 .tv-partners__img { height: clamp(3vh, 4vw, 5vh); width: auto; object-fit: contain; border-radius: 3px; filter: brightness(0.9); }
 .tv-partners__placeholder {
-  font-size: clamp(0.5rem, 0.8vw, 0.8rem);
-  font-weight: 700; color: #556; opacity: 0.6;
+  font-size: inherit;
+  font-weight: 700; color: #8899aa; opacity: 0.7;
 }
 
 /* ═══ CORNER BUG ═══ */
@@ -223,6 +385,42 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: stretch;
+}
+.tv-timeout--split .tv-timeout__top {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  padding: 2vh 2vw;
+  gap: 1vw;
+}
+/* full-left: info panel fills the screen, no video panel */
+.tv-timeout--full-left {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.tv-timeout--full-left .tv-timeout__left {
+  flex: 1;
+  min-height: 0;
+}
+/* full-video: video fills screen, countdown info overlaid top-centre */
+.tv-timeout--full-video {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  position: relative;
+}
+.tv-timeout--full-video .tv-timeout__right {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.tv-timeout--full-video .tv-timeout__left {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0,0,0,0.45) !important;
+  flex-basis: 100% !important;
 }
 .tv-timeout__top {
   display: flex;
@@ -247,12 +445,26 @@
 }
 .tv-timeout__video { width: 100%; height: 100%; object-fit: cover; background: #000; }
 .tv-timeout__flash {
-  font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; color: #f4d03f;
-  text-shadow: 0 0 30px rgba(244,208,63,0.6); letter-spacing: 0.15em;
+  font-size: clamp(5.5rem, 8.5vw, 9.5rem);
+  font-weight: 900;
+  color: #ffd700;
+  letter-spacing: 0.2em;
+  text-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+  line-height: 1;
+  white-space: nowrap;
 }
-.tv-timeout__team { font-size: clamp(1rem, 2vw, 1.8rem); font-weight: 700; color: #fff; }
+.tv-timeout__team { 
+  font-size: clamp(4.5rem, 7vw, 8rem); 
+  font-weight: 900; 
+  color: #fff; 
+  text-transform: uppercase; 
+  letter-spacing: 0.1em; 
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+}
 .tv-timeout__ring {
-  position: relative; width: clamp(14vh, 22vw, 28vh); height: clamp(14vh, 22vw, 28vh);
+  position: relative; width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
 }
 .tv-timeout__ring-svg {
@@ -267,38 +479,37 @@
   stroke-linecap: round; transition: stroke-dashoffset 1s linear;
 }
 .tv-timeout__ring-time {
-  position: relative; z-index: 1;
-  font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
-  font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; color: #fff;
-  text-shadow: 0 0 15px rgba(255,255,255,0.5);
+  font-family: 'Cursed Timer ULiL', monospace;
+  font-size: clamp(6rem, 10vw, 9.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 25px rgba(77, 201, 246, 0.8);
 }
 .tv-timeout__remaining-label {
-  font-size: clamp(0.6rem, 1.2vw, 1rem); font-weight: 700; color: #7ab8d4;
-  letter-spacing: 0.15em; text-transform: uppercase;
+  display: none; /* Hidden - removes "TIME REMAINING" label from basketball timeout */
 }
 /* Bottom bar */
-.tv-timeout__bar {
-  height: 7vh; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(180deg, #0a1020, #060c18);
-  border-top: 2px solid #17a2b8;
-  padding: 0 3vw;
-  margin: 0 2vw 1vh 2vw;
-  border-radius: 0 0 8px 8px;
-}
 .tv-timeout__bar-team {
-  display: flex; align-items: center; gap: 0.8vw;
-  font-size: clamp(0.7rem, 1.3vw, 1.2rem); font-weight: 700; color: #fff;
+  display: flex; align-items: center; gap: 1vw;
+  font-weight: 900; color: #fff;
 }
 .tv-timeout__bar-team--home { color: #4a9eff; }
 .tv-timeout__bar-team--away { color: #ff4a4a; }
-.tv-timeout__bar-logo { width: 4vh; height: 4vh; border-radius: 50%; object-fit: contain; background: transparent; padding: 0; }
-.tv-timeout__bar-center { display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
-.tv-timeout__bar-period { font-size: clamp(0.7rem, 1.2vw, 1.1rem); font-weight: 900; color: #fff; }
-.tv-timeout__bar-clock { font-size: clamp(0.6rem, 1vw, 0.9rem); color: #aaa; }
+/* Big HOME / GUEST name in the timeout bottom bar */
+.tv-timeout__bar-name {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tv-timeout__bar-center { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+.tv-timeout__bar-period { font-size: clamp(1.4rem, 2.8vw, 2.8rem); font-weight: 900; color: #fff; }
+.tv-timeout__bar-clock { font-size: clamp(0.9rem, 1.8vw, 1.6rem); color: #bbb; }
 .tv-timeout__bar-score {
   font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
-  font-size: clamp(1rem, 2vw, 1.8rem);
+  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
   font-weight: 900;
   color: #fff;
   text-shadow: 0 0 8px rgba(255,255,255,0.5);
@@ -367,15 +578,55 @@
 .tv--editing {
   position: relative !important;
   display: block !important;
+  background: #000000 !important;
 }
 
 .tv-edit-toggle {
-  position: fixed;
+  position: absolute;
   top: 8px;
   right: 8px;
   z-index: 500;
   display: flex;
   gap: 6px;
+  /* Hidden by default */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+/* Invisible hover trigger zone — top-right corner of the TV */
+.tv-edit-trigger {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 48px;
+  z-index: 499;
+  cursor: default;
+}
+
+/* Show edit toggle when hovering the trigger zone or the toggle itself */
+.tv-edit-trigger:hover ~ .tv-edit-toggle,
+.tv-edit-toggle:hover,
+.tv-edit-toggle:focus-within,
+.tv--editing .tv-edit-toggle,
+.tv-timeout--canvas .tv-edit-toggle--active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Keep visible when actively editing */
+.tv--editing .tv-edit-toggle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Timeout canvas — same hover trigger pattern */
+.tv-timeout--canvas .tv-edit-trigger:hover ~ .tv-edit-toggle,
+.tv-timeout--canvas .tv-edit-toggle:hover,
+.tv-timeout--canvas .tv-edit-toggle:focus-within {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .tv-edit-toggle__btn {
@@ -400,6 +651,363 @@
   color: #f88;
 }
 
+.tv-edit-toggle__btn--save {
+  border-color: #306830;
+  color: #8f8;
+}
+
 .tv-edit-toggle__btn:hover {
   background: rgba(40, 40, 40, 0.9);
+}
+
+.tv-edit-toggle__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ═══ TOOLS DROPDOWN (collapses edit-mode toolbar) ═══ */
+.tv-tools-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.tv-tools-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: rgba(12, 12, 12, 0.97);
+  border: 1px solid #444;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 700;
+}
+
+.tv-tools-dropdown__item {
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #ddd;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tv-tools-dropdown__item:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.tv-tools-dropdown__item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tv-tools-dropdown__item.is-active {
+  color: #e0a800;
+}
+
+.tv-tools-dropdown__item--warn { color: #f88; }
+.tv-tools-dropdown__item--save { color: #8f8; }
+
+.tv-tools-dropdown__sep {
+  height: 1px;
+  margin: 4px 2px;
+  background: #383838;
+}
+
+/* ═══ ALIGNMENT GRID OVERLAY (edit helper) ═══ */
+.tv-grid-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 400;              /* above widgets, below the edit toolbar (500) */
+  pointer-events: none;
+  /* Fine 5% grid + bolder 25% grid */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,207,255,0.16) 0, rgba(0,207,255,0.16) 1px, transparent 1px, transparent 5%),
+    repeating-linear-gradient(90deg, rgba(0,207,255,0.16) 0, rgba(0,207,255,0.16) 1px, transparent 1px, transparent 5%),
+    repeating-linear-gradient(0deg, rgba(0,207,255,0.38) 0, rgba(0,207,255,0.38) 1px, transparent 1px, transparent 25%),
+    repeating-linear-gradient(90deg, rgba(0,207,255,0.38) 0, rgba(0,207,255,0.38) 1px, transparent 1px, transparent 25%);
+}
+/* Center reference lines (check symmetry / straightness) */
+.tv-grid-overlay__center-v,
+.tv-grid-overlay__center-h {
+  position: absolute;
+  background: rgba(255,210,28,0.7);
+  box-shadow: 0 0 6px rgba(255,210,28,0.5);
+}
+.tv-grid-overlay__center-v {
+  top: 0; bottom: 0; left: 50%;
+  width: 2px; transform: translateX(-1px);
+}
+.tv-grid-overlay__center-h {
+  left: 0; right: 0; top: 50%;
+  height: 2px; transform: translateY(-1px);
+}
+
+/* ═══ CUSTOM TEXT WIDGET ═══ */
+.tv-custom-text {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-weight: 900;
+  font-size: clamp(1rem, 3.5vw, 3rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+  white-space: nowrap;
+  background: transparent;
+  border: none;
+  text-align: center;
+  width: 100%;
+}
+
+/* ═══ TV LAYOUT SAVE/LOAD MODAL ═══ */
+.tv-template-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.tv-template-modal__content {
+  background: #0d1220;
+  border: 1px solid #2a3a50;
+  border-radius: 10px;
+  padding: 24px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+}
+
+.tv-template-modal__content h3 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #e0a800;
+  letter-spacing: 0.06em;
+}
+
+.tv-template-modal__input {
+  width: 100%;
+  padding: 8px 12px;
+  background: #111925;
+  border: 1px solid #304050;
+  border-radius: 6px;
+  color: #eee;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.tv-template-modal__input:focus {
+  outline: none;
+  border-color: #e0a800;
+}
+
+.tv-template-modal__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tv-template-modal__btn {
+  padding: 7px 18px;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background: rgba(255,255,255,0.06);
+  color: #ccc;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tv-template-modal__btn--primary {
+  background: rgba(224,168,0,0.18);
+  border-color: #e0a800;
+  color: #ffd21c;
+}
+
+.tv-template-modal__btn--primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.tv-template-modal__btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.14);
+}
+
+.tv-template-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tv-template-modal__item {
+  padding: 9px 14px;
+  background: #111925;
+  border: 1px solid #2a3a50;
+  border-radius: 5px;
+  color: #c8dff4;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tv-template-modal__item:hover {
+  background: #1a2840;
+  border-color: #e0a800;
+  color: #ffd21c;
+}
+
+.tv-template-modal__empty {
+  color: #667;
+  font-size: 0.8rem;
+  margin: 8px 0;
+}
+
+/* ═══ SPLIT TIMEOUT LABEL / STATS WIDGETS ═══ */
+.tv-side__to-title-widget {
+  overflow: hidden;
+}
+.tv-side__to-stats-widget {
+  overflow: hidden;
+  font-family: 'Arial Black', Impact, sans-serif;
+}
+
+/* ═══ TIMEOUT CANVAS MODE (fully draggable overlay) ═══ */
+.tv-timeout--canvas {
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  z-index: 100;
+}
+
+/* ═══ WINDOWED MODE ═══ */
+.tv--windowed {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.8);
+}
+
+/* Drag handle — title bar shown only in windowed mode */
+.tv-drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.95);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  user-select: none;
+  /* This is the key: tells Electron this area drags the window */
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.tv-drag-handle__icon {
+  font-size: 1rem;
+  color: #445566;
+  letter-spacing: 0.1em;
+  pointer-events: none;
+}
+
+.tv-drag-handle__text {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #334455;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  flex: 1;
+  pointer-events: none;
+}
+
+.tv-drag-handle__close {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #334;
+  border-radius: 4px;
+  color: #667;
+  font-size: 0.8rem;
+  padding: 1px 6px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.tv-drag-handle__close:hover {
+  background: rgba(60,120,255,0.2);
+  color: #88aaff;
+  border-color: #446;
+}
+
+/* Screen toggle button style */
+.tv-edit-toggle__btn--screen {
+  border-color: #336;
+  color: #88aacc;
+}
+
+.tv-edit-toggle__btn--screen:hover {
+  background: rgba(30, 60, 120, 0.4);
+  border-color: #5588cc;
+  color: #aaccff;
+}
+
+/* ═══ SHOT CLOCK — STANDALONE LABEL (split from number) ═══ */
+.tv-mid__shot-label-standalone {
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-weight: 900;
+  font-size: 1.25em;
+  letter-spacing: 0.16em;
+  color: #ffd21c;
+  text-shadow: 0 0 18px rgba(255,210,28,0.5);
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* Shot clock number widget (no label inside) */
+.tv-mid__shot-num-widget {
+  font-family: 'Cursed Timer ULiL', 'Courier New', monospace;
+  font-size: 1.0em;
+  font-weight: 900;
+  line-height: 1;
+  color: #ffd21c;  /* Yellow by default */
+  text-shadow: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tv-mid__shot-num-widget .tv-mid__shot-num {
+  line-height: 1;
+  letter-spacing: 0;
+}
+.tv-mid__shot-num-widget.tv-mid__shot--warn {
+  color: #ff2020;  /* Red when ≤5 seconds */
+  text-shadow: none;
+  animation: shotWarn 0.5s ease-in-out infinite;
+}
+@keyframes shotWarn {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ═══ TIMEOUT TEAM GLOW ═══ */
+@keyframes toGlow {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.75; filter: brightness(1.4); }
 }

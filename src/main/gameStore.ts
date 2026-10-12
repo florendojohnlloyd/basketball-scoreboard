@@ -65,7 +65,7 @@ function resetGameClock(clock: ClockState): ClockState {
   return { ...clock, running: false, displayMs: clock.configuredDurationMs };
 }
 
-function resetShotClock(clock: ShotClockState): ShotClockState {
+export function resetShotClock(clock: ShotClockState): ShotClockState {
   return { ...clock, running: false, displayMs: clock.configuredDurationSeconds * 1000 };
 }
 
@@ -102,11 +102,18 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
 
     // ── GAME CLOCK ──
     case 'START_GAME_CLOCK': {
-      // Auto-reset shot clock if expired (basketball rules: new possession = 24s)
+      // If displayMs is 0, initialize to configured duration or 10 mins (600,000 ms) so Start works
+      const startMs = state.gameClock.displayMs > 0
+        ? state.gameClock.displayMs
+        : (state.gameClock.configuredDurationMs > 0 ? state.gameClock.configuredDurationMs : 600000);
       const shotClockReset = state.shotClock.displayMs === 0
         ? { ...state.shotClock, displayMs: state.shotClock.configuredDurationSeconds * 1000, running: true }
         : { ...state.shotClock, running: true };
-      const newState = { ...state, gameClock: { ...state.gameClock, running: true }, shotClock: shotClockReset };
+      const newState = {
+        ...state,
+        gameClock: { ...state.gameClock, displayMs: startMs, running: true },
+        shotClock: shotClockReset,
+      };
       if (state.gamePhase === 'pre-game') {
         const ev = makeEvent(newState, 'GAME_START', { description: 'Game started' });
         return { ...newState, gamePhase: 'in-game', events: [...state.events, ev] };
@@ -114,11 +121,11 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       return newState;
     }
     case 'STOP_GAME_CLOCK':
-      // Pause game clock + reset shot clock to configured duration (ready for next possession)
+      // Pause game clock — DO NOT reset shot clock (keep current countdown)
       return {
         ...state,
         gameClock: { ...state.gameClock, running: false },
-        shotClock: { ...state.shotClock, displayMs: state.shotClock.configuredDurationSeconds * 1000, running: false },
+        shotClock: { ...state.shotClock, running: false },
       };
     case 'RESET_GAME_CLOCK':
       return { ...state, gameClock: resetGameClock(state.gameClock) };
@@ -145,6 +152,21 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       };
     case 'SET_SHOT_CLOCK_ENABLED':
       return { ...state, shotClock: { ...state.shotClock, enabled: command.enabled, running: false } };
+    case 'SET_SHOT_CLOCK_DURATION':
+      // Change the configured duration and reset display — keep running state
+      return {
+        ...state,
+        shotClock: {
+          ...state.shotClock,
+          configuredDurationSeconds: command.seconds,
+          displayMs: command.seconds * 1000,
+          running: false, // pause on duration change so operator can confirm
+        },
+        gameConfig: {
+          ...state.gameConfig,
+          shotClockDurationSeconds: command.seconds,
+        },
+      };
 
     // ── CLOCK TICK (no undo) ──
     case 'CLOCK_TICK': {
@@ -255,8 +277,6 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
     case 'ADVANCE_PERIOD': {
       const { period, gameConfig } = state;
       const gameClock: ClockState = { ...resetGameClock(state.gameClock) };
-      const home = clearFouls(state.home);
-      const away = clearFouls(state.away);
       let newPeriod: PeriodState;
 
       if (!period.isOvertime && period.current >= gameConfig.periodCount) {
@@ -274,7 +294,6 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       }
 
       const ev = makeEvent(state, newPeriod.isOvertime && newPeriod.overtimeNumber === 1 ? 'OVERTIME_START' : 'PERIOD_START', {
-        period: newPeriod.current,
         description: newPeriod.isOvertime ? `OT${newPeriod.overtimeNumber} starts` : `Q${newPeriod.current} starts`,
       });
       // Auto-capture period snapshot before advancing (Requirement 17)
@@ -366,15 +385,17 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       const ev = makeEvent(state, 'GAME_RESET', { description: 'Game reset' });
       return {
         ...state,
-        gamePhase: 'pre-game',
+        sport: 'basketball',  // Explicitly set to basketball
+        gamePhase: 'in-game',  // Stay on in-game, skip pre-game screen
         home: resetTeam(state.home),
         away: resetTeam(state.away),
         gameClock: { displayMs: dur, running: false, configuredDurationMs: dur },
-        shotClock: { displayMs: cfg.shotClockDurationSeconds * 1000, running: false, configuredDurationSeconds: cfg.shotClockDurationSeconds, enabled: state.shotClock.enabled },
+        shotClock: { displayMs: cfg.shotClockDurationSeconds * 1000, running: false, configuredDurationSeconds: cfg.shotClockDurationSeconds, enabled: true },
         period: { current: 1, format: state.period.format, isOvertime: false, overtimeNumber: 0 },
         possession: null,
         events: [...state.events, ev],
         periodSnapshots: [],
+        volleyball: undefined,  // Clear volleyball state
       };
     }
 
@@ -685,15 +706,203 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
     case 'TOGGLE_SHOW_PHOTOS_ON_SCOREBOARD':
       return { ...state, showPhotosOnScoreboard: command.enabled };
 
+    // ── VOLLEYBALL COMMANDS ──
+    case 'NEW_VOLLEYBALL_GAME': {
+      const { clearTeams } = command;
+      const resetTeam = (t: TeamState): TeamState => ({
+        config: clearTeams ? { name: t.config.name, color: t.config.color, logoPath: null, playerImagePath: null } : { ...t.config },
+        score: 0, fouls: 0, turnovers: 0,
+        timeouts: { fullRemaining: 2, twentyRemaining: 0, firstHalfUsed: 0, secondHalfUsed: 0, overtimeUsed: 0 },
+        players: clearTeams ? [] : t.players.map(p => ({
+          ...p,
+          fouls: 0, points: 0, rebounds: 0, assists: 0,
+          steals: 0, blocks: 0, fga: 0, fgm: 0,
+          fouledOut: false, active: true,
+        })),
+      });
+      const ev = makeEvent(state, 'GAME_START', { description: 'Volleyball game started' });
+      return {
+        ...state,
+        sport: 'volleyball',
+        gamePhase: 'in-game',
+        home: resetTeam(state.home),
+        away: resetTeam(state.away),
+        gameClock: { ...state.gameClock, running: false, displayMs: 600000, configuredDurationMs: 600000 },
+        shotClock: { ...state.shotClock, enabled: false, running: false },
+        period: { current: 1, format: 'quarters', isOvertime: false, overtimeNumber: 0 },
+        possession: null,
+        events: [...state.events, ev],
+        periodSnapshots: [],
+        volleyball: {
+          currentSet: 1,
+          setsWon: { home: 0, away: 0 },
+          timeoutsUsed: { home: 0, away: 0 },
+          substitutionsUsed: { home: 0, away: 0 },
+          servingTeam: null,
+          pointsCurrentSet: { home: 0, away: 0 },
+        },
+      };
+    }
+
+    case 'ADD_VB_POINT': {
+      const t = command.team;
+      if (!state.volleyball) return state;
+
+      const newPointsCurrentSet = {
+        ...state.volleyball.pointsCurrentSet,
+        [t]: state.volleyball.pointsCurrentSet[t] + 1,
+      };
+
+      const ev = makeEvent(state, 'SCORE', {
+        team: t,
+        points: 1,
+        description: `${state[t].config.name} +1`,
+      });
+
+      return {
+        ...state,
+        [t]: { ...state[t], score: state[t].score + 1 },
+        volleyball: {
+          ...state.volleyball,
+          pointsCurrentSet: newPointsCurrentSet,
+        },
+        events: [...state.events, ev],
+      };
+    }
+
+    case 'SUBTRACT_VB_POINT': {
+      const t = command.team;
+      if (!state.volleyball) return state;
+      return {
+        ...state,
+        [t]: { ...state[t], score: Math.max(0, state[t].score - 1) },
+        volleyball: {
+          ...state.volleyball,
+          pointsCurrentSet: {
+            ...state.volleyball.pointsCurrentSet,
+            [t]: Math.max(0, state.volleyball.pointsCurrentSet[t] - 1),
+          },
+        },
+      };
+    }
+
+    case 'ADVANCE_SET': {
+      if (!state.volleyball) return state;
+      if (state.volleyball.currentSet >= 5) {
+        return {
+          ...state,
+          gamePhase: 'post-game',
+        };
+      }
+      const ev = makeEvent(state, 'PERIOD_START', {
+        description: `Set ${state.volleyball.currentSet + 1} starts`,
+      });
+      // Determine set winner if scores differ
+      const homeScore = state.home.score;
+      const awayScore = state.away.score;
+      const setWinner = homeScore > awayScore ? 'home' : awayScore > homeScore ? 'away' : null;
+      const newSetsWon = setWinner ? {
+        ...state.volleyball.setsWon,
+        [setWinner]: state.volleyball.setsWon[setWinner] + 1,
+      } : state.volleyball.setsWon;
+
+      const isMatchOver = setWinner ? newSetsWon[setWinner] >= 3 || state.volleyball.currentSet >= 5 : false;
+
+      return {
+        ...state,
+        gamePhase: isMatchOver ? 'post-game' : state.gamePhase,
+        volleyball: {
+          ...state.volleyball,
+          currentSet: state.volleyball.currentSet + 1,
+          setsWon: newSetsWon,
+          timeoutsUsed: { home: 0, away: 0 },
+          substitutionsUsed: { home: 0, away: 0 },
+        },
+        events: [...state.events, ev],
+      };
+    }
+
+    case 'USE_VB_TIMEOUT': {
+      const { team } = command;
+      if (!state.volleyball) return state;
+      if (state.volleyball.timeoutsUsed[team] >= 2) return state; // blocked
+
+      const ev = makeEvent(state, 'TIMEOUT', {
+        team,
+        description: `${state[team].config.name} timeout (${2 - state.volleyball.timeoutsUsed[team] - 1} left)`,
+      });
+      return {
+        ...state,
+        timeout: { team, remainingMs: 30000, running: true },
+        volleyball: {
+          ...state.volleyball,
+          timeoutsUsed: {
+            ...state.volleyball.timeoutsUsed,
+            [team]: state.volleyball.timeoutsUsed[team] + 1,
+          },
+        },
+        events: [...state.events, ev],
+      };
+    }
+
+
+    case 'USE_VB_SUBSTITUTION': {
+      const { team, playerId } = command;
+      if (!state.volleyball) return state;
+      if (state.volleyball.substitutionsUsed[team] >= 6) return state; // blocked
+
+      const ts = state[team];
+      const player = ts.players.find(p => p.id === playerId);
+      if (!player) return state;
+
+      const newActive = !player.active;
+      const players = ts.players.map((p): Player =>
+        p.id === playerId ? { ...p, active: newActive } : p
+      );
+
+      const ev = makeEvent(state, 'SUBSTITUTION', {
+        team,
+        playerId,
+        playerName: player.name,
+        description: `${player.name} ${newActive ? 'enters' : 'exits'}`,
+      });
+
+      return {
+        ...state,
+        [team]: { ...ts, players },
+        volleyball: {
+          ...state.volleyball,
+          substitutionsUsed: {
+            ...state.volleyball.substitutionsUsed,
+            [team]: state.volleyball.substitutionsUsed[team] + 1,
+          },
+        },
+        events: [...state.events, ev],
+      };
+    }
+
+    case 'SET_SERVING_TEAM': {
+      if (!state.volleyball) return state;
+      const ev = makeEvent(state, 'POSSESSION_CHANGE', {
+        team: command.team ?? undefined,
+        description: command.team ? `Serving: ${state[command.team].config.name}` : 'Serving team cleared',
+      });
+      return {
+        ...state,
+        volleyball: {
+          ...state.volleyball,
+          servingTeam: command.team,
+        },
+        events: [...state.events, ev],
+      };
+    }
+
     case 'UNDO':
       // Handled at the store level, not in reducer
       return state;
 
-    default: {
-      const _exhaustive: never = command;
-      void _exhaustive;
+    default:
       return state;
-    }
   }
 }
 
@@ -711,7 +920,33 @@ export interface GameStore {
 /** Commands that CAN be undone — score changes only */
 const UNDOABLE = new Set<CommandType['type']>([
   'ADD_PLAYER_POINTS',
+  'ADD_SCORE',
+  'SUBTRACT_SCORE',
+  'ADD_FOUL',
+  'SUBTRACT_FOUL',
+  'ADD_PLAYER_FOUL',
+  'ADVANCE_PERIOD',
+  'ADD_TURNOVER',
+  'ADD_PLAYER_REBOUND',
+  'ADD_PLAYER_ASSIST',
+  'ADD_VB_POINT',
+  'SUBTRACT_VB_POINT',
+  'ADVANCE_SET',
 ]);
+
+/** Human-readable descriptions for undoable commands */
+const UNDO_LABELS: Record<string, string> = {
+  'ADD_PLAYER_POINTS': 'Score',
+  'ADD_SCORE': 'Score',
+  'SUBTRACT_SCORE': 'Score',
+  'ADD_FOUL': 'Foul',
+  'SUBTRACT_FOUL': 'Foul',
+  'ADD_PLAYER_FOUL': 'Foul',
+  'ADVANCE_PERIOD': 'Period',
+  'ADD_TURNOVER': 'Turnover',
+  'ADD_PLAYER_REBOUND': 'Rebound',
+  'ADD_PLAYER_ASSIST': 'Assist',
+}
 
 export function createGameStore(initialState?: GameState): GameStore {
   let state: GameState = initialState ?? DEFAULT_GAME_STATE();
@@ -719,7 +954,7 @@ export function createGameStore(initialState?: GameState): GameStore {
 
   function pushUndo(prevState: GameState, cmd: CommandType): void {
     if (!UNDOABLE.has(cmd.type)) return;
-    undoStack.push({ state: prevState, description: cmd.type });
+    undoStack.push({ state: prevState, description: UNDO_LABELS[cmd.type] ?? cmd.type });
     if (undoStack.length > UNDO_LIMIT) undoStack.shift();
   }
 

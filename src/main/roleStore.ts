@@ -7,14 +7,17 @@
 
 let bcrypt: any;
 try {
-  bcrypt = require('bcrypt');
+  // Pure-JS implementation — no native compile / Visual Studio needed.
+  bcrypt = require('bcryptjs');
 } catch {
-  // Fallback — use plain comparison if bcrypt native module fails
+  // Fallback — use plain comparison if bcryptjs fails to load
   bcrypt = {
+    hash: async (pw: string) => `plain:${pw}`,
+    compare: async (pw: string, hash: string) => hash === `plain:${pw}`,
     hashSync: (pw: string) => `plain:${pw}`,
     compareSync: (pw: string, hash: string) => hash === `plain:${pw}`,
   };
-  console.warn('[LigaControl] bcrypt not available — using fallback auth');
+  console.warn('[LigaControl] bcryptjs not available — using fallback auth');
 }
 import { randomUUID } from 'crypto';
 import Store from 'electron-store';

@@ -1,252 +1,544 @@
-﻿import React, { useState } from 'react'
-import { EditableWidget } from './EditableWidget'
-import { useLayoutStore } from './useLayoutStore'
+import React, { useState, useEffect } from 'react'
 import { useControlPanelStore, sendCommand } from '../store'
 import { formatClockDisplay } from '@renderer/shared/clockUtils'
-import sponsorRedLogo from '../../../../pictures/white.png'
+import sponsorLogo from '../../../../pictures/white.png'
 
 interface ScoreTabProps {
   selectedPlayer: { team: 'home' | 'away'; id: string } | null
   setSelectedPlayer: (p: { team: 'home' | 'away'; id: string } | null) => void
   setShowSubModal: (t: 'home' | 'away' | null) => void
-  currentTab: Tab
-  onTabChange: (tab: Tab) => void
+  currentTab: string
+  onTabChange: (tab: string) => void
 }
 
-type Tab = 'SCORE' | 'ROSTER' | 'BRANDING' | 'HISTORY' | 'SEASON' | 'LEADERS' | 'SETTINGS'
-
-export function ScoreTab({ selectedPlayer, setSelectedPlayer, setShowSubModal, currentTab, onTabChange }: ScoreTabProps): React.ReactElement {
-  const { layouts, editing, updateWidget } = useLayoutStore()
+export function ScoreTab({
+  selectedPlayer,
+  setSelectedPlayer,
+  setShowSubModal,
+  onTabChange,
+}: ScoreTabProps): React.ReactElement {
   const gs = useControlPanelStore(s => s.gameState)
-  const { home, away, gameClock, shotClock, period } = gs
+  const { home, away, gameClock, shotClock, period, possession } = gs
+
   const clockStr = formatClockDisplay(gameClock.displayMs)
   const shotSec = shotClock.displayMs > 0 ? Math.ceil(shotClock.displayMs / 1000) : shotClock.configuredDurationSeconds
-  const [homePlayerPage, setHomePlayerPage] = useState(0)
-  const [awayPlayerPage, setAwayPlayerPage] = useState(0)
-  const PLAYERS_PER_PAGE = 5
-  const TABS: Tab[] = ['SCORE', 'ROSTER', 'BRANDING', 'HISTORY', 'SEASON', 'LEADERS', 'SETTINGS']
+  const isShotEnabled = shotClock ? (shotClock.enabled !== false) : true
+
+  // Undo state
+  const [canUndo, setCanUndo] = useState(false)
+  const [undoDesc, setUndoDesc] = useState('')
+  const [timeEditInput, setTimeEditInput] = useState('')
+
+  const handleApplyTimeEdit = () => {
+    const trimmed = timeEditInput.trim()
+    const match = /^(\d{1,3}):(\d{2})$/.exec(trimmed)
+    if (!match) return
+    const mins = parseInt(match[1], 10)
+    const secs = parseInt(match[2], 10)
+    if (secs > 59) return
+    const seconds = mins * 60 + secs
+    sendCommand({ type: 'SET_GAME_CLOCK', seconds })
+    setTimeEditInput('')
+  }
+
+  useEffect(() => {
+    window.electron.ipcRenderer
+      .invoke('scoreboard:query', { type: 'CAN_UNDO' })
+      .then((r: any) => {
+        setCanUndo(r?.canUndo ?? false)
+        setUndoDesc(r?.description ?? '')
+      })
+      .catch(() => {})
+  }, [home.score, away.score, period.current, gs.gamePhase])
+
+  // Helper for points dispatch (if player selected, add to player; else add to team)
+  const handleAddPoints = (team: 'home' | 'away', points: 1 | 2 | 3) => {
+    if (selectedPlayer && selectedPlayer.team === team) {
+      sendCommand({ type: 'ADD_PLAYER_POINTS', team, playerId: selectedPlayer.id, points })
+    } else {
+      sendCommand({ type: 'ADD_SCORE', team, points })
+    }
+  }
 
   return (
-    <div className={`score-tab${editing ? ' score-tab--editing' : ''}`}>
-      {/* Score displays */}
-      <EditableWidget id="home-label" rect={layouts['home-label']} editing={editing} onUpdate={updateWidget} label="Home">
-        <span className="console-score__label">{home.config.name}:</span>
-      </EditableWidget>
-      <EditableWidget id="home-score" rect={layouts['home-score']} editing={editing} onUpdate={updateWidget} label="Score">
-        <div className="console-score__value-wrap">
-          {home.config.logoPath && <img className="console-score__logo" src={`local-file:///${home.config.logoPath.replace(/\\/g, '/')}`} alt="" />}
-          <span className="console-score__value">{home.score}</span>
-        </div>
-      </EditableWidget>
-
-      {/* Sponsor banner */}
-      <EditableWidget id="sponsor-banner" rect={layouts['sponsor-banner']} editing={editing} onUpdate={updateWidget} label="Sponsor">
-        <div className="sponsor-banner">
-          <img src={sponsorRedLogo} alt="Fitness Exclusive" style={{maxWidth:'100%',maxHeight:'100%',objectFit:'contain'}} />
-        </div>
-      </EditableWidget>
-
-      <EditableWidget id="away-label" rect={layouts['away-label']} editing={editing} onUpdate={updateWidget} label="Away">
-        <span className="console-score__label">{away.config.name}:</span>
-      </EditableWidget>
-      <EditableWidget id="away-score" rect={layouts['away-score']} editing={editing} onUpdate={updateWidget} label="Score">
-        <div className="console-score__value-wrap">
-          {away.config.logoPath && <img className="console-score__logo" src={`local-file:///${away.config.logoPath.replace(/\\/g, '/')}`} alt="" />}
-          <span className="console-score__value">{away.score}</span>
-        </div>
-      </EditableWidget>
-
-      {/* Score buttons */}
-      <EditableWidget id="home-plus3" rect={layouts['home-plus3']} editing={editing} onUpdate={updateWidget} label="+3"><button className="btn btn--g btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 3 })}>+3</button></EditableWidget>
-      <EditableWidget id="home-plus2" rect={layouts['home-plus2']} editing={editing} onUpdate={updateWidget} label="+2"><button className="btn btn--g btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 2 })}>+2</button></EditableWidget>
-      <EditableWidget id="home-plus1" rect={layouts['home-plus1']} editing={editing} onUpdate={updateWidget} label="+1"><button className="btn btn--a btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 1 })}>+1</button></EditableWidget>
-      <EditableWidget id="away-plus1" rect={layouts['away-plus1']} editing={editing} onUpdate={updateWidget} label="+1"><button className="btn btn--a btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 1 })}>+1</button></EditableWidget>
-      <EditableWidget id="away-plus2" rect={layouts['away-plus2']} editing={editing} onUpdate={updateWidget} label="+2"><button className="btn btn--g btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 2 })}>+2</button></EditableWidget>
-      <EditableWidget id="away-plus3" rect={layouts['away-plus3']} editing={editing} onUpdate={updateWidget} label="+3"><button className="btn btn--g btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 3 })}>+3</button></EditableWidget>
-
-      {/* Info displays */}
-      <EditableWidget id="shot-clock" rect={layouts['shot-clock']} editing={editing} onUpdate={updateWidget} label="Shot"><div className="mini-block" style={{height:'100%',justifyContent:'center'}}><span className="mini-block__lbl">Shot</span><div className="led-box"><span className="led-val">{shotSec}</span></div></div></EditableWidget>
-      <EditableWidget id="period" rect={layouts['period']} editing={editing} onUpdate={updateWidget} label="Period"><div className="mini-block" style={{height:'100%',justifyContent:'center'}}><span className="mini-block__lbl">Period</span><div className="led-box"><span className="led-val led-val--big">{period.isOvertime ? `OT${period.overtimeNumber}` : period.current}</span></div></div></EditableWidget>
-      <EditableWidget id="bonus-h" rect={layouts['bonus-h']} editing={editing} onUpdate={updateWidget} label="Bonus H">
-        <div className="bonus-display" style={{height:'100%',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px'}}>
-          <div className="bonus-display__dots">
-            {home.fouls >= 5 && <div className="bonus-display__dot" />}
-            {home.fouls >= 10 && <div className="bonus-display__dot" />}
+    <div
+      className="bb-score-tab"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+        background: '#0a0d14',
+        padding: '10px 12px 12px 12px',
+        gap: '10px',
+        boxSizing: 'border-box',
+        userSelect: 'none',
+        overflow: 'hidden',
+        color: '#ffffff',
+      }}
+    >
+      {/* ── TOP FITNESS EXCLUSIVE SPONSOR HEADER ── */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '52px', flexShrink: 0 }}>
+        <img
+          src={sponsorLogo}
+          alt="Fitness Exclusive"
+          style={{
+            maxHeight: '100%',
+            maxWidth: '420px',
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 0 12px rgba(255,255,255,0.8)) drop-shadow(0 0 25px rgba(200,220,255,0.4))'
+          }}
+        />
+      </div>
+      {/* ── TOP BANNER: HOME, CLOCK & PERIOD, AWAY (Flex 0.8) ── */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr auto 1fr',
+          gap: '16px',
+          padding: '12px 20px',
+          background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)',
+          borderRadius: '14px',
+          border: '2px solid #2a3447',
+          alignItems: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          flexShrink: 0,
+        }}
+      >
+        {/* Home Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+          <div style={{ fontSize: '1.4rem', color: home.config.color || '#4a9eff', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {home.config.name}
           </div>
-          {home.fouls >= 5 && <div className="bonus-display__text">{home.fouls >= 10 ? 'DOUBLE BONUS' : 'BONUS'}</div>}
-        </div>
-      </EditableWidget>
-      <EditableWidget id="bonus-h-foul" rect={layouts['bonus-h-foul']} editing={editing} onUpdate={updateWidget} label="Team Foul H">
-        <div className="foul-display" style={{height:'100%',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-          <div className="foul-display__label">Team Foul</div>
-          <div className="foul-display__num">{home.fouls}</div>
-        </div>
-      </EditableWidget>
-
-      <EditableWidget id="bonus-a" rect={layouts['bonus-a']} editing={editing} onUpdate={updateWidget} label="Bonus A">
-        <div className="bonus-display" style={{height:'100%',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px'}}>
-          <div className="bonus-display__dots">
-            {away.fouls >= 5 && <div className="bonus-display__dot" />}
-            {away.fouls >= 10 && <div className="bonus-display__dot" />}
+          <div style={{ fontSize: '4.2rem', color: 'var(--led-red, #ff0000)', fontFamily: 'var(--font-led, "Cursed Timer ULiL", monospace)', fontWeight: 900, lineHeight: 1 }}>
+            {home.score}
           </div>
-          {away.fouls >= 5 && <div className="bonus-display__text">{away.fouls >= 10 ? 'DOUBLE BONUS' : 'BONUS'}</div>}
+          <div style={{ fontSize: '1rem', color: '#a0aec0', fontWeight: 700, display: 'flex', gap: '12px' }}>
+            <span>Fouls: <strong style={{ color: '#ff4a4a' }}>{home.fouls}</strong></span>
+            <span>TO: <strong style={{ color: '#ffcc00' }}>{home.timeouts.fullRemaining}</strong></span>
+          </div>
         </div>
-      </EditableWidget>
-      <EditableWidget id="bonus-a-foul" rect={layouts['bonus-a-foul']} editing={editing} onUpdate={updateWidget} label="Team Foul A">
-        <div className="foul-display" style={{height:'100%',width:'100%',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-          <div className="foul-display__label">Team Foul</div>
-          <div className="foul-display__num">{away.fouls}</div>
-        </div>
-      </EditableWidget>
 
-      {/* Info buttons */}
-
-      <EditableWidget id="shot-reset" rect={layouts['shot-reset']} editing={editing} onUpdate={updateWidget} label="Shot Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'RESET_SHOT_CLOCK' })}>↺ Shot</button></EditableWidget>
-      <EditableWidget id="next-q" rect={layouts['next-q']} editing={editing} onUpdate={updateWidget} label="Next Q"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'ADVANCE_PERIOD' })}>NEXT Q</button></EditableWidget>
-      <EditableWidget id="bonus-h-plus" rect={layouts['bonus-h-plus']} editing={editing} onUpdate={updateWidget} label="Foul H +"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}>+Foul H</button></EditableWidget>
-      <EditableWidget id="bonus-h-minus" rect={layouts['bonus-h-minus']} editing={editing} onUpdate={updateWidget} label="Foul H -"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'home' })}>-Foul H</button></EditableWidget>
-      <EditableWidget id="bonus-a-plus" rect={layouts['bonus-a-plus']} editing={editing} onUpdate={updateWidget} label="Foul A +"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'away' })}>+Foul A</button></EditableWidget>
-      <EditableWidget id="bonus-a-minus" rect={layouts['bonus-a-minus']} editing={editing} onUpdate={updateWidget} label="Foul A -"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}>-Foul A</button></EditableWidget>
-
-      {/* Clock */}
-      <EditableWidget id="clock" rect={layouts['clock']} editing={editing} onUpdate={updateWidget} label="Clock"><div className="clock-panel clock-panel--clickable" style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}} onClick={() => { if (gameClock.running) { sendCommand({ type: 'STOP_GAME_CLOCK' }); sendCommand({ type: 'STOP_SHOT_CLOCK' }) } else { sendCommand({ type: 'START_GAME_CLOCK' }); sendCommand({ type: 'START_SHOT_CLOCK' }) } }}><span className="clock-led">{clockStr}</span></div></EditableWidget>
-      <EditableWidget id="btn-start" rect={layouts['btn-start']} editing={editing} onUpdate={updateWidget} label="Start/Pause"><button className={`btn btn--fill ${gameClock.running ? 'btn--pause' : 'btn--start'}`} onClick={() => { if (gameClock.running) { sendCommand({ type: 'STOP_GAME_CLOCK' }); sendCommand({ type: 'STOP_SHOT_CLOCK' }) } else { sendCommand({ type: 'START_GAME_CLOCK' }); sendCommand({ type: 'START_SHOT_CLOCK' }) } }}>{gameClock.running ? 'PAUSE' : 'START'}</button></EditableWidget>
-      <EditableWidget id="btn-reset" rect={layouts['btn-reset']} editing={editing} onUpdate={updateWidget} label="Reset"><button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'RESET_GAME_CLOCK' })}>RESET</button></EditableWidget>
-      <EditableWidget id="btn-switch" rect={layouts['btn-switch']} editing={editing} onUpdate={updateWidget} label="Switch"><button className="btn btn--sw btn--fill" onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}>SWITCH</button></EditableWidget>
-
-      {/* Players */}
-      <EditableWidget id="home-players" rect={layouts['home-players']} editing={editing} onUpdate={updateWidget} label="Home Players">
-        <div className="side-col side-col--home" style={{height:'100%'}}>
-          {(() => {
-            const activePlayers = home.players.filter(p => p.active && !p.fouledOut)
-            const totalPages = Math.max(1, Math.ceil(activePlayers.length / PLAYERS_PER_PAGE))
-            const page = Math.min(homePlayerPage, totalPages - 1)
-            const pagePlayers = activePlayers.slice(page * PLAYERS_PER_PAGE, (page + 1) * PLAYERS_PER_PAGE)
-            return (
-              <div className="side-col__players">
-                {pagePlayers.map(p => (
-                  <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({team:'home',id:p.id})}>
-                    <span className="side-col__player-num">{p.number}</span>
-                    <span className="side-col__player-name">{p.name}</span>
-                    <span className="side-col__player-pts">{p.points}</span>
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
-        </div>
-      </EditableWidget>
-      <EditableWidget id="away-players" rect={layouts['away-players']} editing={editing} onUpdate={updateWidget} label="Away Players">
-        <div className="side-col side-col--away" style={{height:'100%'}}>
-          {(() => {
-            const activePlayers = away.players.filter(p => p.active && !p.fouledOut)
-            const totalPages = Math.max(1, Math.ceil(activePlayers.length / PLAYERS_PER_PAGE))
-            const page = Math.min(awayPlayerPage, totalPages - 1)
-            const pagePlayers = activePlayers.slice(page * PLAYERS_PER_PAGE, (page + 1) * PLAYERS_PER_PAGE)
-            return (
-              <div className="side-col__players">
-                {pagePlayers.map(p => (
-                  <div key={p.id} className={`side-col__player${selectedPlayer?.id === p.id ? ' side-col__player--sel' : ''}`} onClick={() => setSelectedPlayer({team:'away',id:p.id})}>
-                    <span className="side-col__player-num">{p.number}</span>
-                    <span className="side-col__player-name">{p.name}</span>
-                    <span className="side-col__player-pts">{p.points}</span>
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
-        </div>
-      </EditableWidget>
-
-
-
-      {/* Stats buttons - HOME */}
-      <EditableWidget id="btn-reb" rect={layouts['btn-reb']} editing={editing} onUpdate={updateWidget} label="H REB"><button className="btn btn--stat-reb btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_REBOUND', team: 'home', playerId: selectedPlayer.id })}>+REB</button></EditableWidget>
-      <EditableWidget id="btn-ast" rect={layouts['btn-ast']} editing={editing} onUpdate={updateWidget} label="H AST"><button className="btn btn--stat-ast btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_ASSIST', team: 'home', playerId: selectedPlayer.id })}>+AST</button></EditableWidget>
-      <EditableWidget id="btn-foul" rect={layouts['btn-foul']} editing={editing} onUpdate={updateWidget} label="H FOUL"><button className="btn btn--foul btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'home', playerId: selectedPlayer.id })}>+FOUL</button></EditableWidget>
-      <EditableWidget id="btn-stl" rect={layouts['btn-stl']} editing={editing} onUpdate={updateWidget} label="H STL"><button className="btn btn--stat-stl btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer!.id, stat: 'steals' })}>+STL</button></EditableWidget>
-      <EditableWidget id="btn-blk" rect={layouts['btn-blk']} editing={editing} onUpdate={updateWidget} label="H BLK"><button className="btn btn--stat-blk btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer!.id, stat: 'blocks' })}>+BLK</button></EditableWidget>
-      <EditableWidget id="btn-to" rect={layouts['btn-to']} editing={editing} onUpdate={updateWidget} label="H TO"><button className="btn btn--stat-to btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'home'} onClick={() => sendCommand({ type: 'ADD_TURNOVER', team: 'home' })}>+TO</button></EditableWidget>
-
-      {/* Stats buttons - AWAY */}
-      <EditableWidget id="btn-reb-a" rect={layouts['btn-reb-a']} editing={editing} onUpdate={updateWidget} label="A REB"><button className="btn btn--stat-reb btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_REBOUND', team: 'away', playerId: selectedPlayer.id })}>+REB</button></EditableWidget>
-      <EditableWidget id="btn-ast-a" rect={layouts['btn-ast-a']} editing={editing} onUpdate={updateWidget} label="A AST"><button className="btn btn--stat-ast btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_ASSIST', team: 'away', playerId: selectedPlayer.id })}>+AST</button></EditableWidget>
-      <EditableWidget id="btn-foul-a" rect={layouts['btn-foul-a']} editing={editing} onUpdate={updateWidget} label="A FOUL"><button className="btn btn--foul btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'away', playerId: selectedPlayer.id })}>+FOUL</button></EditableWidget>
-      <EditableWidget id="btn-stl-a" rect={layouts['btn-stl-a']} editing={editing} onUpdate={updateWidget} label="A STL"><button className="btn btn--stat-stl btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer!.id, stat: 'steals' })}>+STL</button></EditableWidget>
-      <EditableWidget id="btn-blk-a" rect={layouts['btn-blk-a']} editing={editing} onUpdate={updateWidget} label="A BLK"><button className="btn btn--stat-blk btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => selectedPlayer && sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer!.id, stat: 'blocks' })}>+BLK</button></EditableWidget>
-      <EditableWidget id="btn-to-a" rect={layouts['btn-to-a']} editing={editing} onUpdate={updateWidget} label="A TO"><button className="btn btn--stat-to btn--fill" disabled={!selectedPlayer || selectedPlayer.team !== 'away'} onClick={() => sendCommand({ type: 'ADD_TURNOVER', team: 'away' })}>+TO</button></EditableWidget>
-      <EditableWidget id="btn-sub" rect={layouts['btn-sub']} editing={editing} onUpdate={updateWidget} label="SUB"><button className="btn btn--sub btn--fill" onClick={() => setShowSubModal(selectedPlayer?.team ?? 'home')}>SUB</button></EditableWidget>
-      <EditableWidget id="btn-undo" rect={layouts['btn-undo']} editing={editing} onUpdate={updateWidget} label="UNDO"><button className="btn btn--undo btn--fill" onClick={() => sendCommand({ type: 'UNDO' })}>UNDO SCORE</button></EditableWidget>
-
-      {/* Possession & Timeouts */}
-      <EditableWidget id="btn-poss-home" rect={layouts['btn-poss-home']} editing={editing} onUpdate={updateWidget} label="◀POSS"><button className={`btn btn--poss btn--fill${gs.possession === 'home' ? ' btn--sw' : ''}`} onClick={() => sendCommand({ type: 'SET_POSSESSION', team: 'home' })}>◀ POSS</button></EditableWidget>
-      <EditableWidget id="btn-poss-away" rect={layouts['btn-poss-away']} editing={editing} onUpdate={updateWidget} label="POSS▶"><button className={`btn btn--poss btn--fill${gs.possession === 'away' ? ' btn--sw' : ''}`} onClick={() => sendCommand({ type: 'SET_POSSESSION', team: 'away' })}>POSS ▶</button></EditableWidget>
-      <EditableWidget id="home-timeout" rect={layouts['home-timeout']} editing={editing} onUpdate={updateWidget} label="Home TO">
-        <div className="timeout-widget">
-          <div className="timeout-widget__header">TIMEOUT</div>
-          <div className="timeout-widget__body">
-            <div className="timeout-widget__dots">
-              {Array.from({length: home.timeouts.fullRemaining}).map((_, i) => (
-                <div key={i} className="timeout-widget__dot" />
-              ))}
+        {/* Center: Period & Game Clock Controls */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div
+              style={{
+                fontSize: '2rem',
+                color: '#ffaa00',
+                fontFamily: 'var(--font-led, "Cursed Timer ULiL", monospace)',
+                fontWeight: 900,
+                background: '#04070d',
+                padding: '4px 20px',
+                borderRadius: '8px',
+                border: '2px solid #ffaa00',
+                lineHeight: 1.1,
+              }}
+            >
+              {period.isOvertime ? `OT${period.overtimeNumber}` : `Q${period.current}`}
             </div>
-            <span className="timeout-widget__count">{home.timeouts.fullRemaining}</span>
-          </div>
-          <div className="timeout-widget__phase">
-            {period.isOvertime
-              ? `OT: ${1 - (home.timeouts.overtimeUsed ?? 0)} left`
-              : (period.current ?? 1) <= 2
-                ? `1st Half: ${2 - (home.timeouts.firstHalfUsed ?? 0)}/2`
-                : `2nd Half: ${3 - (home.timeouts.secondHalfUsed ?? 0)}/3`
-            }
-          </div>
-          <button className="btn btn--dark btn--sm" style={{marginTop:2}} onClick={() => { sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' }); sendCommand({ type: 'START_TIMEOUT', team: 'home' }) }}>USE</button>
-        </div>
-      </EditableWidget>
-      <EditableWidget id="away-timeout" rect={layouts['away-timeout']} editing={editing} onUpdate={updateWidget} label="Away TO">
-        <div className="timeout-widget">
-          <div className="timeout-widget__header">TIMEOUT</div>
-          <div className="timeout-widget__body">
-            <div className="timeout-widget__dots">
-              {Array.from({length: away.timeouts.fullRemaining}).map((_, i) => (
-                <div key={i} className="timeout-widget__dot" />
-              ))}
+            <div
+              style={{
+                fontSize: '1.8rem',
+                color: shotSec <= 5 ? '#ff3d00' : '#00ff66',
+                fontFamily: 'var(--font-led, "Cursed Timer ULiL", monospace)',
+                fontWeight: 900,
+                background: '#04070d',
+                padding: '4px 16px',
+                borderRadius: '8px',
+                border: '2px solid #2a3447',
+              }}
+            >
+              SHOT: {shotSec}s
             </div>
-            <span className="timeout-widget__count">{away.timeouts.fullRemaining}</span>
           </div>
-          <div className="timeout-widget__phase">
-            {period.isOvertime
-              ? `OT: ${1 - (away.timeouts.overtimeUsed ?? 0)} left`
-              : (period.current ?? 1) <= 2
-                ? `1st Half: ${2 - (away.timeouts.firstHalfUsed ?? 0)}/2`
-                : `2nd Half: ${3 - (away.timeouts.secondHalfUsed ?? 0)}/3`
-            }
-          </div>
-          <button className="btn btn--dark btn--sm" style={{marginTop:2}} onClick={() => { sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' }); sendCommand({ type: 'START_TIMEOUT', team: 'away' }) }}>USE</button>
-        </div>
-      </EditableWidget>
 
-      {/* Footer */}
-      <EditableWidget id="btn-horn" rect={layouts['btn-horn']} editing={editing} onUpdate={updateWidget} label="Buzzer">
-        <button className="btn btn--horn btn--fill" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playEndOfPeriod()) }}>
-          <svg viewBox="0 0 512 512" fill="currentColor" style={{width:'1.2em',height:'1.2em',marginRight:'4px'}}><path d="M160 288h-16c-35.3 0-64-28.7-64-64V128L0 64v384l80-64v-32c0-35.3 28.7-64 64-64h16zm256-64V96c88.4 0 160 71.6 160 160s-71.6 160-160 160V288zm32-64c53 0 96 43 96 96s-43 96-96 96V224zM256 64l-96 64v256l96 64V64z"/></svg> BUZZER
+          {/* Touch Game Clock Control inline with direct time editor */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', background: 'rgba(0,0,0,0.6)', padding: '10px 16px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontSize: '2.5rem', color: gameClock.running ? '#00ff66' : '#ffaa00', fontFamily: 'var(--font-led, "Cursed Timer ULiL", monospace)', fontWeight: 900, lineHeight: 1, letterSpacing: '0.08em' }}>
+                {clockStr}
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className="btn"
+                  style={{ padding: '10px 16px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '2px solid #34d399', borderRadius: '8px', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+                  onClick={() => {
+                    sendCommand({ type: 'START_GAME_CLOCK' })
+                    if (isShotEnabled) sendCommand({ type: 'START_SHOT_CLOCK' })
+                  }}
+                  disabled={gameClock.running}
+                >
+                  Start
+                </button>
+                <button
+                  className="btn"
+                  style={{ padding: '10px 16px', background: 'linear-gradient(180deg, #ef4444 0%, #b91c1c 100%)', color: '#fff', border: '2px solid #fca5a5', borderRadius: '8px', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+                  onClick={() => {
+                    sendCommand({ type: 'STOP_GAME_CLOCK' })
+                    sendCommand({ type: 'STOP_SHOT_CLOCK' })
+                  }}
+                  disabled={!gameClock.running}
+                >
+                  Stop
+                </button>
+                <button
+                  className="btn"
+                  style={{ padding: '10px 16px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '2px solid #fbbf24', borderRadius: '8px', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+                  onClick={() => sendCommand({ type: 'RESET_GAME_CLOCK' })}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {/* Direct Edit Time Input */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'center' }}>
+              <input
+                type="text"
+                placeholder="MM:SS (e.g. 10:00)"
+                value={timeEditInput}
+                onChange={(e) => setTimeEditInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleApplyTimeEdit()
+                }}
+                disabled={gameClock.running}
+                style={{
+                  width: '140px',
+                  padding: '5px 10px',
+                  background: '#04070d',
+                  color: '#fff',
+                  border: '1px solid #3b82f6',
+                  borderRadius: '6px',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  textAlign: 'center',
+                }}
+              />
+              <button
+                style={{
+                  padding: '5px 14px',
+                  background: '#3b82f6',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  opacity: gameClock.running ? 0.5 : 1,
+                }}
+                onClick={handleApplyTimeEdit}
+                disabled={gameClock.running}
+              >
+                Set Time
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Away Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+          <div style={{ fontSize: '1.4rem', color: away.config.color || '#ff4a4a', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            {away.config.name}
+          </div>
+          <div style={{ fontSize: '4.2rem', color: 'var(--led-red, #ff0000)', fontFamily: 'var(--font-led, "Cursed Timer ULiL", monospace)', fontWeight: 900, lineHeight: 1 }}>
+            {away.score}
+          </div>
+          <div style={{ fontSize: '1rem', color: '#a0aec0', fontWeight: 700, display: 'flex', gap: '12px' }}>
+            <span>Fouls: <strong style={{ color: '#ff4a4a' }}>{away.fouls}</strong></span>
+            <span>TO: <strong style={{ color: '#ffcc00' }}>{away.timeouts.fullRemaining}</strong></span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 1.4) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.4, minHeight: 0 }}>
+        {/* Home Controls Box */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+          <button
+            className="btn"
+            style={{
+              padding: '12px',
+              background: possession === 'home' ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
+              color: '#fff',
+              border: possession === 'home' ? '3px solid #fcd34d' : '2px solid #3a4866',
+              borderRadius: '10px',
+              fontSize: '1.2rem',
+              fontWeight: 900,
+              cursor: 'pointer',
+              touchAction: 'manipulation',
+              boxShadow: possession === 'home' ? '0 0 16px rgba(253,211,77,0.4)' : 'none',
+            }}
+            onClick={() => sendCommand({ type: 'SET_POSSESSION', team: possession === 'home' ? null : 'home' })}
+          >
+            ◀ {possession === 'home' ? 'POSSESSION ON (HOME)' : 'HOME POSSESSION'}
+          </button>
+
+          <div style={{ display: 'flex', gap: '10px', flex: 1, minHeight: 0 }}>
+            {/* Point Buttons +3, +2, +1 */}
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('home', 3)}
+            >
+              +3
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('home', 2)}
+            >
+              +2
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('home', 1)}
+            >
+              +1
+            </button>
+
+            {/* Minus 1 Point */}
+            <button
+              className="btn"
+              style={{ width: '85px', height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'SUBTRACT_SCORE', team: 'home' })}
+              disabled={home.score <= 0}
+              title="Minus 1 Home Score"
+            >
+              −1
+            </button>
+          </div>
+
+          {/* Fouls Row */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn"
+              style={{ flex: 1, padding: '10px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}
+            >
+              + FOUL (H)
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, padding: '10px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'home' })}
+              disabled={home.fouls <= 0}
+            >
+              − FOUL (H)
+            </button>
+          </div>
+        </div>
+
+        {/* Away Controls Box */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
+          <button
+            className="btn"
+            style={{
+              padding: '12px',
+              background: possession === 'away' ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
+              color: '#fff',
+              border: possession === 'away' ? '3px solid #fcd34d' : '2px solid #3a4866',
+              borderRadius: '10px',
+              fontSize: '1.2rem',
+              fontWeight: 900,
+              cursor: 'pointer',
+              touchAction: 'manipulation',
+              boxShadow: possession === 'away' ? '0 0 16px rgba(253,211,77,0.4)' : 'none',
+            }}
+            onClick={() => sendCommand({ type: 'SET_POSSESSION', team: possession === 'away' ? null : 'away' })}
+          >
+            {possession === 'away' ? 'POSSESSION ON (AWAY)' : 'AWAY POSSESSION'} ▶
+          </button>
+
+          <div style={{ display: 'flex', gap: '10px', flex: 1, minHeight: 0 }}>
+            {/* Point Buttons +3, +2, +1 */}
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('away', 3)}
+            >
+              +3
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('away', 2)}
+            >
+              +2
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => handleAddPoints('away', 1)}
+            >
+              +1
+            </button>
+
+            {/* Minus 1 Point */}
+            <button
+              className="btn"
+              style={{ width: '85px', height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'SUBTRACT_SCORE', team: 'away' })}
+              disabled={away.score <= 0}
+              title="Minus 1 Away Score"
+            >
+              −1
+            </button>
+          </div>
+
+          {/* Fouls Row */}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              className="btn"
+              style={{ flex: 1, padding: '10px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'away' })}
+            >
+              + FOUL (A)
+            </button>
+            <button
+              className="btn"
+              style={{ flex: 1, padding: '10px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}
+              disabled={away.fouls <= 0}
+            >
+              − FOUL (A)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ── ROW 3: SHOT CLOCK & TIMEOUTS BAR (Flex 1) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '14px', flex: 1, minHeight: 0 }}>
+        {/* Shot Clock Controls (24s, 14s, Reset, SHOT ON/OFF) */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', gap: '8px', border: '2px solid #2a3447', alignItems: 'center' }}>
+          <button
+            className="btn"
+            style={{ flex: 1, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            onClick={() => sendCommand({ type: 'SET_SHOT_CLOCK_DURATION', seconds: 24 })}
+          >
+            24s
+          </button>
+          <button
+            className="btn"
+            style={{ flex: 1, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            onClick={() => sendCommand({ type: 'SET_SHOT_CLOCK_DURATION', seconds: 14 })}
+          >
+            14s
+          </button>
+          <button
+            className="btn"
+            style={{ flex: 1.2, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            onClick={() => sendCommand({ type: 'RESET_SHOT_CLOCK' })}
+          >
+            ↺ SHOT
+          </button>
+          <button
+            className="btn"
+            style={{
+              flex: 1.5,
+              height: '100%',
+              minHeight: '60px',
+              background: isShotEnabled ? 'linear-gradient(180deg, #10b981 0%, #047857 100%)' : 'linear-gradient(180deg, #dc2626 0%, #881337 100%)',
+              color: '#fff',
+              border: isShotEnabled ? '2px solid #34d399' : '2px solid #f87171',
+              borderRadius: '8px',
+              fontSize: '1.2rem',
+              fontWeight: 900,
+              cursor: 'pointer',
+              touchAction: 'manipulation',
+              boxShadow: isShotEnabled ? '0 0 15px rgba(16,185,129,0.5)' : 'none',
+            }}
+            onClick={() => sendCommand({ type: 'SET_SHOT_CLOCK_ENABLED', enabled: !isShotEnabled })}
+          >
+            {isShotEnabled ? '⚡ SHOT: ON' : '🔴 SHOT: OFF'}
+          </button>
+        </div>
+
+        {/* Home Timeout */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', border: '2px solid #6b3fa0', alignItems: 'center' }}>
+          <button
+            className="btn"
+            style={{ flex: 1, height: '100%', minHeight: '60px', padding: '10px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.3rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            onClick={() => {
+              sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' })
+              sendCommand({ type: 'START_TIMEOUT', team: 'home' })
+            }}
+            disabled={home.timeouts.fullRemaining <= 0}
+          >
+            ⏸ HOME TIMEOUT ({home.timeouts.fullRemaining} LEFT)
+          </button>
+        </div>
+
+        {/* Away Timeout */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', border: '2px solid #6b3fa0', alignItems: 'center' }}>
+          <button
+            className="btn"
+            style={{ flex: 1, height: '100%', minHeight: '60px', padding: '10px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.3rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            onClick={() => {
+              sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' })
+              sendCommand({ type: 'START_TIMEOUT', team: 'away' })
+            }}
+            disabled={away.timeouts.fullRemaining <= 0}
+          >
+            ⏸ AWAY TIMEOUT ({away.timeouts.fullRemaining} LEFT)
+          </button>
+        </div>
+      </div>
+
+      {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.9) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', flex: 0.9, minHeight: 0 }}>
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => sendCommand({ type: 'ADVANCE_PERIOD' })}
+        >
+          ⏭ NEXT Q
         </button>
-      </EditableWidget>
-      <EditableWidget id="btn-game-reset" rect={layouts['btn-game-reset']} editing={editing} onUpdate={updateWidget} label="Reset">
-        <button className="btn btn--dark btn--fill" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>RESET</button>
-      </EditableWidget>
-      <EditableWidget id="btn-replay" rect={layouts['btn-replay']} editing={editing} onUpdate={updateWidget} label="Replay">
-        <button className="btn btn--replay btn--fill" onClick={() => window.electron.ipcRenderer.send('scoreboard:event', { type: 'REPLAY_TRIGGER' })}>REPLAY</button>
-      </EditableWidget>
 
-      {/* Tab Navigation — draggable/resizable */}
-      <EditableWidget id="tab-nav" rect={layouts['tab-nav']} editing={editing} onUpdate={updateWidget} label="Tab Nav">
-        <div className="cp-bottom-nav" style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'flex-start',gap:'2px'}}>
-          {TABS.map((t, i) => (
-            <button key={t} className={`cp-bottom-nav__btn${currentTab === t ? ' cp-bottom-nav__btn--active' : ''}`} onClick={() => onTabChange(t)}>{i + 1}</button>
-          ))}
-        </div>
-      </EditableWidget>
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #f43f5e 0%, #be123c 100%)', color: '#fff', border: '2px solid #fda4af', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}
+        >
+          ⇄ SWITCH
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #78350f 0%, #451a03 100%)', color: '#fbbf24', border: '2px solid #f59e0b', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          disabled={!canUndo}
+          title={canUndo ? `Undo last action: ${undoDesc}` : 'Nothing to undo'}
+          onClick={() => sendCommand({ type: 'UNDO' })}
+        >
+          ↶ UNDO
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #0284c7 0%, #075985 100%)', color: '#bae6fd', border: '2px solid #38bdf8', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => setShowSubModal(selectedPlayer?.team ?? 'home')}
+        >
+          👤 SUB
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}
+          title="Open Scoreboard TV Display"
+        >
+          📺 TV
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '2px solid #f87171', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}
+        >
+          🔄 RESET
+        </button>
+      </div>
     </div>
   )
 }

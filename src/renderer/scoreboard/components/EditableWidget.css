@@ -44,16 +44,117 @@
 .ew__content {
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
   container-type: size;
+  font-family: 'Arial Black', Impact, sans-serif;
+  /* font-size is set via JS inline style (--ew-font-px) so it responds to resize */
 }
 
 /* In edit mode, disable button clicks so drag works on the whole area */
 .ew--editing .ew__content {
   pointer-events: none;
+}
+
+/* Re-enable pointer events for inline text editing fields */
+.ew--editing .ew__content .tv-editable-text {
+  pointer-events: auto;
+}
+
+/* Inline editable text field (edit mode) */
+.tv-editable-text {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(224, 168, 0, 0.8);
+  border-radius: 3px;
+  padding: 0 0.2em;
+  width: auto;
+  min-width: 2ch;
+  max-width: 100%;
+  box-sizing: content-box;
+}
+.tv-editable-text:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #e0a800;
+}
+
+/* Font-size controls — top-right corner, only in edit mode */
+.ew__font-controls {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 2px 4px;
+  border-radius: 3px;
+  z-index: 25;
+  pointer-events: auto;
+}
+
+.ew__font-btn {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #ffd166;
+  background: rgba(224, 168, 0, 0.15);
+  border: 1px solid rgba(224, 168, 0, 0.6);
+  border-radius: 3px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ew__font-btn:hover {
+  background: rgba(224, 168, 0, 0.35);
+  color: #fff;
+}
+
+.ew__font-value {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #e0a800;
+  min-width: 30px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* Remove (×) button */
+.ew__remove-btn {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #ff8080;
+  background: rgba(200, 40, 40, 0.15);
+  border: 1px solid rgba(220, 60, 60, 0.7);
+  border-radius: 3px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ew__remove-btn:hover {
+  background: rgba(220, 60, 60, 0.45);
+  color: #fff;
+}
+
+/* Removed widget — shown faded in edit mode only, hidden otherwise */
+.ew--hidden {
+  opacity: 0.28;
+  filter: grayscale(1);
+  border-style: dotted !important;
+  border-color: rgba(220, 60, 60, 0.7) !important;
 }
 
 /* Resize handle — larger for touch */

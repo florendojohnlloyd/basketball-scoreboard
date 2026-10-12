@@ -16,9 +16,18 @@
     "postinstall": "electron-builder install-app-deps",
     "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/florendojohnlloyd/basketball-scoreboard.git"
+  },
   "build": {
     "appId": "com.scoreboard.app",
     "productName": "Basketball Scoreboard",
+    "publish": {
+      "provider": "github",
+      "owner": "florendojohnlloyd",
+      "repo": "basketball-scoreboard"
+    },
     "directories": {
       "output": "dist"
     },
@@ -37,12 +46,16 @@
       {
         "from": "resources/overlay",
         "to": "resources/overlay",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       },
       {
         "from": "resources/viewer",
         "to": "resources/viewer",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "asarUnpack": [
@@ -68,11 +81,11 @@
   "license": "UNLICENSED",
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@electron/rebuild": "4.2.0",
     "@playwright/test": "^1.49.1",
     "@testing-library/react": "^15.0.0",
     "@testing-library/user-event": "^14.5.0",
     "@types/archiver": "8.0.0",
-    "@types/bcrypt": "6.0.0",
     "@types/better-sqlite3": "7.6.13",
     "@types/express": "5.0.6",
     "@types/fluent-ffmpeg": "2.1.28",
@@ -88,7 +101,6 @@
     "@types/swagger-ui-express": "4.1.8",
     "@types/uuid": "10.0.0",
     "@types/ws": "8.18.1",
-    "@electron/rebuild": "4.2.0",
     "@vitejs/plugin-react": "^4.3.0",
     "electron": "^30.0.0",
     "electron-builder": "26.15.3",
@@ -104,9 +116,10 @@
   },
   "dependencies": {
     "archiver": "8.0.0",
-    "bcrypt": "6.0.0",
+    "bcryptjs": "^3.0.3",
     "better-sqlite3": "12.11.1",
     "electron-store": "^8.2.0",
+    "electron-updater": "^6.8.9",
     "exceljs": "^4.4.0",
     "express": "5.2.1",
     "express-rate-limit": "8.5.2",

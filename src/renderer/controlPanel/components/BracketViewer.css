@@ -254,13 +254,15 @@
 /* SVG connector lines between rounds */
 .single-elim-tree__connectors {
   overflow: visible;
+  filter: drop-shadow(0 0 3px rgba(0, 207, 255, 0.3));
 }
 
 .single-elim-tree__connector-line {
-  stroke: #3a4357;
-  stroke-width: 2;
+  stroke: #2e4d7a;
+  stroke-width: 2.5;
   fill: none;
   stroke-linecap: round;
+  transition: stroke 0.2s ease;
 }
 
 /* Each round column */
@@ -271,18 +273,24 @@
 /* Round name label shown above the column */
 .single-elim-tree__round-header {
   position: absolute;
-  top: -28px;
-  left: 0;
-  width: 100%;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  background: rgba(14, 24, 42, 0.85);
+  border: 1px solid rgba(80, 110, 160, 0.3);
+  border-radius: 12px;
   text-align: center;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-family: 'Arial Black', Impact, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #7aaed4;
+  letter-spacing: 0.12em;
+  color: #ffd21c;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* Wrapper that positions each card within its vertical slot */

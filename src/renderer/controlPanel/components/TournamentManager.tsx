@@ -140,7 +140,7 @@ function TournamentManager({ ligaId }: TournamentManagerProps): React.ReactEleme
     try {
       const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
         type: 'LIGA_LOAD',
-        ligaId,
+        id: ligaId,
       }) as { success: boolean; liga?: { teams: LigaTeam[] }; error?: string }
       if (result.success && result.liga) {
         setLigaTeams(result.liga.teams)
@@ -681,7 +681,11 @@ function TournamentManager({ ligaId }: TournamentManagerProps): React.ReactEleme
         )}
 
         {seedingError && (
-          <p className="tm__error" role="alert">{seedingError}</p>
+          <p className="tm__error" role="alert">
+            {seedingError.includes('At least 2 teams')
+              ? '⚠ No teams found in this Liga. Go back to the Liga screen and add teams under "Registered Teams" before seeding.'
+              : seedingError}
+          </p>
         )}
 
         {/* Bracket options */}

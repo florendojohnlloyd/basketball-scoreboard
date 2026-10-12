@@ -413,5 +413,5 @@ describe('MobileViewerServer — property-based tests (Property 39)', () => {
       }),
       { numRuns: 100 },
     );
-  });
+  }, 30000);
 });

@@ -10,6 +10,7 @@
  *  6. AutosaveStore
  *  7. AuditStore
  *  8. IpcRouter
+ *  9. AutoUpdater (checks for updates from GitHub)
  */
 
 import { app, protocol, net, dialog } from 'electron';
@@ -32,6 +33,7 @@ import { createMobileViewerServer } from './mobileViewerServer';
 import { createApiKeyStore } from './apiKeyStore';
 import { createApiServer } from './apiServer';
 import { createSocialShareService } from './socialShareService';
+import { initAutoUpdater } from './autoUpdater';
 import { SCOREBOARD_EVENT } from '../shared/types';
 import type { GameState, GameLogRecord } from '../shared/types';
 
@@ -122,6 +124,12 @@ function bootstrap(): void {
   const windowManager = createWindowManager();
   windowManagerInstance = windowManager;
   windowManager.createWindows();
+
+  // 9. Auto-Updater (checks for updates from GitHub)
+  const controlPanel = windowManager.getControlPanelWindow();
+  if (controlPanel) {
+    initAutoUpdater(controlPanel);
+  }
 
   // 4. PresetStore
   const presetStore = createPresetStore(() => windowManager.getControlPanelWindow());

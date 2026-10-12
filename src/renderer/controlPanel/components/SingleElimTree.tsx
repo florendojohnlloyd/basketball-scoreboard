@@ -41,6 +41,7 @@ export interface SingleElimTreeProps {
   rounds: Round[]
   matchNodes: MatchNode[]
   seeds: TournamentSeed[]
+  teamLogos?: Record<string, string | null>
   /** Optional callback fired when a match card is clicked */
   onMatchClick?: (node: MatchNode) => void
 }
@@ -87,6 +88,7 @@ function SingleElimTree({
   rounds,
   matchNodes,
   seeds,
+  teamLogos = {},
   onMatchClick,
 }: SingleElimTreeProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -275,6 +277,7 @@ function SingleElimTree({
                   <MatchCard
                     node={node}
                     teamNames={teamNames}
+                    teamLogos={teamLogos}
                     onClick={onMatchClick}
                   />
                 </div>

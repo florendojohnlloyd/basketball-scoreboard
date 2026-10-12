@@ -43,7 +43,7 @@ function ScoreboardName({
   const [fontSize, setFontSize] = React.useState(120)
   const [lines, setLines] = React.useState<string[]>([text])
 
-  const MAX_FONT_PX = 200
+  const MAX_FONT_PX = 180
 
   const splitIntoLines = React.useCallback((words: string[], n: number): string[] => {
     if (n >= words.length) return words.map(w => w)
@@ -294,6 +294,7 @@ function VolleyballScoreboardLayout(): React.ReactElement {
                 text={away.config.name || 'AWAY'}
                 color={away.config.color || '#00a2ff'}
                 align="left"
+                maxFontSize={300}
               />
               {servingTeam === 'away' && (
                 <span className="vb-serve-arrow" title="Away Serving">◀</span>
@@ -317,6 +318,7 @@ function VolleyballScoreboardLayout(): React.ReactElement {
                 text={home.config.name || 'HOME'}
                 color={home.config.color || '#ff3333'}
                 align="right"
+                maxFontSize={300}
               />
             </div>
           </div>
@@ -338,62 +340,22 @@ function VolleyballScoreboardLayout(): React.ReactElement {
 
         </div>
 
-        {/* ── BOTTOM ROW: INDICATORS ("T" & "F" VERY LARGE) ── */}
+        {/* ── BOTTOM ROW: INDICATORS ("T" WITH DIGITAL LED NUMBER - NO CIRCLES, NO BOXES) ── */}
         <div className="vb-board__bottom-row">
 
           {/* AWAY INDICATORS */}
           <div className="vb-indicators-group vb-indicators-group--away">
-            {/* T (TIME OUT) */}
             <div className="vb-indicator-block">
-              <div className="vb-indicator-label">T</div>
-              <div className="vb-indicator-dots">
-                {Array.from({ length: 2 }).map((_, i) => {
-                  const isRemaining = i < (2 - (timeoutsUsed.away || 0))
-                  return (
-                    <div
-                      key={i}
-                      className={`vb-led-circle ${isRemaining ? 'vb-led-circle--lit' : 'vb-led-circle--dark'}`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* F (FAULT) */}
-            <div className="vb-indicator-block">
-              <div className="vb-indicator-label">F</div>
-              <div className="vb-indicator-dots">
-                <div className="vb-led-circle vb-led-circle--dark" />
-                <div className="vb-led-circle vb-led-circle--dark" />
-              </div>
+              <span className="vb-indicator-label">T</span>
+              <span className="vb-indicator-number">{2 - (timeoutsUsed.away || 0)}</span>
             </div>
           </div>
 
           {/* HOME INDICATORS */}
           <div className="vb-indicators-group vb-indicators-group--home">
-            {/* T (TIME OUT) */}
             <div className="vb-indicator-block">
-              <div className="vb-indicator-label">T</div>
-              <div className="vb-indicator-dots">
-                {Array.from({ length: 2 }).map((_, i) => {
-                  const isRemaining = i < (2 - (timeoutsUsed.home || 0))
-                  return (
-                    <div
-                      key={i}
-                      className={`vb-led-circle ${isRemaining ? 'vb-led-circle--lit' : 'vb-led-circle--dark'}`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* F (FAULT) */}
-            <div className="vb-indicator-block">
-              <div className="vb-indicator-label">F</div>
-              <div className="vb-indicator-dots">
-                <div className="vb-led-circle vb-led-circle--dark" />
-                <div className="vb-led-circle vb-led-circle--dark" />
-              </div>
+              <span className="vb-indicator-label">T</span>
+              <span className="vb-indicator-number">{2 - (timeoutsUsed.home || 0)}</span>
             </div>
           </div>
 
@@ -401,48 +363,34 @@ function VolleyballScoreboardLayout(): React.ReactElement {
 
       </div>
 
-      {/* ── TIMEOUT OVERLAY WITH ADS (EXACT MATCH TO USER IMAGE 3) ── */}
+      {/* ── TIMEOUT OVERLAY WITH ADS (CLEAN DISPLAY) ── */}
       {timeout && (
-        <div className="tv-timeout tv-timeout--split" style={{ position: 'absolute', inset: 0, zIndex: 300, background: '#000' }}>
+        <div className="tv-timeout tv-timeout--split">
           {/* Left Info Panel */}
-          <div className="tv-timeout__info-panel" style={{ flex: '0 0 45%', background: '#000000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px 30px', paddingBottom: toLayout.showScoreBar ? '100px' : '20px', boxSizing: 'border-box' }}>
-            <div className="tv-timeout__flash" style={{ fontSize: '4.2rem', fontWeight: 900, color: toLayout.flashColor || '#f4d03f', letterSpacing: '0.15em', marginBottom: '10px', textShadow: 'none' }}>
+          <div className="tv-timeout__info-panel" style={{ paddingBottom: toLayout.showScoreBar ? '120px' : '40px' }}>
+            <div className="tv-timeout__flash" style={{ color: toLayout.flashColor || '#ffd700' }}>
               TIMEOUT
             </div>
             {timeoutTeamName && (
-              <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#ffffff', marginBottom: '14px', textTransform: 'uppercase', letterSpacing: '0.08em', textAlign: 'center' }}>
+              <div className="tv-timeout__team-badge">
                 {timeoutTeamName}
               </div>
             )}
 
-            {/* Cyan Countdown Ring — Resized to 200x200 so TIME REMAINING never overlaps bottom score bar */}
-            <div className="tv-timeout__ring" style={{ position: 'relative', width: 200, height: 200, marginBottom: '14px' }}>
-              <svg className="tv-timeout__ring-svg" viewBox="0 0 200 200" style={{ width: '100%', height: '100%' }}>
-                <circle className="tv-timeout__ring-bg" cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="12" />
-                <circle
-                  className="tv-timeout__ring-progress"
-                  cx="100" cy="100" r="90"
-                  fill="none"
-                  stroke={toLayout.ringColor || '#4dc9f6'}
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  strokeDasharray={`${ringCircum}`}
-                  strokeDashoffset={`${ringCircum * (1 - ringPct)}`}
-                  transform="rotate(-90 100 100)"
-                />
-              </svg>
-              <div className="tv-timeout__ring-time" style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Cursed Timer ULiL', monospace", fontSize: '3.2rem', fontWeight: 900, color: '#ffffff' }}>
+            {/* Countdown Display without circle */}
+            <div className="tv-timeout__ring">
+              <div className="tv-timeout__ring-time">
                 {timeoutTimeStr}
               </div>
             </div>
 
-            <div className="tv-timeout__remaining-label" style={{ fontSize: '1.8rem', fontWeight: 900, color: '#4dc9f6', letterSpacing: '0.2em', textAlign: 'center' }}>
+            <div className="tv-timeout__remaining-label">
               TIME REMAINING
             </div>
           </div>
 
           {/* Right Video / Custom Ad Image Panel */}
-          <div className="tv-timeout__video-panel" style={{ flex: 1, height: '100%', background: '#ffffff', overflow: 'hidden', position: 'relative' }}>
+          <div className="tv-timeout__video-panel">
             {customImg ? (
               <img src={getImageUrl(customImg)} alt="Timeout Ad" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             ) : (
@@ -452,19 +400,19 @@ function VolleyballScoreboardLayout(): React.ReactElement {
 
           {/* Bottom Score Bar */}
           {toLayout.showScoreBar && (
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, background: '#0a1020', borderTop: '4px solid #17a2b8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px', zIndex: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <span style={{ fontSize: '2.4rem', fontWeight: 900, color: '#ff4a4a' }}>{away.config.name}</span>
-                <span style={{ fontSize: '2.8rem', fontWeight: 900, color: '#ffffff', fontFamily: "'Cursed Timer ULiL', monospace" }}>{away.score}</span>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 110, background: 'linear-gradient(180deg, #0a1020 0%, #0d1530 100%)', borderTop: '5px solid #17a2b8', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 60px', zIndex: 10, boxShadow: '0 -5px 30px rgba(0,0,0,0.8)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+                <span style={{ fontSize: '4.2rem', fontWeight: 900, color: '#ff4a4a', textTransform: 'uppercase', textShadow: '0 2px 10px rgba(255,74,74,0.5)' }}>{away.config.name}</span>
+                <span style={{ fontSize: '4.2rem', fontWeight: 900, color: '#ffffff', fontFamily: "'Cursed Timer ULiL', monospace", textShadow: '0 0 15px rgba(255,255,255,0.3)' }}>{away.score}</span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#ffffff', fontFamily: "'Oswald', sans-serif" }}>
-                <span style={{ fontSize: '1.8rem', fontWeight: 900, color: '#ffcc00' }}>SET {currentSet}</span>
+                <span style={{ fontSize: '3.2rem', fontWeight: 900, color: '#ffcc00', textShadow: '0 0 10px rgba(255,204,0,0.5)' }}>SET {currentSet}</span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                <span style={{ fontSize: '2.8rem', fontWeight: 900, color: '#ffffff', fontFamily: "'Cursed Timer ULiL', monospace" }}>{home.score}</span>
-                <span style={{ fontSize: '2.4rem', fontWeight: 900, color: '#4a9eff' }}>{home.config.name}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 30 }}>
+                <span style={{ fontSize: '4.2rem', fontWeight: 900, color: '#ffffff', fontFamily: "'Cursed Timer ULiL', monospace", textShadow: '0 0 15px rgba(255,255,255,0.3)' }}>{home.score}</span>
+                <span style={{ fontSize: '4.2rem', fontWeight: 900, color: '#4a9eff', textTransform: 'uppercase', textShadow: '0 2px 10px rgba(74,158,255,0.5)' }}>{home.config.name}</span>
               </div>
             </div>
           )}

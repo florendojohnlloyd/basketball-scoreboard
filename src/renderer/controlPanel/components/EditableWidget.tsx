@@ -125,10 +125,13 @@ export function EditableWidget({ id, rect, editing, onUpdate, children, label }:
     height: `${safeRect.h}%`,
   }
 
+  // When hidden and not editing, render nothing
+  if (safeRect.hidden && !editing) return <></>
+
   return (
     <div
       ref={containerRef}
-      className={`ew ${editing ? 'ew--editing' : ''} ${dragging ? 'ew--dragging' : ''}`}
+      className={`ew ${editing ? 'ew--editing' : ''} ${dragging ? 'ew--dragging' : ''} ${safeRect.hidden ? 'ew--hidden' : ''}`}
       style={style}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}

@@ -59,7 +59,7 @@ const mockOverlayServer = {
 
 beforeEach(() => {
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true });
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
   }
   mkdirSync(TEST_USER_DATA, { recursive: true });
 
@@ -76,13 +76,13 @@ beforeEach(() => {
   // Create a real Liga with two teams
   const liga = ligaStore.createLiga('Test Liga', 2024);
   testLigaId = liga.id;
-  ligaStore.addTeam(testLigaId, 'Alpha');
-  ligaStore.addTeam(testLigaId, 'Beta');
+  ligaStore.addTeam(testLigaId, { name: 'Alpha' });
+  ligaStore.addTeam(testLigaId, { name: 'Beta' });
 });
 
 afterEach(() => {
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true });
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
   }
 });
 

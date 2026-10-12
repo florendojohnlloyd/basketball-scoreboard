@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react'
 import { useControlPanelStore, sendCommand } from '../store'
+import { getImageUrl, readFileAsDataUrl } from '../../shared/imageUtils'
 import './TeamConfigPanel.css'
 
 // ---------------------------------------------------------------------------
@@ -122,27 +123,61 @@ function TeamConfigPanel({ team }: TeamConfigPanelProps): React.ReactElement {
 
   // ---- Handlers: logo file input ----
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>): void {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>): void {
     const file = e.target.files?.[0]
     if (!file) return
 
     if (!isLogoFileValid(file)) {
       setLogoError('Unsupported file type. Please use JPEG, PNG, GIF, WebP, or SVG.')
-      // Reset the file input so the same invalid file can trigger onChange again
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
     }
 
     setLogoError('')
-    // In Electron's renderer the File object has a non-standard `.path` property
-    // containing the absolute filesystem path. We access it via a cast since it
-    // is not part of the standard Web File API typings.
-    const filePath = (file as File & { path?: string }).path ?? file.name
-    sendCommand({
-      type: 'SET_TEAM_CONFIG',
-      team,
-      config: { logoPath: filePath },
-    })
+    try {
+      // Convert to base64 Data URL for universal compatibility across contexts & windows
+      const dataUrl = await readFileAsDataUrl(file)
+      sendCommand({
+        type: 'SET_TEAM_CONFIG',
+        team,
+        config: { logoPath: dataUrl },
+      })
+    } catch {
+      // Fallback to path if FileReader fails
+      const filePath = (file as File & { path?: string }).path ?? file.name
+      sendCommand({
+        type: 'SET_TEAM_CONFIG',
+        team,
+        config: { logoPath: filePath },
+      })
+    }
+  }
+
+  async function handlePlayerImgChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+    if (ext !== '.png' && file.type !== 'image/png') {
+      setPlayerImgError('Only PNG files are supported for player cutouts.')
+      if (playerFileInputRef.current) playerFileInputRef.current.value = ''
+      return
+    }
+    setPlayerImgError('')
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      sendCommand({
+        type: 'SET_TEAM_CONFIG',
+        team,
+        config: { playerImagePath: dataUrl },
+      })
+    } catch {
+      const filePath = (file as File & { path?: string }).path ?? file.name
+      sendCommand({
+        type: 'SET_TEAM_CONFIG',
+        team,
+        config: { playerImagePath: filePath },
+      })
+    }
   }
 
   // ---- Render ----
@@ -231,8 +266,22 @@ function TeamConfigPanel({ team }: TeamConfigPanelProps): React.ReactElement {
           aria-invalid={logoError ? 'true' : undefined}
         />
         {teamConfig.logoPath && !logoError && (
-          <div className="team-config-panel__logo-name" aria-live="polite">
-            {teamConfig.logoPath.split(/[\\/]/).pop()}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, background: '#0a0a10', padding: 6, borderRadius: 6, border: '1px solid #2a2a3e' }}>
+            <img
+              src={getImageUrl(teamConfig.logoPath)}
+              alt="Logo preview"
+              style={{ width: 36, height: 36, objectFit: 'contain', background: '#181824', borderRadius: 4, padding: 2 }}
+            />
+            <span style={{ fontSize: '0.78rem', color: '#7aaed4', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              ✓ Logo loaded
+            </span>
+            <button
+              type="button"
+              style={{ background: '#3a1414', border: '1px solid #5a2020', color: '#ff6b6b', borderRadius: 4, fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer' }}
+              onClick={() => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { logoPath: null } })}
+            >
+              Remove
+            </button>
           </div>
         )}
         {logoError && (
@@ -260,30 +309,28 @@ function TeamConfigPanel({ team }: TeamConfigPanelProps): React.ReactElement {
           className="team-config-panel__file-input"
           type="file"
           accept=".png,image/png"
-          onChange={(e) => {
-            const file = e.target.files?.[0]
-            if (!file) return
-            const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
-            if (ext !== '.png' && file.type !== 'image/png') {
-              setPlayerImgError('Only PNG files are supported for player cutouts.')
-              if (playerFileInputRef.current) playerFileInputRef.current.value = ''
-              return
-            }
-            setPlayerImgError('')
-            const filePath = (file as File & { path?: string }).path ?? file.name
-            sendCommand({
-              type: 'SET_TEAM_CONFIG',
-              team,
-              config: { playerImagePath: filePath },
-            })
-          }}
+          onChange={handlePlayerImgChange}
           aria-label={`${teamLabel} featured player image (PNG)`}
           aria-describedby={playerImgError ? `team-player-${team}-error` : undefined}
           aria-invalid={playerImgError ? 'true' : undefined}
         />
         {teamConfig.playerImagePath && !playerImgError && (
-          <div className="team-config-panel__logo-name" aria-live="polite">
-            {teamConfig.playerImagePath.split(/[\\/]/).pop()}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, background: '#0a0a10', padding: 6, borderRadius: 6, border: '1px solid #2a2a3e' }}>
+            <img
+              src={getImageUrl(teamConfig.playerImagePath)}
+              alt="Cutout preview"
+              style={{ width: 36, height: 36, objectFit: 'contain', background: '#181824', borderRadius: 4, padding: 2 }}
+            />
+            <span style={{ fontSize: '0.78rem', color: '#6fcf97', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              ✓ Cutout loaded
+            </span>
+            <button
+              type="button"
+              style={{ background: '#3a1414', border: '1px solid #5a2020', color: '#ff6b6b', borderRadius: 4, fontSize: '0.7rem', padding: '2px 6px', cursor: 'pointer' }}
+              onClick={() => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { playerImagePath: null } })}
+            >
+              Remove
+            </button>
           </div>
         )}
         {playerImgError && (

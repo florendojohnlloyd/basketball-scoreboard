@@ -43,6 +43,8 @@ export interface DoubleElimViewProps {
   grandFinal: MatchNode | undefined
   matchNodes: MatchNode[]
   seeds: TournamentSeed[]
+  teamLogos?: Record<string, string | null>
+  onMatchClick?: (node: MatchNode) => void
 }
 
 /** Computed position of a card within a bracket section. */
@@ -247,6 +249,8 @@ interface BracketSectionProps {
   extraNodes?: MatchNode[]  // e.g. grandFinal passed as a single-node round
   matchNodes: MatchNode[]
   teamNames: Record<string, string>
+  teamLogos?: Record<string, string | null>
+  onMatchClick?: (node: MatchNode) => void
 }
 
 function BracketSection({
@@ -255,6 +259,8 @@ function BracketSection({
   rounds,
   matchNodes,
   teamNames,
+  teamLogos = {},
+  onMatchClick,
 }: BracketSectionProps): React.ReactElement {
   const nodeMap = buildNodeMap(matchNodes)
   const { positions, totalWidth, totalHeight } = computeLayout(rounds, nodeMap)
@@ -342,7 +348,7 @@ function BracketSection({
                 width: CARD_WIDTH,
               }}
             >
-              <MatchCard node={node} teamNames={teamNames} />
+              <MatchCard node={node} teamNames={teamNames} teamLogos={teamLogos} onClick={onMatchClick} />
             </div>
           )
         })}
@@ -355,25 +361,14 @@ function BracketSection({
 // DoubleElimView
 // ---------------------------------------------------------------------------
 
-/**
- * Renders a complete double-elimination bracket in three visually separated
- * sections: Winners Bracket, Losers Bracket, and Grand Final.
- *
- * Each section uses a left-to-right tree layout with SVG connecting lines
- * between rounds. MatchCard provides per-node display (names, seeds, scores,
- * status-based background color).
- *
- * Requirements:
- * - 6.2: Render double-elimination with Winners, Losers, and Grand Final sections
- * - 6.4: Show team names, seeds, scores in every MatchNode
- * - 6.5: Visually distinguish pending / in-progress / completed MatchNodes
- */
 function DoubleElimView({
   winnersBracket,
   losersBracket,
   grandFinal,
   matchNodes,
   seeds,
+  teamLogos = {},
+  onMatchClick,
 }: DoubleElimViewProps): React.ReactElement {
   const teamNames = buildTeamNames(seeds)
 
@@ -409,6 +404,8 @@ function DoubleElimView({
           rounds={winnersBracket}
           matchNodes={matchNodes}
           teamNames={teamNames}
+          teamLogos={teamLogos}
+          onMatchClick={onMatchClick}
         />
       )}
 
@@ -419,6 +416,8 @@ function DoubleElimView({
           rounds={losersBracket}
           matchNodes={matchNodes}
           teamNames={teamNames}
+          teamLogos={teamLogos}
+          onMatchClick={onMatchClick}
         />
       )}
 
@@ -429,6 +428,8 @@ function DoubleElimView({
           rounds={grandFinalRounds}
           matchNodes={matchNodes}
           teamNames={teamNames}
+          teamLogos={teamLogos}
+          onMatchClick={onMatchClick}
         />
       )}
     </div>

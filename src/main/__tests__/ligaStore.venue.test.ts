@@ -12,7 +12,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { mkdirSync, rmSync, existsSync } from 'fs'
 import { join } from 'path'
-import type { Venue, ScheduledGame } from '../../shared/types'
 
 // ---------------------------------------------------------------------------
 // Mock electron app.getPath to use a temp directory
@@ -51,14 +50,14 @@ function addTestTeams(store: ReturnType<typeof createLigaStore>, ligaId: string)
 
 beforeEach(() => {
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true })
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }) } catch {}
   }
   mkdirSync(TEST_USER_DATA, { recursive: true })
 })
 
 afterEach(() => {
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true })
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }) } catch {}
   }
 })
 

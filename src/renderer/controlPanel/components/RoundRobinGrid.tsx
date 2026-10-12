@@ -27,6 +27,10 @@ export interface RoundRobinGridProps {
   seeds: TournamentSeed[]
   /** Standings data to render below the grid */
   standings: RoundRobinStanding[]
+  /** Optional team logos */
+  teamLogos?: Record<string, string | null>
+  /** Optional callback when a match cell is clicked */
+  onMatchClick?: (node: MatchNode) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -90,9 +94,10 @@ function formatDiff(diff: number): string {
 interface MatrixGridProps {
   seeds: TournamentSeed[]
   matchLookup: Map<string, MatchNode>
+  onMatchClick?: (node: MatchNode) => void
 }
 
-function MatrixGrid({ seeds, matchLookup }: MatrixGridProps): React.ReactElement {
+function MatrixGrid({ seeds, matchLookup, onMatchClick }: MatrixGridProps): React.ReactElement {
   if (seeds.length === 0) {
     return (
       <p className="rr-grid__empty-text" role="status">
@@ -146,7 +151,8 @@ function MatrixGrid({ seeds, matchLookup }: MatrixGridProps): React.ReactElement
                 return (
                   <td
                     key={colSeed.teamId}
-                    className={cls}
+                    className={`${cls}${node && onMatchClick ? ' rr-grid__cell--clickable' : ''}`}
+                    onClick={() => { if (node && onMatchClick) onMatchClick(node) }}
                     aria-label={
                       isDiagonal
                         ? `${rowSeed.teamName} vs ${rowSeed.teamName} — N/A`

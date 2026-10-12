@@ -11,11 +11,11 @@
  */
 
 // Conditionally import app — not available in test environments
-let _appGetPath: ((name: string) => string) | null = null;
+let _appGetPath: ((name: any) => string) | null = null;
 try {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const electron = require('electron');
-  _appGetPath = (name: string) => (electron.app as Electron.App).getPath(name);
+  _appGetPath = (name: any) => (electron.app as Electron.App).getPath(name);
 } catch {
   _appGetPath = null;
 }
@@ -117,6 +117,59 @@ function tryParse(s: string): unknown {
 // Factory
 // ---------------------------------------------------------------------------
 
+function createInMemoryAuditStore(): AuditStore {
+  let rows: AuditRow[] = [];
+  return {
+    append(entry: AuditEntry): void {
+      rows.push({
+        id: entry.id,
+        timestamp: entry.timestamp,
+        username: entry.username,
+        role: entry.role,
+        action_type: entry.actionType,
+        entity_id: entry.entityId ?? '',
+        previous_value: JSON.stringify(entry.previousValue ?? null),
+        new_value: JSON.stringify(entry.newValue ?? null),
+      });
+    },
+    query(filter: AuditFilter): AuditEntry[] {
+      return rows
+        .filter(r => {
+          if (filter.fromDate && r.timestamp < filter.fromDate) return false;
+          if (filter.toDate && r.timestamp > filter.toDate) return false;
+          if (filter.username && r.username !== filter.username) return false;
+          if (filter.actionType && r.action_type !== filter.actionType) return false;
+          return true;
+        })
+        .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+        .map(rowToEntry);
+    },
+    exportCsv(filter: AuditFilter, destinationPath: string): void {
+      const entries = this.query(filter);
+      const lines: string[] = [CSV_HEADERS.join(',')];
+      for (const entry of entries) {
+        const row = CSV_HEADERS.map(key => {
+          const value = entry[key];
+          const formatted = typeof value === 'object' && value !== null
+            ? JSON.stringify(value)
+            : value;
+          return escapeCsvField(formatted);
+        });
+        lines.push(row.join(','));
+      }
+      const { writeFileSync } = require('fs') as typeof import('fs');
+      writeFileSync(destinationPath, lines.join('\n'), 'utf-8');
+    },
+    purgeOldEntries(): void {
+      const cutoff = new Date();
+      cutoff.setMonth(cutoff.getMonth() - 12);
+      const cutoffIso = cutoff.toISOString();
+      rows = rows.filter(r => r.timestamp >= cutoffIso);
+    },
+    close(): void {},
+  };
+}
+
 /**
  * Creates (or opens) the audit database.
  *
@@ -130,16 +183,10 @@ export function createAuditStore(
   getControlPanelWindow?: () => BrowserWindow | null,
 ): AuditStore {
 
-  // If better-sqlite3 failed to load, return a no-op store
+  // If better-sqlite3 failed to load, return an in-memory store fallback
   if (!Database) {
-    console.warn('[LigaControl] AuditStore: better-sqlite3 not available — audit logging disabled');
-    return {
-      log: () => {},
-      query: () => [],
-      purgeOldEntries: () => 0,
-      getRecentEntries: () => [],
-      close: () => {},
-    } as unknown as AuditStore;
+    console.warn('[LigaControl] AuditStore: better-sqlite3 not available — using in-memory store');
+    return createInMemoryAuditStore();
   }
 
   // ── Resolve DB path ──
@@ -171,12 +218,15 @@ export function createAuditStore(
     }
   }
 
-  // ── Open database, handling unreadable file ──
-  let db: Database.Database;
+  // ── Open database, handling unreadable file or native module load errors ──
+  let db: any;
   try {
     db = new Database(resolvedPath);
-  } catch (err) {
-    // DB unreadable — rename corrupt file and start fresh
+  } catch (err: any) {
+    if (err?.code === 'ERR_DLOPEN_FAILED' || (err?.message && String(err.message).includes('NODE_MODULE_VERSION'))) {
+      console.warn('[AuditStore] SQLite native addon ABI mismatch — using in-memory store');
+      return createInMemoryAuditStore();
+    }
     console.error('[AuditStore] Failed to open audit.db, resetting:', err);
     const backupPath = `${resolvedPath}.bak.${Date.now()}`;
     try {
@@ -184,8 +234,13 @@ export function createAuditStore(
     } catch {
       // best-effort rename
     }
-    db = new Database(resolvedPath);
-    sendEvent({ type: 'AUDIT_DB_RESET', message: 'audit.db was unreadable and has been reset.' });
+    try {
+      db = new Database(resolvedPath);
+      sendEvent({ type: 'AUDIT_DB_RESET', message: 'audit.db was unreadable and has been reset.' });
+    } catch (retryErr) {
+      console.warn('[AuditStore] SQLite native addon failed to instantiate, falling back to in-memory store:', retryErr);
+      return createInMemoryAuditStore();
+    }
   }
 
   // ── Schema ──

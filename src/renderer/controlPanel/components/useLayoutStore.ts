@@ -12,90 +12,90 @@ export interface WidgetRect {
   hidden?: boolean
 }
 
-const STORAGE_KEY = 'score-tab-layout-v26'
+const STORAGE_KEY = 'score-tab-layout-v27'
 
 const DEFAULTS: Record<string, WidgetRect> = {
   // ── TOP BAR ──────────────────────────────────────────────
   'home-label':      { x: 0,   y: 0,  w: 13, h: 6,  hidden: true },
-  'sponsor-banner':  { x: 30,  y: 0,  w: 26, h: 7  },
+  'sponsor-banner':  { x: 28,  y: 0,  w: 30, h: 8  },
   'away-label':      { x: 72,  y: 0,  w: 14, h: 6,  hidden: true },
 
   // ── SCORE / CLOCK ROW — hidden in control panel (shown on TV only) ──
-  'home-score':      { x: 5,   y: 7,  w: 10, h: 16, hidden: true },
-  'period':          { x: 22,  y: 7,  w: 8,  h: 10, hidden: true },
-  'clock':           { x: 30,  y: 7,  w: 27, h: 16, hidden: true },
-  'shot-clock':      { x: 58,  y: 7,  w: 9,  h: 10, hidden: true },
-  'away-score':      { x: 72,  y: 7,  w: 10, h: 16, hidden: true },
+  'home-score':      { x: 5,   y: 9,  w: 10, h: 16, hidden: true },
+  'period':          { x: 22,  y: 9,  w: 8,  h: 10, hidden: true },
+  'clock':           { x: 30,  y: 9,  w: 27, h: 16, hidden: true },
+  'shot-clock':      { x: 58,  y: 9,  w: 9,  h: 10, hidden: true },
+  'away-score':      { x: 72,  y: 9,  w: 10, h: 16, hidden: true },
 
-  // ── CLOCK CONTROL ROW (y 8–16) ──
-  'next-q':          { x: 20,  y: 8,  w: 11, h: 8  },
-  'btn-reset':       { x: 32,  y: 8,  w: 13, h: 8  },
-  'shot-24':         { x: 46,  y: 8,  w: 7,  h: 8  },
-  'shot-14':         { x: 54,  y: 8,  w: 7,  h: 8  },
-  'shot-reset':      { x: 62,  y: 8,  w: 7,  h: 8  },
-  'shot-toggle':     { x: 70,  y: 8,  w: 10, h: 8  },
+  // ── CLOCK CONTROL ROW — BIGGER for touchscreen ──
+  'next-q':          { x: 18,  y: 9,  w: 13, h: 9  },
+  'btn-reset':       { x: 32,  y: 9,  w: 15, h: 9  },
+  'shot-24':         { x: 48,  y: 9,  w: 8,  h: 9  },
+  'shot-14':         { x: 57,  y: 9,  w: 8,  h: 9  },
+  'shot-reset':      { x: 66,  y: 9,  w: 8,  h: 9  },
+  'shot-toggle':     { x: 75,  y: 9,  w: 11, h: 9  },
 
-  // ── PLAYER PANELS (y 17–64) ───────────────────────────────
-  'home-players':    { x: 0,   y: 17, w: 19, h: 47 },
-  'away-players':    { x: 67,  y: 17, w: 19, h: 47 },
+  // ── PLAYER PANELS (y 19–64) ───────────────────────────────
+  'home-players':    { x: 0,   y: 19, w: 17, h: 45 },
+  'away-players':    { x: 69,  y: 19, w: 17, h: 45 },
 
   // Home stat buttons — HIDDEN for Liga mode
-  'btn-reb':         { x: 19,  y: 17, w: 5,  h: 7, hidden: true },
-  'btn-ast':         { x: 19,  y: 25, w: 5,  h: 7, hidden: true },
-  'btn-foul':        { x: 19,  y: 33, w: 5,  h: 7, hidden: true },
-  'btn-stl':         { x: 19,  y: 41, w: 5,  h: 7, hidden: true },
-  'btn-blk':         { x: 19,  y: 49, w: 5,  h: 7, hidden: true },
-  'btn-to':          { x: 19,  y: 57, w: 5,  h: 7, hidden: true },
-  'btn-score-minus-h': { x: 19, y: 65, w: 6, h: 9 },
+  'btn-reb':         { x: 17,  y: 19, w: 5,  h: 7, hidden: true },
+  'btn-ast':         { x: 17,  y: 27, w: 5,  h: 7, hidden: true },
+  'btn-foul':        { x: 17,  y: 35, w: 5,  h: 7, hidden: true },
+  'btn-stl':         { x: 17,  y: 43, w: 5,  h: 7, hidden: true },
+  'btn-blk':         { x: 17,  y: 51, w: 5,  h: 7, hidden: true },
+  'btn-to':          { x: 17,  y: 59, w: 5,  h: 7, hidden: true },
+  'btn-score-minus-h': { x: 0, y: 65, w: 8, h: 10 },
 
   // Away stat buttons — HIDDEN for Liga mode
-  'btn-reb-a':       { x: 62,  y: 17, w: 5,  h: 7, hidden: true },
-  'btn-ast-a':       { x: 62,  y: 25, w: 5,  h: 7, hidden: true },
-  'btn-foul-a':      { x: 62,  y: 33, w: 5,  h: 7, hidden: true },
-  'btn-stl-a':       { x: 62,  y: 41, w: 5,  h: 7, hidden: true },
-  'btn-blk-a':       { x: 62,  y: 49, w: 5,  h: 7, hidden: true },
-  'btn-to-a':        { x: 62,  y: 57, w: 5,  h: 7, hidden: true },
-  'btn-score-minus-a': { x: 62, y: 65, w: 5, h: 9 },
+  'btn-reb-a':       { x: 64,  y: 19, w: 5,  h: 7, hidden: true },
+  'btn-ast-a':       { x: 64,  y: 27, w: 5,  h: 7, hidden: true },
+  'btn-foul-a':      { x: 64,  y: 35, w: 5,  h: 7, hidden: true },
+  'btn-stl-a':       { x: 64,  y: 43, w: 5,  h: 7, hidden: true },
+  'btn-blk-a':       { x: 64,  y: 51, w: 5,  h: 7, hidden: true },
+  'btn-to-a':        { x: 64,  y: 59, w: 5,  h: 7, hidden: true },
+  'btn-score-minus-a': { x: 78, y: 65, w: 8, h: 10 },
 
-  // ── CENTER ZONE ──────────────────────────────────────────
-  // Row 1 (y17-29): START (big) | TV
-  'btn-start':       { x: 24,  y: 17, w: 30, h: 14 },
-  'btn-horn':        { x: 55,  y: 17, w: 11, h: 14, hidden: true },
-  'btn-tv':          { x: 56,  y: 17, w: 10, h: 14 },
+  // ── CENTER ZONE — EXTRA LARGE for touchscreen ──────────────
+  // Row 1: START button - HUGE and centered
+  'btn-start':       { x: 22,  y: 19, w: 34, h: 16 },
+  'btn-horn':        { x: 57,  y: 19, w: 12, h: 16, hidden: true },
+  'btn-tv':          { x: 57,  y: 19, w: 12, h: 16 },
 
-  // Row 2 (y31-41): POSS HOME | SWITCH | POSS AWAY
-  'btn-poss-home':   { x: 24,  y: 32, w: 13, h: 11 },
-  'btn-switch':      { x: 38,  y: 32, w: 18, h: 11 },
-  'btn-poss-away':   { x: 57,  y: 32, w: 9,  h: 11 },
+  // Row 2: POSS and SWITCH - bigger spacing
+  'btn-poss-home':   { x: 22,  y: 36, w: 15, h: 12 },
+  'btn-switch':      { x: 38,  y: 36, w: 20, h: 12 },
+  'btn-poss-away':   { x: 59,  y: 36, w: 10, h: 12 },
 
-  // Row 3 (y43-53): UNDO Q | GAME RESET | SUB
-  'btn-replay':      { x: 24,  y: 44, w: 13, h: 10, hidden: true },
-  'btn-undo-period': { x: 24,  y: 44, w: 18, h: 10 },
-  'btn-game-reset':  { x: 43,  y: 44, w: 13, h: 10 },
-  'btn-sub':         { x: 57,  y: 44, w: 9,  h: 10 },
+  // Row 3: UNDO, RESET, SUB - bigger for easier tapping
+  'btn-replay':      { x: 22,  y: 49, w: 15, h: 11, hidden: true },
+  'btn-undo-period': { x: 22,  y: 49, w: 20, h: 11 },
+  'btn-game-reset':  { x: 43,  y: 49, w: 16, h: 11 },
+  'btn-sub':         { x: 60,  y: 49, w: 9,  h: 11 },
 
-  // ── MINI SCOREBOARD (y55-68) ──────────────────────────────
-  'mini-scoreboard': { x: 24,  y: 55, w: 42, h: 15 },
+  // ── MINI SCOREBOARD ──────────────────────────────────────
+  'mini-scoreboard': { x: 22,  y: 61, w: 47, h: 14 },
 
-  // ── SCORE BUTTONS (y65-74) ──────────────────────────────
-  'home-plus3':      { x: 0,   y: 65, w: 7,  h: 9  },
-  'home-plus2':      { x: 7,   y: 65, w: 7,  h: 9  },
-  'home-plus1':      { x: 14,  y: 65, w: 5,  h: 9  },
-  'away-plus1':      { x: 67,  y: 65, w: 5,  h: 9  },
-  'away-plus2':      { x: 72,  y: 65, w: 7,  h: 9  },
-  'away-plus3':      { x: 79,  y: 65, w: 7,  h: 9  },
+  // ── SCORE BUTTONS — BIGGER for touchscreen ──────────────
+  'home-plus3':      { x: 9,   y: 65, w: 9,  h: 10 },
+  'home-plus2':      { x: 0,   y: 76, w: 9,  h: 10 },
+  'home-plus1':      { x: 9,   y: 76, w: 9,  h: 10 },
+  'away-plus1':      { x: 69,  y: 65, w: 9,  h: 10 },
+  'away-plus2':      { x: 78,  y: 76, w: 8,  h: 10 },
+  'away-plus3':      { x: 69,  y: 76, w: 9,  h: 10 },
 
-  // ── FOOTER (y75-100) ─────────────────────────────────────
-  'home-timeout':    { x: 0,   y: 75, w: 16, h: 20 },
-  'away-timeout':    { x: 70,  y: 75, w: 16, h: 20 },
-  'bonus-h-foul':    { x: 17,  y: 75, w: 15, h: 17 },
-  'bonus-a-foul':    { x: 54,  y: 75, w: 15, h: 17 },
-  'bonus-h-plus':    { x: 17,  y: 93, w: 7,  h: 6  },
-  'bonus-h-minus':   { x: 25,  y: 93, w: 7,  h: 6  },
-  'bonus-a-plus':    { x: 54,  y: 93, w: 7,  h: 6  },
-  'bonus-a-minus':   { x: 62,  y: 93, w: 7,  h: 6  },
-  'bonus-h':         { x: 0,   y: 96, w: 10, h: 6  },
-  'bonus-a':         { x: 76,  y: 96, w: 10, h: 6  },
+  // ── FOOTER ─────────────────────────────────────────────
+  'home-timeout':    { x: 0,   y: 87, w: 18, h: 13 },
+  'away-timeout':    { x: 68,  y: 87, w: 18, h: 13 },
+  'bonus-h-foul':    { x: 19,  y: 76, w: 16, h: 12 },
+  'bonus-a-foul':    { x: 51,  y: 76, w: 16, h: 12 },
+  'bonus-h-plus':    { x: 19,  y: 89, w: 8,  h: 6  },
+  'bonus-h-minus':   { x: 28,  y: 89, w: 8,  h: 6  },
+  'bonus-a-plus':    { x: 51,  y: 89, w: 8,  h: 6  },
+  'bonus-a-minus':   { x: 60,  y: 89, w: 8,  h: 6  },
+  'bonus-h':         { x: 0,   y: 96, w: 12, h: 6  },
+  'bonus-a':         { x: 74,  y: 96, w: 12, h: 6  },
 
   // Tab nav — HIDDEN
   'tab-nav':         { x: 77,  y: 96, w: 22, h: 6, hidden: true },

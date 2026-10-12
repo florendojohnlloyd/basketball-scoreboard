@@ -14,7 +14,7 @@
 import { existsSync, unlinkSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
 import { statSync, accessSync, constants as fsConstants } from 'fs';
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import ExcelJS from 'exceljs';
 import type {
   Tournament,

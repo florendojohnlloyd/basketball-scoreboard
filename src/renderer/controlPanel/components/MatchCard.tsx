@@ -1,16 +1,6 @@
-/**
- * MatchCard — Requirements 6.4, 6.5, 6.7
- *
- * Displays a single Match_Node in the tournament bracket:
- *  - Team names and seed numbers for each participant
- *  - Scores for completed matches
- *  - "TBD" for pending team slots (team not yet determined)
- *  - "BYE" styling when the match has no opponent (isBye = true)
- *  - Background color varies by match status: pending, in-progress, completed
- */
-
 import React from 'react'
 import type { MatchNode, MatchNodeStatus } from '@shared/types'
+import { getImageUrl } from '../../shared/imageUtils'
 import './MatchCard.css'
 
 // ---------------------------------------------------------------------------
@@ -20,8 +10,10 @@ import './MatchCard.css'
 export interface MatchCardProps {
   /** The match node data to display */
   node: MatchNode
-  /** Optional map of teamId → team name for display (falls back to teamId if absent) */
+  /** Optional map of teamId → team name for display */
   teamNames?: Record<string, string>
+  /** Optional map of teamId → team logo URL for display */
+  teamLogos?: Record<string, string | null>
   /** Called when the card is clicked (e.g. to open match detail) */
   onClick?: (node: MatchNode) => void
 }
@@ -64,13 +56,15 @@ interface TeamRowProps {
   score: number | null
   /** Pre-resolved display name (falls back to teamId, then "TBD") */
   teamName?: string
+  /** Pre-resolved team logo URL */
+  teamLogo?: string | null
   /** Whether this team is the winning side */
   isWinner: boolean
   /** Whether this is the "absent" slot in a BYE match */
   isByeSlot: boolean
 }
 
-function TeamRow({ teamId, seed, score, teamName, isWinner, isByeSlot }: TeamRowProps): React.ReactElement {
+function TeamRow({ teamId, seed, score, teamName, teamLogo, isWinner, isByeSlot }: TeamRowProps): React.ReactElement {
   const displayName = isByeSlot
     ? 'BYE'
     : teamId
@@ -84,12 +78,24 @@ function TeamRow({ teamId, seed, score, teamName, isWinner, isByeSlot }: TeamRow
     !teamId && !isByeSlot ? 'match-card__team-row--tbd' : '',
   ].filter(Boolean).join(' ')
 
+  const logoUrl = teamLogo ? getImageUrl(teamLogo) : null
+
   return (
     <div className={rowClass} aria-label={isByeSlot ? 'BYE' : `${displayName}${seed != null ? `, seed ${seed}` : ''}${score != null ? `, score ${score}` : ''}`}>
       {/* Seed badge */}
       <span className="match-card__seed" aria-hidden="true">
         {seed != null && !isByeSlot ? `#${seed}` : ''}
       </span>
+
+      {/* Team logo thumbnail */}
+      {logoUrl && !isByeSlot ? (
+        <img
+          src={logoUrl}
+          alt=""
+          className="match-card__logo-img"
+          style={{ width: 16, height: 16, objectFit: 'contain', marginRight: 4, flexShrink: 0 }}
+        />
+      ) : null}
 
       {/* Team name */}
       <span className="match-card__team-name">{displayName}</span>
@@ -106,16 +112,7 @@ function TeamRow({ teamId, seed, score, teamName, isWinner, isByeSlot }: TeamRow
 // MatchCard component
 // ---------------------------------------------------------------------------
 
-/**
- * Renders a single match node as a card showing both participants, their seeds,
- * and scores (if available). Applies distinct background colors for each status.
- *
- * Requirements:
- * - 6.4: Display team names, seed numbers, and scores
- * - 6.5: Visually distinguish pending / in-progress / completed via background color
- * - 6.7: Render BYE entries with "BYE" text for the absent opponent
- */
-function MatchCard({ node, teamNames = {}, onClick }: MatchCardProps): React.ReactElement {
+function MatchCard({ node, teamNames = {}, teamLogos = {}, onClick }: MatchCardProps): React.ReactElement {
   const {
     homeTeamId,
     awayTeamId,
@@ -155,6 +152,7 @@ function MatchCard({ node, teamNames = {}, onClick }: MatchCardProps): React.Rea
         seed={homeSeed}
         score={homeScore}
         teamName={homeTeamId ? teamNames[homeTeamId] : undefined}
+        teamLogo={homeTeamId ? teamLogos[homeTeamId] : undefined}
         isWinner={homeIsWinner}
         isByeSlot={false}
       />
@@ -168,6 +166,7 @@ function MatchCard({ node, teamNames = {}, onClick }: MatchCardProps): React.Rea
         seed={awaySeed}
         score={awayScore}
         teamName={awayTeamId ? teamNames[awayTeamId] : undefined}
+        teamLogo={awayTeamId ? teamLogos[awayTeamId] : undefined}
         isWinner={awayIsWinner}
         isByeSlot={awayIsByeSlot}
       />

@@ -1,27 +1,30 @@
 /* ============================================================
    Volleyball Scoreboard Layout — TV Display
-   Dark hardware scoreboard aesthetic with LED amber displays
+   Clean, flat hardware digital LED aesthetic
+   (No inner box lines around scores/headers/sets, No glow shadows)
    ============================================================ */
 
 .vb-tv {
   width: 100vw;
   height: 100vh;
-  background: #0c0f14;
-  color: #d0dce8;
-  font-family: 'Orbitron', 'Courier New', monospace;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Oswald', 'Impact', 'Arial Black', sans-serif;
   overflow: hidden;
   display: flex;
-  flexDirection: column;
+  flex-direction: column;
+  position: relative;
+  user-select: none;
 }
 
 .vb-tv-fallback {
   width: 100vw;
   height: 100vh;
-  background: #0c0f14;
+  background: #000000;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #d0dce8;
+  color: #ffffff;
   font-size: 2rem;
 }
 
@@ -32,6 +35,7 @@
 .vb-tv--pregame {
   align-items: center;
   justify-content: center;
+  background: #000000;
 }
 
 .vb-pre {
@@ -40,12 +44,11 @@
 }
 
 .vb-pre__title {
-  font-size: 4rem;
+  font-size: 4.5rem;
   font-weight: 900;
   color: #ffcc00;
   margin-bottom: 60px;
   letter-spacing: 0.1em;
-  text-shadow: 0 0 20px rgba(255, 204, 0, 0.6);
 }
 
 .vb-pre__matchup {
@@ -66,8 +69,8 @@
   width: 200px;
   height: 200px;
   border-radius: 50%;
-  background: rgba(26, 32, 48, 0.8);
-  border: 4px solid #ffcc00;
+  background: #0d0d12;
+  border: 3px solid #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,17 +86,18 @@
 .vb-pre__logo-circle span {
   font-size: 5rem;
   font-weight: 900;
-  color: #ffcc00;
+  color: #ffffff;
 }
 
 .vb-pre__name {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.8rem;
+  font-weight: 900;
   text-transform: uppercase;
+  color: #ffffff;
 }
 
 .vb-pre__vs {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 900;
   color: #ffcc00;
 }
@@ -105,17 +109,16 @@
 .vb-tv--gameover {
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #0c0f14 0%, #1a2030 100%);
+  background: #000000;
 }
 
 .vb-go__title {
-  font-size: 4rem;
+  font-size: 4.5rem;
   font-weight: 900;
   color: #ffcc00;
   text-align: center;
   margin-bottom: 40px;
   letter-spacing: 0.15em;
-  text-shadow: 0 0 30px rgba(255, 204, 0, 0.8);
 }
 
 .vb-go__scores {
@@ -127,505 +130,417 @@
 }
 
 .vb-go__name {
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.8rem;
+  font-weight: 900;
   text-align: center;
   margin-bottom: 12px;
+  color: #ffffff;
 }
 
 .vb-go__sets {
-  font-size: 3rem;
+  font-size: 3.5rem;
   font-weight: 900;
   color: #ffcc00;
   text-align: center;
 }
 
 .vb-go__sep {
-  font-size: 3rem;
-  color: #5a7090;
+  font-size: 3.5rem;
+  color: #ffffff;
 }
 
 .vb-go__winner {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #22ff55;
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #00ff66;
   text-align: center;
   margin-top: 20px;
-  text-shadow: 0 0 20px rgba(34, 255, 85, 0.5);
 }
 
 /* ══════════════════════════════════════════
-   LIVE STATE — Main Layout
+   LIVE STATE — Main Scoreboard Layout
    ══════════════════════════════════════════ */
 
 .vb-tv--live {
   display: flex;
-  flex-direction: column;
-  position: relative;
-}
-
-/* ESC button */
-.vb-tv__esc {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 100;
-  background: rgba(192, 48, 16, 0.9);
-  border: 2px solid #cc6600;
-  color: #ffffff;
-  font-size: 1.2rem;
-  font-weight: 900;
-  padding: 8px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: 'Orbitron', monospace;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-}
-
-.vb-tv__esc:hover {
-  background: rgba(255, 60, 20, 0.95);
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(255, 60, 20, 0.4);
-}
-
-/* Top bar */
-.vb-tv__topbar {
-  height: 80px;
-  background: linear-gradient(180deg, #1a2030 0%, #141820 100%);
-  border-bottom: 2px solid #cc6600;
-  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 40px;
-  flex-shrink: 0;
-  gap: 60px;
+  padding: 1vh 1vw;
+  box-sizing: border-box;
+  background: #000000;
 }
 
-.vb-tv__set-display {
-  font-size: 2.5rem;
-  font-weight: 900;
-  color: #ffcc00;
-  text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
-}
+/* ══════════════════════════════════════════
+   HARDWARE SCOREBOARD FRAME (PURE FLAT BLACK - NO BOXES)
+   ══════════════════════════════════════════ */
 
-.vb-tv__liga-name {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #d0dce8;
-  text-align: right;
-}
-
-/* Main content area */
-.vb-tv__main {
-  flex: 1;
+.vb-board-frame {
+  width: 98vw;
+  max-width: 1800px;
+  height: 97vh;
+  max-height: 97vh;
+  border: none;
+  border-radius: 0;
+  background: #000000;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0px 20px 10px 20px; /* HOME & AWAY pushed higher up to very top */
+  position: relative;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
-/* Side panels (home/away) */
-.vb-tv__side {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* ── TOP ROW: TEAM NAMES & TOP CENTER SET DISPLAY (MATCHES BASKETBALL TEXT FORMAT) ── */
+.vb-board__top-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  position: relative;
   gap: 20px;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 280px;
+  height: 280px;
+  padding-top: 0px;
 }
 
-.vb-tv__side--home {
-  border-right: 3px solid #1a4fd6;
-  background: linear-gradient(90deg, rgba(26, 79, 214, 0.05) 0%, transparent 100%);
+.vb-badge-container {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 280px;
 }
 
-.vb-tv__side--away {
-  border-left: 3px solid #c0392b;
-  background: linear-gradient(270deg, rgba(192, 57, 43, 0.05) 0%, transparent 100%);
+.vb-badge-container--away {
+  justify-content: flex-start;
 }
 
-/* Serving arrow indicator */
-.vb-tv__serve-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 6rem;
-  font-weight: 900;
-  color: #ffcc00;
-  text-shadow: 0 0 30px rgba(255, 204, 0, 0.8);
-  animation: pulse-serve 1.5s ease-in-out infinite;
+.vb-badge-container--home {
+  justify-content: flex-end;
 }
 
-.vb-tv__serve-arrow--home {
-  left: 20px;
-}
-
-.vb-tv__serve-arrow--away {
-  right: 20px;
-}
-
-@keyframes pulse-serve {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: translateY(-50%) scale(1.1);
-  }
-}
-
-/* Team name */
-.vb-tv__team-name {
-  font-size: 2.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  text-align: center;
-  letter-spacing: 0.08em;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  max-width: 90%;
-  word-wrap: break-word;
-}
-
-/* Logo */
-.vb-tv__logo {
-  width: 180px;
-  height: 180px;
+/* Floating Team Title — AWAY = RED, HOME = BLUE (ENLARGED TEAM NAME TEXT) */
+.vb-badge {
+  background: transparent;
+  border: none;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 10px 0;
-}
-
-.vb-tv__logo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 8px;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
-}
-
-.vb-tv__logo-placeholder {
+  gap: 16px;
+  position: relative;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  min-height: 280px;
+  box-sizing: border-box;
 }
 
-/* Score */
-.vb-tv__score {
-  font-size: 8rem;
+.vb-badge__title {
+  font-size: clamp(2.5rem, 5vw, 6rem); /* Increased team name text size */
   font-weight: 900;
-  color: #ffcc00;
-  font-family: 'Orbitron', monospace;
-  line-height: 1;
-  text-shadow: 0 0 25px rgba(255, 204, 0, 0.6);
-  margin: 20px 0;
-}
-
-/* Sets won */
-.vb-tv__sets-won {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.vb-tv__sets-label {
-  font-size: 1rem;
-  color: #5a7090;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.1;
+  text-shadow: none;
+  overflow: visible;
 }
 
-.vb-tv__sets-dots {
+.vb-badge__title--away {
+  color: #ff3333;
+}
+
+.vb-badge__title--home {
+  color: #00a2ff;
+}
+
+/* TOP CENTER SET DISPLAY — (SET AND NUMBER SAME FONT SIZE & LOWERED POSITION) */
+.vb-set-top-box {
   display: flex;
-  gap: 12px;
-}
-
-.vb-tv__sets-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid #ffcc00;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0;
   background: transparent;
-  transition: background 0.3s ease;
+  border: none;
+  box-shadow: none;
+  margin-top: 70px;
 }
 
-.vb-tv__sets-dot--filled {
-  background: #ffcc00;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.6);
-}
-
-.vb-tv__sets-count {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #ffcc00;
-}
-
-/* Timeouts */
-.vb-tv__timeouts {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.vb-tv__timeouts-label {
-  font-size: 0.9rem;
-  color: #5a7090;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.vb-tv__timeouts-dots {
-  display: flex;
-  gap: 10px;
-}
-
-.vb-tv__timeout-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #ffcc00;
-  box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-}
-
-.vb-tv__timeouts-count {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffcc00;
-}
-
-/* Center panel */
-.vb-tv__center {
-  flex: 0.5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 40px;
-  background: rgba(12, 15, 20, 0.5);
-}
-
-.vb-tv__center-set {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.vb-tv__center-set-label {
-  font-size: 1.5rem;
-  color: #5a7090;
-  letter-spacing: 0.15em;
-}
-
-.vb-tv__center-set-number {
-  font-size: 6rem;
+.vb-set-label {
+  font-family: 'Oswald', 'Arial Black', sans-serif;
+  font-size: clamp(5.5rem, 9.5vw, 10.5rem); /* SAME SIZE AS SET NUMBER */
   font-weight: 900;
-  color: #ffcc00;
-  text-shadow: 0 0 25px rgba(255, 204, 0, 0.7);
-}
-
-.vb-tv__center-serve {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.vb-tv__center-serve-arrow {
-  font-size: 4rem;
-  color: #ffcc00;
-  animation: pulse-serve 1.5s ease-in-out infinite;
-}
-
-.vb-tv__center-serve-text {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #ffcc00;
-  letter-spacing: 0.2em;
-}
-
-/* Bottom bar */
-.vb-tv__bottombar {
-  height: 60px;
-  background: linear-gradient(0deg, #1a2030 0%, #141820 100%);
-  border-top: 2px solid #cc6600;
+  color: #ffffff;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  text-shadow: none;
+}
+
+.vb-led-amber {
+  font-family: 'Cursed Timer ULiL', 'Orbitron', 'Courier New', monospace;
+  font-size: clamp(5.5rem, 9.5vw, 10.5rem); /* SAME SIZE AS SET LABEL */
+  font-weight: 900;
+  color: #ffb700;
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(0.18em); /* PROPORTIONAL OFFSET SO DIGIT ALIGNS FLUSH WITH SET TEXT */
+  text-shadow: none;
+}
+
+/* Large Serve Arrow Indicator */
+.vb-serve-arrow {
+  font-size: clamp(3.5rem, 6.5vw, 7rem);
+  color: #00ff66;
+  line-height: 1;
+  text-shadow: none;
   flex-shrink: 0;
 }
 
-.vb-tv__sponsor {
-  font-size: 1rem;
-  color: #5a7090;
-  letter-spacing: 0.1em;
+/* ── MIDDLE ROW: SCORES — MOVED HIGHER UP ── */
+.vb-board__score-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+  gap: 80px;
+  flex: 1;
+  min-height: 0;
+  margin-top: -20px; /* Moved scores higher up */
+  width: 100%;
+}
+
+.vb-center-time-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 10px;
+}
+
+.vb-time-display {
+  font-family: 'Cursed Timer ULiL', 'Orbitron', monospace;
+  font-size: clamp(6.5rem, 12vw, 13.5rem);
+  font-weight: 900;
+  color: #00ff66;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-align: center;
+  margin-right: -0.06em;
+}
+
+.vb-score-box {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0;
+  box-shadow: none;
+}
+
+.vb-score-divider {
+  width: 0;
+  background: transparent;
+  height: 85%;
+  justify-self: center;
+}
+
+/* DIGITAL LED FONTS (7-SEGMENT) */
+.vb-led-red {
+  font-family: 'Cursed Timer ULiL', 'Orbitron', 'Courier New', monospace;
+  font-size: clamp(14rem, 25vw, 29rem);
+  font-weight: 900;
+  color: #ff0000;
+  line-height: 0.95;
+  letter-spacing: 0.15em;
+  text-shadow: none;
+}
+
+/* ── BOTTOM ROW: INDICATORS ("T 2" ENLARGED & PERFECTLY ALIGNED BASELINE) ── */
+.vb-board__bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+  flex-shrink: 0;
+  padding-bottom: 8px;
+}
+
+.vb-indicators-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vb-indicator-block {
+  display: flex;
+  flex-direction: row; /* SIDE-BY-SIDE HORIZONTAL LAYOUT: T 2 */
+  align-items: center; /* PERFECT BASELINE VERTICAL CENTER ALIGNMENT */
+  justify-content: center;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.vb-indicator-label {
+  font-size: clamp(6.5rem, 11vw, 12.5rem); /* ENLARGED T */
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  font-family: 'Oswald', 'Arial Black', sans-serif;
+  display: flex;
+  align-items: center;
+  text-shadow: none;
+}
+
+.vb-indicator-number {
+  font-family: 'Cursed Timer ULiL', 'Orbitron', 'Courier New', monospace;
+  font-size: clamp(6.5rem, 11vw, 12.5rem); /* ENLARGED 2 (MATCHING SIZE AS T) */
+  font-weight: 900;
+  color: #00ff66; /* LED green number digit for timeouts */
+  line-height: 1;
+  display: inline-block;
+  transform: translateY(0.18em); /* PROPORTIONAL OFFSET SO DIGIT ALIGNS FLUSH WITH T TEXT */
+  text-shadow: none;
 }
 
 
 /* ══════════════════════════════════════════
-   TIMEOUT OVERLAY WITH VIDEO/ADS
+   TIMEOUT OVERLAY (CLEAN Broadcast Design)
    ══════════════════════════════════════════ */
 
-.vb-tv-timeout {
-  position: absolute;
-  inset: 0;
-  z-index: 200;
-  background: #000;
+.tv-timeout--split {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.vb-tv-timeout__content {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.vb-tv-timeout__video-container {
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+  z-index: 300;
+  background: #000000;
+  font-family: 'Oswald', sans-serif;
 }
 
-.vb-tv-timeout__video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.85;
-}
-
-.vb-tv-timeout__overlay {
-  position: absolute;
-  inset: 0;
+.tv-timeout__info-panel {
+  flex: 0 0 45%;
+  background: #050810;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 70%);
-  z-index: 1;
-}
-
-.vb-tv-timeout__flash {
-  font-family: 'Orbitron', 'Courier New', monospace;
-  font-size: clamp(3rem, 8vw, 8rem);
-  font-weight: 900;
-  color: #ffcc00;
-  letter-spacing: 0.2em;
-  text-shadow: 0 0 40px rgba(255,204,0,0.8), 0 0 80px rgba(255,204,0,0.4);
-  margin-bottom: 2vh;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
-}
-
-.vb-tv-timeout__team {
-  font-family: 'Orbitron', 'Arial Black', sans-serif;
-  font-size: clamp(1.5rem, 4vw, 4rem);
-  font-weight: 900;
-  text-transform: uppercase;
-  text-shadow: 0 2px 20px rgba(0,0,0,0.8);
-  margin-bottom: 4vh;
-  letter-spacing: 0.08em;
-}
-
-.vb-tv-timeout__countdown {
+  padding: 30px 20px;
+  box-sizing: border-box;
+  border-right: 3px solid #17a2b8;
   position: relative;
-  width: clamp(120px, 20vw, 240px);
-  height: clamp(120px, 20vw, 240px);
-  margin-bottom: 3vh;
 }
 
-.vb-tv-timeout__ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.tv-timeout__flash {
+  font-size: clamp(5.5rem, 8.5vw, 9.5rem);
+  font-weight: 900;
+  color: #ffd700;
+  letter-spacing: 0.2em;
+  margin-bottom: 25px;
+  text-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+  line-height: 1;
 }
 
-.vb-tv-timeout__time {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Orbitron', 'Courier New', monospace;
-  font-size: clamp(3rem, 8vw, 6rem);
+.tv-timeout__team-badge {
+  font-size: clamp(4.5rem, 7vw, 8rem);
   font-weight: 900;
   color: #ffffff;
-  text-shadow: 0 0 20px rgba(255,255,255,0.6);
-}
-
-.vb-tv-timeout__label {
-  font-family: 'Orbitron', 'Arial Black', sans-serif;
-  font-size: clamp(0.9rem, 1.8vw, 1.8rem);
-  font-weight: 700;
-  color: #7ab8d4;
-  letter-spacing: 0.2em;
+  margin-bottom: 35px;
   text-transform: uppercase;
-  margin-bottom: 4vh;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.8);
 }
 
-.vb-tv-timeout__scorebar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+.tv-timeout__ring {
+  position: relative;
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 3vh 4vw;
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.85) 80%, transparent 100%);
-  border-top: 3px solid #17a2b8;
-}
-
-.vb-tv-timeout__score-team {
-  display: flex;
-  align-items: center;
-  gap: 2vw;
-  font-family: 'Orbitron', 'Arial Black', sans-serif;
-  font-weight: 900;
-}
-
-.vb-tv-timeout__score-name {
-  font-size: clamp(1.2rem, 2.5vw, 2.5rem);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.vb-tv-timeout__score-num {
-  font-size: clamp(1.8rem, 3.5vw, 3.5rem);
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-.vb-tv-timeout__score-center {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Orbitron', monospace;
-  font-size: clamp(1.4rem, 2.8vw, 2.8rem);
-  font-weight: 900;
-  color: #ffcc00;
-  text-shadow: 0 0 12px rgba(255,204,0,0.5);
-  line-height: 1.2;
+  margin-bottom: 20px;
 }
+
+.tv-timeout__ring-time {
+  font-family: 'Cursed Timer ULiL', monospace;
+  font-size: clamp(6rem, 10vw, 9.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 25px rgba(77, 201, 246, 0.8);
+}
+
+.tv-timeout__remaining-label {
+  font-size: clamp(2.5rem, 3.5vw, 3.8rem);
+  font-weight: 900;
+  color: #4dc9f6;
+  letter-spacing: 0.25em;
+  text-align: center;
+}
+
+.tv-timeout__video-panel {
+  flex: 1;
+  height: 100%;
+  background: #000000;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-timeout__ad-watermark {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffcc00;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  padding: 6px 16px;
+  border-radius: 6px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.tv-timeout__ad-dot {
+  width: 10px;
+  height: 10px;
+  background: #ffcc00;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ffcc00;
+  animation: pulse 1.5s infinite;
+}
+
+/* ── TIMEOUT PULSE ANIMATION ── */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+

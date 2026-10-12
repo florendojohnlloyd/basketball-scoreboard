@@ -6,8 +6,8 @@
  */
 
 import { ipcMain, dialog, app } from 'electron';
-import { readFileSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { statSync } from 'fs';
+import { relative } from 'path';
 import { exportPdf, exportExcel } from './exportService';
 import type { ExportData } from './exportService';
 import type { GameStore } from './gameStore';
@@ -69,6 +69,7 @@ export function requiredCategory(commandType: string): ActionCategory {
     case 'STOP_SHOT_CLOCK':
     case 'RESET_SHOT_CLOCK':
     case 'SET_SHOT_CLOCK_ENABLED':
+    case 'SET_SHOT_CLOCK_DURATION':
     case 'CLOCK_TICK':
     case 'START_TIMEOUT':
     case 'END_TIMEOUT':
@@ -111,6 +112,8 @@ export function requiredCategory(commandType: string): ActionCategory {
     case 'ADVANCE_PERIOD':
     case 'NEW_GAME':
     case 'SET_SPONSOR_LOGOS':
+    case 'LAYOUT_SAVE_FILE':
+    case 'LAYOUT_LOAD_FILE':
     case 'BACKUP_CREATE':
     case 'BACKUP_RESTORE':
     case 'BACKUP_SCHEDULE_SET':
@@ -484,6 +487,16 @@ export function createIpcRouter(
     const isInternalTick = command.type === 'CLOCK_TICK' || command.type === 'TIMEOUT_TICK';
     if (!isInternalTick && roleStore) {
       const senderId = _event.sender.id;
+      // Auto-trust the scoreboard display window — it is a local privileged
+      // window (same machine, same app), not an external user.  Register it
+      // as Admin the first time it sends a command so logo uploads and other
+      // SET_TEAM_CONFIG calls are not silently blocked by RBAC.
+      if (!sessionMap.has(senderId)) {
+        const sbWin = windowManager.getScoreboardWindow();
+        if (sbWin && !sbWin.isDestroyed() && sbWin.webContents.id === senderId) {
+          sessionMap.set(senderId, { userId: 'scoreboard-internal', username: 'scoreboard', role: 'Admin' });
+        }
+      }
       const session = sessionMap.get(senderId);
       const role: Role = session?.role ?? 'Viewer';
       const category = requiredCategory(command.type);
@@ -561,10 +574,12 @@ export function createIpcRouter(
       case 'START_SHOT_CLOCK':  clockEngine.startShotClock(); break;
       case 'STOP_SHOT_CLOCK':   clockEngine.stopShotClock();  break;
       case 'START_TIMEOUT':
+      case 'USE_VB_TIMEOUT':
         clockEngine.stopGameClock();
         clockEngine.stopShotClock();
         clockEngine.startTimeoutClock();
         break;
+
       case 'END_TIMEOUT':
         clockEngine.stopTimeoutClock();
         break;
@@ -666,12 +681,111 @@ export function createIpcRouter(
         windowManager.openScoreboard();
         // After opening, send current state to scoreboard
         const state = gameStore.getState();
-        setTimeout(() => broadcastState(state), 500);
+        setTimeout(() => {
+          broadcastState(state);
+          // Auto-trust the scoreboard window — it is a local privileged window,
+          // not an external user, so grant it Admin access so commands like
+          // SET_TEAM_CONFIG (logo upload) are not blocked by RBAC.
+          const sbWin = windowManager.getScoreboardWindow();
+          if (sbWin && !sbWin.isDestroyed()) {
+            sessionMap.set(sbWin.webContents.id, {
+              userId: 'scoreboard-internal',
+              username: 'scoreboard',
+              role: 'Admin',
+            });
+          }
+        }, 500);
         return { success: true };
+      }
+
+      // ── Scoreboard window fullscreen / windowed ──
+      case 'GET_WINDOW_STATE': {
+        const win = windowManager.getScoreboardWindow()
+        if (!win || win.isDestroyed()) return { isFullscreen: true }
+        return { isFullscreen: win.isFullScreen() }
+      }
+
+      case 'SET_WINDOW_FULLSCREEN': {
+        const win = windowManager.getScoreboardWindow()
+        if (win && !win.isDestroyed()) {
+          win.setAlwaysOnTop(false)
+          win.setSkipTaskbar(false)
+          win.setMovable(false)
+          win.setResizable(false)
+          // Exit any windowed state cleanly before going fullscreen
+          const { screen: electronScreen } = require('electron')
+          const winBounds = win.getBounds()
+          const targetDisplay = electronScreen.getDisplayNearestPoint({ x: winBounds.x + winBounds.width / 2, y: winBounds.y + winBounds.height / 2 })
+          // First snap to display bounds so fullscreen lands on the right screen
+          win.setFullScreen(false)
+          win.setBounds(targetDisplay.bounds, false)
+          setTimeout(() => {
+            if (!win.isDestroyed()) win.setFullScreen(true)
+          }, 200)
+        }
+        return { success: true }
+      }
+
+      case 'SET_WINDOW_WINDOWED': {
+        const win = windowManager.getScoreboardWindow()
+        if (win && !win.isDestroyed()) {
+          // Always clear fullscreen first
+          win.setFullScreen(false)
+          win.setAlwaysOnTop(false)
+          // Wait for fullscreen exit to complete, then set windowed state
+          const doWindowed = (): void => {
+            if (win.isDestroyed()) return
+            win.setMovable(true)
+            win.setResizable(true)
+            win.setSize(960, 540)
+            win.center()
+            win.setAlwaysOnTop(true, 'floating')
+          }
+          // Use longer delay on first call, win.once catches the OS event
+          win.once('leave-full-screen', () => {
+            setTimeout(doWindowed, 100)
+          })
+          // Fallback: if event doesn't fire (already windowed), run directly
+          setTimeout(() => {
+            if (!win.isDestroyed() && !win.isFullScreen()) doWindowed()
+          }, 500)
+        }
+        return { success: true }
+      }
+
+      // ── Layout file save/load ──
+      case 'LAYOUT_SAVE_FILE': {
+        const { layoutData, defaultName } = query as { layoutData: string; defaultName: string }
+        const { canceled, filePath } = await dialog.showSaveDialog({
+          title: 'Save Scoreboard Layout',
+          defaultPath: defaultName ?? 'scoreboard-layout.json',
+          filters: [{ name: 'Layout File', extensions: ['json'] }],
+        })
+        if (canceled || !filePath) return { success: false, canceled: true }
+        const { writeFile } = await import('fs/promises')
+        await writeFile(filePath, layoutData, 'utf-8')
+        return { success: true, filePath }
+      }
+
+      case 'LAYOUT_LOAD_FILE': {
+        const { canceled, filePaths } = await dialog.showOpenDialog({
+          title: 'Load Scoreboard Layout',
+          filters: [{ name: 'Layout File', extensions: ['json'] }],
+          properties: ['openFile'],
+        })
+        if (canceled || !filePaths[0]) return { success: false, canceled: true }
+        const { readFile } = await import('fs/promises')
+        const raw = await readFile(filePaths[0], 'utf-8')
+        return { success: true, layoutData: raw, filePath: filePaths[0] }
       }
 
       // ── Liga queries ──
       case 'LIGA_LIST': return ligaStore.listLigas();
+
+      case 'LIGA_DELETE': {
+        try { ligaStore.deleteLiga(query.id); return { success: true }; }
+        catch (e) { return { success: false, error: (e as Error).message }; }
+      }
 
       case 'LIGA_LOAD': {
         try { return { success: true, liga: ligaStore.loadLiga(query.id) }; }
@@ -763,7 +877,6 @@ export function createIpcRouter(
       }
 
       // ── Autosave queries ──
-      case 'AUTOSAVE_READ':  return autosaveStore.read();
       case 'AUTOSAVE_READ':  return autosaveStore.read();
       case 'AUTOSAVE_CLEAR': { autosaveStore.clear(); return { success: true }; }
       case 'GET_APP_PATH': { return { appPath: app.getAppPath() }; }
@@ -1317,7 +1430,7 @@ export function createIpcRouter(
         if (!bracketEngine) return { success: false, error: 'BracketEngine not available.' };
         try {
           const result = bracketEngine.autoSeed(query.tournamentId);
-          return { success: true, tournament: result.tournament };
+          return { success: true, seeds: result.tournament.seeds, tournament: result.tournament };
         } catch (e) { return { success: false, error: (e as Error).message }; }
       }
 
@@ -1325,7 +1438,7 @@ export function createIpcRouter(
         if (!bracketEngine) return { success: false, error: 'BracketEngine not available.' };
         try {
           const result = bracketEngine.manualSeed(query.tournamentId, query.teamIds);
-          return { success: true, tournament: result.tournament };
+          return { success: true, seeds: result.tournament.seeds, tournament: result.tournament };
         } catch (e) { return { success: false, error: (e as Error).message }; }
       }
 
@@ -1729,6 +1842,7 @@ export function createIpcRouter(
       }
 
       default: {
+        const _exhaustive: never = query as never;
         void _exhaustive;
         return { error: 'Unknown query type' };
       }

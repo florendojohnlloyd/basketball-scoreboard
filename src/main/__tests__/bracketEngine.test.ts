@@ -15,8 +15,6 @@ import { mkdirSync, rmSync, existsSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import type {
   Tournament,
-  TournamentSummary,
-  Liga,
   BracketFormat,
 } from '../../shared/types';
 
@@ -49,7 +47,7 @@ let testLigaId: string;
 beforeEach(() => {
   // Create clean test directory
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true });
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
   }
   mkdirSync(TEST_USER_DATA, { recursive: true });
 
@@ -63,7 +61,7 @@ beforeEach(() => {
 
 afterEach(() => {
   if (existsSync(TEST_USER_DATA)) {
-    rmSync(TEST_USER_DATA, { recursive: true, force: true });
+    try { rmSync(TEST_USER_DATA, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 }); } catch {}
   }
 });
 
@@ -477,7 +475,7 @@ describe('getActiveTournament', () => {
   });
 
   it('ignores completed and pending tournaments when finding active', () => {
-    const t1 = bracketEngine.createTournament(testLigaId, 'Pending', 'single-elimination');
+    bracketEngine.createTournament(testLigaId, 'Pending', 'single-elimination');
     const t2 = bracketEngine.createTournament(testLigaId, 'Completed', 'single-elimination');
 
     // Write t2 as completed
@@ -649,7 +647,7 @@ describe('autoSeed', () => {
   it('tiebreaker: point differential used when win/loss records are equal (Req 2.7)', () => {
     const team1 = ligaStore.addTeam(testLigaId, { name: 'Alpha', color: '#f00', logoPath: null, playerImagePath: null, players: [] });
     const team2 = ligaStore.addTeam(testLigaId, { name: 'Beta', color: '#0f0', logoPath: null, playerImagePath: null, players: [] });
-    const team3 = ligaStore.addTeam(testLigaId, { name: 'Gamma', color: '#00f', logoPath: null, playerImagePath: null, players: [] });
+    ligaStore.addTeam(testLigaId, { name: 'Gamma', color: '#00f', logoPath: null, playerImagePath: null, players: [] });
 
     // Each team wins one game vs a 4th team (not in this seeding set) — won't match
     // Instead, set up Alpha beats Gamma (big score), Beta beats Gamma (small score)

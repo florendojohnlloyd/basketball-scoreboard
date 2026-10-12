@@ -11,7 +11,7 @@ interface Sport {
 const SPORTS: Sport[] = [
   { id: 'basketball', name: 'Basketball', icon: '🏀', available: true },
   { id: 'badminton', name: 'Badminton', icon: '🏸', available: false },
-  { id: 'volleyball', name: 'Volleyball', icon: '🏐', available: false },
+  { id: 'volleyball', name: 'Volleyball', icon: '🏐', available: true },
   { id: 'sepak-takraw', name: 'Sepak Takraw', icon: '🦶', available: false },
   { id: 'table-tennis', name: 'Table Tennis', icon: '🏓', available: false },
 ]
@@ -45,7 +45,7 @@ export function SportSelector({ onSelectSport }: SportSelectorProps): React.Reac
         </div>
 
         <div className="sport-selector__footer">
-          V17.10 — BASKETBALL FULLY IMPLEMENTED. OTHERS COMING IN FUTURE UPDATES.
+          V17.10 — BASKETBALL & VOLLEYBALL FULLY IMPLEMENTED. OTHERS COMING IN FUTURE UPDATES.
         </div>
       </div>
     </div>

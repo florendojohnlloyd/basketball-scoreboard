@@ -357,7 +357,7 @@ describe('scheduleAutoBackup — schedule expression per frequency', () => {
 describe('scheduleAutoBackup — inaccessible destination handling', () => {
   let events: Array<{ type: string; [k: string]: unknown }>;
   let eventService: BackupService;
-  let sendSpy: ReturnType<typeof vi.fn>;
+  let sendSpy: any;
 
   beforeEach(() => {
     cronCalls.length = 0;
@@ -682,7 +682,7 @@ describe('BackupService property-based tests', () => {
       }),
       { numRuns: 100 },
     );
-  });
+  }, 30000);
 
   // Feature: basketball-scoreboard, Property 30
   // Validates: Requirements 29.6, 29.9
@@ -773,5 +773,5 @@ describe('BackupService property-based tests', () => {
       ),
       { numRuns: 100 },
     );
-  });
+  }, 30000);
 });

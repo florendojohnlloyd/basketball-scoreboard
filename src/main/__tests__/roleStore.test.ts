@@ -38,7 +38,7 @@ vi.mock('electron-store', () => {
 
 const HASH_PREFIX = '$2b$12$mockhash_';
 
-vi.mock('bcrypt', () => ({
+vi.mock('bcryptjs', () => ({
   hash: vi.fn(async (password: string, _saltRounds: number) => {
     // Produce a deterministic hash that is clearly NOT the plaintext
     return `${HASH_PREFIX}${Buffer.from(password).toString('base64')}`;

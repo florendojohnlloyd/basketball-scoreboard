@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 
 /**
  * BracketViewer unit tests
@@ -151,9 +151,15 @@ describe('BracketViewer', () => {
   })
 
   it('retries loading when retry button is clicked (Requirement 6.8)', async () => {
-    mockInvoke
-      .mockResolvedValueOnce({ success: false, error: 'Network error' })
-      .mockResolvedValueOnce({ success: true, tournament: mockTournament })
+    mockInvoke.mockImplementation((_channel: string, payload: any) => {
+      if (payload?.type === 'LIGA_LOAD') return Promise.resolve({ success: true, liga: { teams: [] } })
+      if (payload?.type === 'TOURNAMENT_LOAD') {
+        const callCount = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD').length
+        if (callCount === 1) return Promise.resolve({ success: false, error: 'Network error' })
+        return Promise.resolve({ success: true, tournament: mockTournament })
+      }
+      return Promise.resolve({ success: true })
+    })
     mockOn.mockImplementation(() => {})
 
     render(<BracketViewer tournamentId="t1" ligaId="liga1" />)
@@ -169,7 +175,8 @@ describe('BracketViewer', () => {
       expect(screen.getByText('Test Tournament')).toBeTruthy()
     })
 
-    expect(mockInvoke).toHaveBeenCalledTimes(2)
+    const tournamentCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+    expect(tournamentCalls.length).toBe(2)
   })
 
   it('renders error state when no tournament ID provided', async () => {
@@ -185,7 +192,10 @@ describe('BracketViewer', () => {
   })
 
   it('subscribes to SCOREBOARD_EVENT for bracket updates (Requirement 6.6)', () => {
-    mockInvoke.mockResolvedValue({ success: true, tournament: mockTournament })
+    mockInvoke.mockImplementation((_channel: string, payload: any) => {
+      if (payload?.type === 'LIGA_LOAD') return Promise.resolve({ success: true, liga: { teams: [] } })
+      return Promise.resolve({ success: true, tournament: mockTournament })
+    })
     mockOn.mockImplementation(() => {})
 
     render(<BracketViewer tournamentId="t1" ligaId="liga1" />)
@@ -194,26 +204,36 @@ describe('BracketViewer', () => {
   })
 
   it('refreshes tournament when BRACKET_UPDATE event is received (Requirement 6.6)', async () => {
-    let capturedHandler: ((event: unknown) => void) | null = null
+    let capturedHandler: any = null
     mockOn.mockImplementation((channel: string, handler: (event: unknown) => void) => {
       if (channel === SCOREBOARD_EVENT) {
         capturedHandler = handler
       }
     })
 
-    mockInvoke.mockResolvedValue({ success: true, tournament: mockTournament })
+    const updatedTournament = { ...mockTournament, name: 'Updated Tournament' }
+    mockInvoke.mockImplementation((_channel: string, payload: any) => {
+      if (payload?.type === 'LIGA_LOAD') return Promise.resolve({ success: true, liga: { teams: [] } })
+      if (payload?.type === 'TOURNAMENT_LOAD') {
+        const tournamentCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+        if (tournamentCalls.length > 1) {
+          return Promise.resolve({ success: true, tournament: updatedTournament })
+        }
+        return Promise.resolve({ success: true, tournament: mockTournament })
+      }
+      return Promise.resolve({ success: true })
+    })
+
     render(<BracketViewer tournamentId="t1" ligaId="liga1" />)
 
     await waitFor(() => {
       expect(screen.getByText('Test Tournament')).toBeTruthy()
     })
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1)
+    const initialCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+    expect(initialCalls.length).toBe(1)
 
     // Simulate BRACKET_UPDATE event for this tournament
-    const updatedTournament = { ...mockTournament, name: 'Updated Tournament' }
-    mockInvoke.mockResolvedValueOnce({ success: true, tournament: updatedTournament })
-
     if (capturedHandler) {
       capturedHandler({ type: 'BRACKET_UPDATE', tournamentId: 't1' })
     }
@@ -222,25 +242,30 @@ describe('BracketViewer', () => {
       expect(screen.getByText('Updated Tournament')).toBeTruthy()
     })
 
-    expect(mockInvoke).toHaveBeenCalledTimes(2)
+    const finalCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+    expect(finalCalls.length).toBe(2)
   })
 
   it('ignores BRACKET_UPDATE events for different tournaments', async () => {
-    let capturedHandler: ((event: unknown) => void) | null = null
+    let capturedHandler: any = null
     mockOn.mockImplementation((channel: string, handler: (event: unknown) => void) => {
       if (channel === SCOREBOARD_EVENT) {
         capturedHandler = handler
       }
     })
 
-    mockInvoke.mockResolvedValue({ success: true, tournament: mockTournament })
+    mockInvoke.mockImplementation((_channel: string, payload: any) => {
+      if (payload?.type === 'LIGA_LOAD') return Promise.resolve({ success: true, liga: { teams: [] } })
+      return Promise.resolve({ success: true, tournament: mockTournament })
+    })
     render(<BracketViewer tournamentId="t1" ligaId="liga1" />)
 
     await waitFor(() => {
       expect(screen.getByText('Test Tournament')).toBeTruthy()
     })
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1)
+    const initialCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+    expect(initialCalls.length).toBe(1)
 
     // Simulate bracket update event for a different tournament
     if (capturedHandler) {
@@ -250,7 +275,8 @@ describe('BracketViewer', () => {
     // Wait briefly to ensure no additional IPC call is made
     await new Promise(resolve => setTimeout(resolve, 50))
 
-    expect(mockInvoke).toHaveBeenCalledTimes(1) // No additional calls
+    const finalCalls = mockInvoke.mock.calls.filter(([_, p]) => p?.type === 'TOURNAMENT_LOAD')
+    expect(finalCalls.length).toBe(1) // No additional calls
   })
 
   it('delegates to single-elimination sub-component based on format', async () => {

@@ -43,6 +43,7 @@ export interface LigaStore {
   loadLiga(id: string): Liga;
   saveLiga(liga: Liga): void;
   createLiga(name: string, year: number): Liga;
+  deleteLiga(id: string): void;
   addTeam(ligaId: string, team: Omit<LigaTeam, 'id' | 'createdAt'>): LigaTeam;
   updateTeam(ligaId: string, teamId: string, updates: Partial<Omit<LigaTeam, 'id' | 'createdAt'>>): void;
   removeTeam(ligaId: string, teamId: string): void;
@@ -130,6 +131,14 @@ export function createLigaStore(): LigaStore {
       };
       writeLigaFile(liga);
       return liga;
+    },
+
+    deleteLiga(id: string): void {
+      try {
+        const { unlinkSync, existsSync } = require('fs')
+        const path = ligaPath(id)
+        if (existsSync(path)) unlinkSync(path)
+      } catch { /* ignore — file may not exist */ }
     },
 
     addTeam(ligaId: string, team: Omit<LigaTeam, 'id' | 'createdAt'>): LigaTeam {

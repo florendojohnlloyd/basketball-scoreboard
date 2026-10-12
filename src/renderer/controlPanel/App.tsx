@@ -503,6 +503,7 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
     <>
       <ControlPanel
         onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')}
+        onSelectSportScreen={() => setScreen('sport-selector')}
         ligaId={currentLiga?.id ?? null}
         ligaName={currentLiga?.name ?? null}
         onSelectLiga={(liga) => setCurrentLiga(liga)}
@@ -510,6 +511,7 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
         refreshLigas={refreshLigas}
         selectedSport={selectedSport}
       />
+
       {/* Save Game Log Prompt (Requirement 18) */}
       {savePrompt && (
         <div className="sub-modal" role="dialog" aria-label="Save game log">
@@ -550,6 +552,7 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
 // ---------------------------------------------------------------------------
 function ControlPanel({
   onBack,
+  onSelectSportScreen,
   ligaId,
   ligaName,
   onSelectLiga,
@@ -558,6 +561,7 @@ function ControlPanel({
   selectedSport,
 }: {
   onBack: () => void
+  onSelectSportScreen?: () => void
   ligaId: string | null
   ligaName?: string | null
   onSelectLiga: (liga: Liga) => void
@@ -637,13 +641,18 @@ function ControlPanel({
           style={{ color: '#f0a020', fontWeight: 900 }}
           onClick={() => {
             if (confirm('Return to Sport Selection? Game progress will be kept.')) {
-              window.location.reload()
+              if (onSelectSportScreen) {
+                onSelectSportScreen()
+              } else {
+                window.location.reload()
+              }
             }
           }}
         >
           🏀 SELECT SPORT
         </button>
       </div>
+
 
       {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (

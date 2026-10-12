@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useScoreboardStore } from '../store'
 import { SCOREBOARD_EVENT } from '@shared/types'
+import { getImageUrl } from '../../shared/imageUtils'
 import './TeamSection.css'
 
 export interface TeamSectionProps {
@@ -32,12 +33,12 @@ function PlayerPhoto({
   playerName: string
 }): React.ReactElement {
   const [src, setSrc] = useState<string>(() =>
-    photoPath ? `local-file:///${photoPath.replace(/\\/g, '/')}` : SILHOUETTE_SRC
+    photoPath ? getImageUrl(photoPath) : SILHOUETTE_SRC
   )
 
   useEffect(() => {
     setSrc(
-      photoPath ? `local-file:///${photoPath.replace(/\\/g, '/')}` : SILHOUETTE_SRC
+      photoPath ? getImageUrl(photoPath) : SILHOUETTE_SRC
     )
   }, [photoPath])
 
@@ -98,7 +99,7 @@ function TeamSection({ team }: TeamSectionProps): React.ReactElement {
           {config.logoPath ? (
             <img
               className="ts__logo"
-              src={`local-file:///${config.logoPath.replace(/\\/g, '/')}`}
+              src={getImageUrl(config.logoPath)}
               alt={`${config.name} logo`}
               draggable={false}
             />

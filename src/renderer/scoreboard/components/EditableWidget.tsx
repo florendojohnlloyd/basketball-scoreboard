@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import React, { useRef, useState, useEffect, useLayoutEffect, useCallback } from 'react'
 import type { WidgetRect } from '../tvLayoutStore'
 import './EditableWidget.css'
 
@@ -7,11 +7,16 @@ interface EditableWidgetProps {
   rect: WidgetRect
   editing: boolean
   onUpdate: (id: string, partial: Partial<WidgetRect>) => void
+  onRemove?: (id: string) => void
   children: React.ReactNode
   label?: string
 }
 
-export function EditableWidget({ id, rect, editing, onUpdate, children, label }: EditableWidgetProps): React.ReactElement {
+const FONT_SCALE_MIN = 0.4
+const FONT_SCALE_MAX = 4
+const FONT_SCALE_STEP = 0.1
+
+export function EditableWidget({ id, rect, editing, onUpdate, onRemove, children, label }: EditableWidgetProps): React.ReactElement | null {
   const safeRect = rect || { x: 0, y: 0, w: 10, h: 8 }
   const containerRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState(false)
@@ -117,6 +122,44 @@ export function EditableWidget({ id, rect, editing, onUpdate, children, label }:
     }
   }, [dragging, resizing, id, onUpdate])
 
+  const fontScale = safeRect.fontScale ?? 1
+  const hidden = safeRect.hidden === true
+
+  // Track parent pixel size in state so any change triggers a re-render
+  const [parentSize, setParentSize] = useState({ pw: window.innerWidth, ph: window.innerHeight })
+
+  useLayoutEffect(() => {
+    const parent = containerRef.current?.parentElement
+    if (!parent) return
+    // Set immediately so first render has correct size
+    setParentSize({ pw: parent.clientWidth, ph: parent.clientHeight })
+    const ro = new ResizeObserver(() => {
+      setParentSize({ pw: parent.clientWidth, ph: parent.clientHeight })
+    })
+    ro.observe(parent)
+    return () => ro.disconnect()
+  }, [])
+
+  // Compute font size every render — immediate response to w/h/fontScale/parentSize changes
+  const computedFontPx = (() => {
+    const widgetW = (safeRect.w / 100) * parentSize.pw
+    const widgetH = (safeRect.h / 100) * parentSize.ph
+    const px = Math.min(widgetW, widgetH) * 0.55 * (safeRect.fontScale ?? 1)
+    return Math.max(8, Math.min(px, 400))
+  })()
+
+  const handleRemove = useCallback((e: React.SyntheticEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onRemove?.(id)
+  }, [id, onRemove])
+
+  const changeFontScale = useCallback((delta: number) => {
+    const current = (rect?.fontScale ?? 1)
+    const next = Math.round(Math.max(FONT_SCALE_MIN, Math.min(FONT_SCALE_MAX, current + delta)) * 10) / 10
+    onUpdate(id, { fontScale: next })
+  }, [id, rect, onUpdate])
+
   const style: React.CSSProperties = {
     position: 'absolute',
     left: `${safeRect.x}%`,
@@ -125,19 +168,71 @@ export function EditableWidget({ id, rect, editing, onUpdate, children, label }:
     height: `${safeRect.h}%`,
   }
 
+  const contentStyle: React.CSSProperties = {
+    '--ew-font-scale': fontScale,
+    '--ew-font-px': `${computedFontPx}px`,
+    fontSize: `${computedFontPx}px`,
+  } as React.CSSProperties
+
+  // When removed and NOT editing, don't render at all.
+  if (hidden && !editing) return null
+
   return (
     <div
       ref={containerRef}
-      className={`ew ${editing ? 'ew--editing' : ''} ${dragging ? 'ew--dragging' : ''}`}
+      className={`ew ${editing ? 'ew--editing' : ''} ${dragging ? 'ew--dragging' : ''} ${hidden ? 'ew--hidden' : ''}`}
       style={style}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
     >
       {editing && label && <span className="ew__label">{label}</span>}
-      <div className="ew__content">
+      {editing && (
+        <div className="ew__font-controls">
+          <button
+            type="button"
+            className="ew__font-btn"
+            title="Liitan ang text"
+            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); changeFontScale(-FONT_SCALE_STEP) }}
+            onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); changeFontScale(-FONT_SCALE_STEP) }}
+          >A−</button>
+          <span className="ew__font-value">{Math.round(fontScale * 100)}%</span>
+          <button
+            type="button"
+            className="ew__font-btn"
+            title="Lakihan ang text"
+            onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); changeFontScale(FONT_SCALE_STEP) }}
+            onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); changeFontScale(FONT_SCALE_STEP) }}
+          >A+</button>
+          <button
+            type="button"
+            className="ew__remove-btn"
+            title={hidden ? 'Click to show this element again' : 'Hide this element (can undo)'}
+            onMouseDown={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              if (hidden) {
+                // Unhide — set hidden: false directly
+                onUpdate(id, { hidden: false })
+              } else {
+                onRemove?.(id)
+              }
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              if (hidden) {
+                onUpdate(id, { hidden: false })
+              } else {
+                onRemove?.(id)
+              }
+            }}
+          >{hidden ? '👁 Show' : '×'}</button>
+        </div>
+      )}
+      <div className="ew__content" style={contentStyle}>
         {children}
       </div>
-      {editing && (
+      {editing && !hidden && (
         <div
           className="ew__resize"
           onMouseDown={onResizeMouseDown}
