@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useControlPanelStore, sendCommand } from '../store'
 import { TimeoutSettings } from './TimeoutSettings'
+import VolleyballBoxScore from './VolleyballBoxScore'
 import sponsorLogo from '../../../../pictures/white.png'
 
 interface VolleyballScoreTabProps {
@@ -19,9 +20,37 @@ export function VolleyballScoreTab({
 }: VolleyballScoreTabProps): React.ReactElement {
   const gs = useControlPanelStore(s => s.gameState)
   const { home, away, volleyball } = gs
+  const [showBoxScore, setShowBoxScore] = useState(false)
 
   if (!volleyball) {
     return <div style={{ padding: '20px', color: '#d0dce8' }}>Volleyball state not initialized</div>
+  }
+
+  if (showBoxScore) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--cp-bg)', padding: '10px' }}>
+        <button
+          style={{
+            alignSelf: 'flex-start',
+            padding: '10px 20px',
+            background: 'var(--btn-ctrl)',
+            color: '#fff',
+            border: '2px solid var(--btn-ctrl-bdr)',
+            borderRadius: 'var(--r-md)',
+            fontSize: '1rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            marginBottom: '10px',
+          }}
+          onClick={() => setShowBoxScore(false)}
+        >
+          ← BACK TO SCORE PANEL
+        </button>
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <VolleyballBoxScore />
+        </div>
+      </div>
+    )
   }
 
   const { currentSet, setsWon, timeoutsUsed, servingTeam } = volleyball
@@ -118,8 +147,185 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: TOUCH SCORE CONTROLS (+ / -) & SERVING (Flex 1.3) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.3, minHeight: 0 }}>
+      {/* ── ROW 2: PLAYER SELECTION & STATS (Flex 1.2) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.2, minHeight: 0 }}>
+        {/* Home Players */}
+        <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--led-amber)', textAlign: 'center' }}>HOME PLAYERS</div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+            {home.players.filter(p => p.active).map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'home', id: p.id })}
+                style={{
+                  padding: '8px 12px',
+                  background: selectedPlayer?.id === p.id ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
+                  color: p.fouledOut ? '#888' : '#fff',
+                  border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid var(--btn-ctrl-bdr)',
+                  borderRadius: 'var(--r-sm)',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: p.fouledOut ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  opacity: p.fouledOut ? 0.5 : 1,
+                }}
+                disabled={p.fouledOut}
+              >
+                <span>#{p.number} {p.name} {p.fouledOut && '❌'}</span>
+                <span style={{ fontSize: '0.85rem', color: p.fouls >= 4 ? '#ff6b6b' : p.fouls >= 3 ? '#ffaa44' : 'var(--text-muted)' }}>
+                  {p.points}pts | {p.fouls}F
+                </span>
+              </button>
+            ))}
+            {home.players.filter(p => p.active).length === 0 && (
+              <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+                No active players. Add players in ROSTER tab.
+              </div>
+            )}
+          </div>
+          
+          {/* Foul & Stats Buttons for Selected HOME Player */}
+          {selectedPlayer?.team === 'home' && (
+            <div style={{ borderTop: '1px solid #334466', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 600 }}>
+                {home.players.find(p => p.id === selectedPlayer.id)?.name} - Quick Stats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <button
+                  style={{ padding: '8px', background: '#ff6b6b', color: '#fff', border: '1px solid #ff4444', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'home', playerId: selectedPlayer.id })}
+                >
+                  +FOUL
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#666', color: '#fff', border: '1px solid #555', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'SUBTRACT_PLAYER_FOUL', team: 'home', playerId: selectedPlayer.id })}
+                  disabled={home.players.find(p => p.id === selectedPlayer.id)?.fouls === 0}
+                >
+                  -FOUL
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#4CAF50', color: '#fff', border: '1px solid #45a049', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'blocks' })}
+                >
+                  🛡 BLOCK
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#2196F3', color: '#fff', border: '1px solid #1976D2', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'assists' })}
+                >
+                  🏐 ACE
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#FF9800', color: '#fff', border: '1px solid #F57C00', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'rebounds' })}
+                >
+                  ⛏ DIG
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#9C27B0', color: '#fff', border: '1px solid #7B1FA2', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'steals' })}
+                >
+                  🤝 ASSIST
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Away Players */}
+        <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--led-amber)', textAlign: 'center' }}>AWAY PLAYERS</div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+            {away.players.filter(p => p.active).map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'away', id: p.id })}
+                style={{
+                  padding: '8px 12px',
+                  background: selectedPlayer?.id === p.id ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
+                  color: p.fouledOut ? '#888' : '#fff',
+                  border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid var(--btn-ctrl-bdr)',
+                  borderRadius: 'var(--r-sm)',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: p.fouledOut ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  opacity: p.fouledOut ? 0.5 : 1,
+                }}
+                disabled={p.fouledOut}
+              >
+                <span>#{p.number} {p.name} {p.fouledOut && '❌'}</span>
+                <span style={{ fontSize: '0.85rem', color: p.fouls >= 4 ? '#ff6b6b' : p.fouls >= 3 ? '#ffaa44' : 'var(--text-muted)' }}>
+                  {p.points}pts | {p.fouls}F
+                </span>
+              </button>
+            ))}
+            {away.players.filter(p => p.active).length === 0 && (
+              <div style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center' }}>
+                No active players. Add players in ROSTER tab.
+              </div>
+            )}
+          </div>
+          
+          {/* Foul & Stats Buttons for Selected AWAY Player */}
+          {selectedPlayer?.team === 'away' && (
+            <div style={{ borderTop: '1px solid #334466', paddingTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center', fontWeight: 600 }}>
+                {away.players.find(p => p.id === selectedPlayer.id)?.name} - Quick Stats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <button
+                  style={{ padding: '8px', background: '#ff6b6b', color: '#fff', border: '1px solid #ff4444', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'away', playerId: selectedPlayer.id })}
+                >
+                  +FOUL
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#666', color: '#fff', border: '1px solid #555', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'SUBTRACT_PLAYER_FOUL', team: 'away', playerId: selectedPlayer.id })}
+                  disabled={away.players.find(p => p.id === selectedPlayer.id)?.fouls === 0}
+                >
+                  -FOUL
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#4CAF50', color: '#fff', border: '1px solid #45a049', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'blocks' })}
+                >
+                  🛡 BLOCK
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#2196F3', color: '#fff', border: '1px solid #1976D2', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'assists' })}
+                >
+                  🏐 ACE
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#FF9800', color: '#fff', border: '1px solid #F57C00', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'rebounds' })}
+                >
+                  ⛏ DIG
+                </button>
+                <button
+                  style={{ padding: '8px', background: '#9C27B0', color: '#fff', border: '1px solid #7B1FA2', borderRadius: 'var(--r-sm)', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'steals' })}
+                >
+                  🤝 ASSIST
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── ROW 3: TOUCH SCORE CONTROLS (+ / -) & SERVING (Flex 1.0) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.0, minHeight: 0 }}>
         {/* Home Controls Box */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
           <button
@@ -163,10 +369,15 @@ export function VolleyballScoreTab({
                 touchAction: 'manipulation',
                 boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
               }}
-              onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'home' })}
+              onClick={() => {
+                if (selectedPlayer && selectedPlayer.team === 'home') {
+                  sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'home', playerId: selectedPlayer.id, points: 1 })
+                }
+                sendCommand({ type: 'ADD_VB_POINT', team: 'home' })
+              }}
             >
               <span style={{ fontSize: '2.8rem' }}>+</span>
-              <span>POINT HOME</span>
+              <span>{selectedPlayer?.team === 'home' ? 'POINT ' + home.players.find(p => p.id === selectedPlayer.id)?.name?.split(' ')[0] : 'POINT HOME'}</span>
             </button>
             <button
               className="vb-btn vb-btn--subtract"
@@ -240,10 +451,15 @@ export function VolleyballScoreTab({
                 touchAction: 'manipulation',
                 boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
               }}
-              onClick={() => sendCommand({ type: 'ADD_VB_POINT', team: 'away' })}
+              onClick={() => {
+                if (selectedPlayer && selectedPlayer.team === 'away') {
+                  sendCommand({ type: 'ADD_PLAYER_POINTS', team: 'away', playerId: selectedPlayer.id, points: 1 })
+                }
+                sendCommand({ type: 'ADD_VB_POINT', team: 'away' })
+              }}
             >
               <span style={{ fontSize: '2.8rem' }}>+</span>
-              <span>POINT AWAY</span>
+              <span>{selectedPlayer?.team === 'away' ? 'POINT ' + away.players.find(p => p.id === selectedPlayer.id)?.name?.split(' ')[0] : 'POINT AWAY'}</span>
             </button>
             <button
               className="vb-btn vb-btn--subtract"
@@ -302,8 +518,8 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.9 - NO HORN) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '12px', flex: 0.9, minHeight: 0 }}>
+      {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.9) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px', flex: 0.9, minHeight: 0 }}>
         <button
           className="vb-btn vb-btn--advance"
           style={{ height: '100%', minHeight: '60px', padding: '14px 6px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: 'var(--r-md)', fontSize: '1.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
@@ -326,6 +542,15 @@ export function VolleyballScoreTab({
           onClick={() => sendCommand({ type: 'UNDO' })}
         >
           ↶ UNDO
+        </button>
+
+        <button
+          className="vb-btn"
+          style={{ height: '100%', minHeight: '60px', padding: '14px 6px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: 'var(--r-md)', fontSize: '1.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => setShowBoxScore(true)}
+          title="View Player Statistics Box Score"
+        >
+          📊 STATS
         </button>
 
         <button
