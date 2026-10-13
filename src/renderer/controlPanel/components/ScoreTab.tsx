@@ -251,23 +251,35 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.7) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.7, minHeight: 0 }}>
+      {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.65) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.65, minHeight: 0 }}>
         {/* Home Players */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>HOME PLAYERS</div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto', 
+            overflowX: 'hidden',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '4px', 
+            minHeight: 0,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#fcd34d #1e2638'
+          }}>
             {home.players.filter(p => p.active).map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'home', id: p.id })}
                 style={{
-                  padding: '6px 10px',
+                  padding: '10px 12px',
+                  minHeight: '50px',
                   background: selectedPlayer?.id === p.id ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
                   color: p.fouledOut ? '#666' : '#fff',
                   border: selectedPlayer?.id === p.id ? '2px solid #fcd34d' : '1px solid #3a4866',
                   borderRadius: '8px',
-                  fontSize: '0.85rem',
+                  fontSize: '0.9rem',
                   fontWeight: 700,
                   cursor: p.fouledOut ? 'not-allowed' : 'pointer',
                   textAlign: 'left',
@@ -275,6 +287,9 @@ export function ScoreTab({
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   opacity: p.fouledOut ? 0.4 : 1,
+                  touchAction: 'manipulation',
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
                 disabled={p.fouledOut}
               >
@@ -342,18 +357,30 @@ export function ScoreTab({
         {/* Away Players */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>AWAY PLAYERS</div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '4px', 
+            minHeight: 0,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#fcd34d #1e2638'
+          }}>
             {away.players.filter(p => p.active).map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'away', id: p.id })}
                 style={{
-                  padding: '6px 10px',
+                  padding: '10px 12px',
+                  minHeight: '50px',
                   background: selectedPlayer?.id === p.id ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
                   color: p.fouledOut ? '#666' : '#fff',
                   border: selectedPlayer?.id === p.id ? '2px solid #fcd34d' : '1px solid #3a4866',
                   borderRadius: '8px',
-                  fontSize: '0.85rem',
+                  fontSize: '0.9rem',
                   fontWeight: 700,
                   cursor: p.fouledOut ? 'not-allowed' : 'pointer',
                   textAlign: 'left',
@@ -361,6 +388,9 @@ export function ScoreTab({
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   opacity: p.fouledOut ? 0.4 : 1,
+                  touchAction: 'manipulation',
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
                 disabled={p.fouledOut}
               >
@@ -426,8 +456,8 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 1.0) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.0, minHeight: 0 }}>
+      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 0.9) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.9, minHeight: 0 }}>
         {/* Home Controls Box */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
           <button

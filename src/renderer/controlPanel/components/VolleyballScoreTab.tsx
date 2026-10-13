@@ -147,18 +147,30 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: PLAYER SELECTION & STATS (Flex 0.8) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.8, minHeight: 0 }}>
+      {/* ── ROW 2: PLAYER SELECTION & STATS (Flex 0.7) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.7, minHeight: 0 }}>
         {/* Home Players */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--led-amber)', textAlign: 'center' }}>HOME PLAYERS</div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '4px', 
+            minHeight: 0,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#ffaa00 #1a2030'
+          }}>
             {home.players.filter(p => p.active).map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'home', id: p.id })}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 12px',
+                  minHeight: '50px',
                   background: selectedPlayer?.id === p.id ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
                   color: p.fouledOut ? '#888' : '#fff',
                   border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid var(--btn-ctrl-bdr)',
@@ -171,6 +183,9 @@ export function VolleyballScoreTab({
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   opacity: p.fouledOut ? 0.5 : 1,
+                  touchAction: 'manipulation',
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
                 disabled={p.fouledOut}
               >
@@ -239,13 +254,25 @@ export function VolleyballScoreTab({
         {/* Away Players */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--led-amber)', textAlign: 'center' }}>AWAY PLAYERS</div>
-          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+          <div style={{ 
+            flex: 1, 
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '4px', 
+            minHeight: 0,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#ffaa00 #1a2030'
+          }}>
             {away.players.filter(p => p.active).map(p => (
               <button
                 key={p.id}
                 onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'away', id: p.id })}
                 style={{
-                  padding: '8px 12px',
+                  padding: '10px 12px',
+                  minHeight: '50px',
                   background: selectedPlayer?.id === p.id ? 'var(--btn-amber)' : 'var(--btn-ctrl)',
                   color: p.fouledOut ? '#888' : '#fff',
                   border: selectedPlayer?.id === p.id ? '2px solid var(--accent-gold)' : '1px solid var(--btn-ctrl-bdr)',
@@ -258,6 +285,9 @@ export function VolleyballScoreTab({
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   opacity: p.fouledOut ? 0.5 : 1,
+                  touchAction: 'manipulation',
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
                 disabled={p.fouledOut}
               >
