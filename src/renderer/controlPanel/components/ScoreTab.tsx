@@ -251,8 +251,183 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 1.4) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.4, minHeight: 0 }}>
+      {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.7) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.7, minHeight: 0 }}>
+        {/* Home Players */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>HOME PLAYERS</div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+            {home.players.filter(p => p.active).map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'home', id: p.id })}
+                style={{
+                  padding: '6px 10px',
+                  background: selectedPlayer?.id === p.id ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
+                  color: p.fouledOut ? '#666' : '#fff',
+                  border: selectedPlayer?.id === p.id ? '2px solid #fcd34d' : '1px solid #3a4866',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: p.fouledOut ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  opacity: p.fouledOut ? 0.4 : 1,
+                }}
+                disabled={p.fouledOut}
+              >
+                <span>#{p.number} {p.name} {p.fouledOut && '❌'}</span>
+                <span style={{ fontSize: '0.75rem', color: p.fouls >= 5 ? '#ff4444' : p.fouls >= 4 ? '#ffaa44' : '#aaa' }}>
+                  {p.points}pts | {p.fouls}F
+                </span>
+              </button>
+            ))}
+            {home.players.filter(p => p.active).length === 0 && (
+              <div style={{ padding: '10px', color: '#666', fontSize: '0.8rem', textAlign: 'center' }}>
+                No active players. Add in ROSTER tab.
+              </div>
+            )}
+          </div>
+          
+          {/* Basketball Stats Buttons for Selected HOME Player */}
+          {selectedPlayer?.team === 'home' && (
+            <div style={{ borderTop: '1px solid #2a3447', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600 }}>
+                {home.players.find(p => p.id === selectedPlayer.id)?.name} - Stats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                <button
+                  style={{ padding: '6px', background: '#ff4444', color: '#fff', border: '1px solid #ff6666', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'home', playerId: selectedPlayer.id })}
+                >
+                  +FOUL
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#4CAF50', color: '#fff', border: '1px solid #66BB6A', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'rebounds' })}
+                >
+                  +REB
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#2196F3', color: '#fff', border: '1px solid #42A5F5', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'assists' })}
+                >
+                  +AST
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#FF9800', color: '#fff', border: '1px solid #FFA726', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'steals' })}
+                >
+                  +STL
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#9C27B0', color: '#fff', border: '1px solid #BA68C8', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'blocks' })}
+                >
+                  +BLK
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#607D8B', color: '#fff', border: '1px solid #78909C', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: selectedPlayer.id, stat: 'fgm' })}
+                >
+                  +FGM
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Away Players */}
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>AWAY PLAYERS</div>
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px', minHeight: 0 }}>
+            {away.players.filter(p => p.active).map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPlayer(selectedPlayer?.id === p.id ? null : { team: 'away', id: p.id })}
+                style={{
+                  padding: '6px 10px',
+                  background: selectedPlayer?.id === p.id ? 'linear-gradient(180deg, #d97706 0%, #92400e 100%)' : '#1e2638',
+                  color: p.fouledOut ? '#666' : '#fff',
+                  border: selectedPlayer?.id === p.id ? '2px solid #fcd34d' : '1px solid #3a4866',
+                  borderRadius: '8px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: p.fouledOut ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  opacity: p.fouledOut ? 0.4 : 1,
+                }}
+                disabled={p.fouledOut}
+              >
+                <span>#{p.number} {p.name} {p.fouledOut && '❌'}</span>
+                <span style={{ fontSize: '0.75rem', color: p.fouls >= 5 ? '#ff4444' : p.fouls >= 4 ? '#ffaa44' : '#aaa' }}>
+                  {p.points}pts | {p.fouls}F
+                </span>
+              </button>
+            ))}
+            {away.players.filter(p => p.active).length === 0 && (
+              <div style={{ padding: '10px', color: '#666', fontSize: '0.8rem', textAlign: 'center' }}>
+                No active players. Add in ROSTER tab.
+              </div>
+            )}
+          </div>
+          
+          {/* Basketball Stats Buttons for Selected AWAY Player */}
+          {selectedPlayer?.team === 'away' && (
+            <div style={{ borderTop: '1px solid #2a3447', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600 }}>
+                {away.players.find(p => p.id === selectedPlayer.id)?.name} - Stats
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
+                <button
+                  style={{ padding: '6px', background: '#ff4444', color: '#fff', border: '1px solid #ff6666', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_FOUL', team: 'away', playerId: selectedPlayer.id })}
+                >
+                  +FOUL
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#4CAF50', color: '#fff', border: '1px solid #66BB6A', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'rebounds' })}
+                >
+                  +REB
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#2196F3', color: '#fff', border: '1px solid #42A5F5', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'assists' })}
+                >
+                  +AST
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#FF9800', color: '#fff', border: '1px solid #FFA726', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'steals' })}
+                >
+                  +STL
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#9C27B0', color: '#fff', border: '1px solid #BA68C8', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'blocks' })}
+                >
+                  +BLK
+                </button>
+                <button
+                  style={{ padding: '6px', background: '#607D8B', color: '#fff', border: '1px solid #78909C', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: selectedPlayer.id, stat: 'fgm' })}
+                >
+                  +FGM
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 1.0) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.0, minHeight: 0 }}>
         {/* Home Controls Box */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
           <button

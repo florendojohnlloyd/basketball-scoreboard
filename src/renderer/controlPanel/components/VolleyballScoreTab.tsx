@@ -147,8 +147,8 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: PLAYER SELECTION & STATS (Flex 1.2) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 1.2, minHeight: 0 }}>
+      {/* ── ROW 2: PLAYER SELECTION & STATS (Flex 0.8) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.8, minHeight: 0 }}>
         {/* Home Players */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <div style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--led-amber)', textAlign: 'center' }}>HOME PLAYERS</div>
