@@ -483,21 +483,21 @@ export function ScoreTab({
             {/* Point Buttons +3, +2, +1 */}
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('home', 3)}
             >
               +3
             </button>
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('home', 2)}
             >
               +2
             </button>
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('home', 1)}
             >
               +1
@@ -506,7 +506,7 @@ export function ScoreTab({
             {/* Minus 1 Point */}
             <button
               className="btn"
-              style={{ width: '85px', height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ width: '85px', height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'SUBTRACT_SCORE', team: 'home' })}
               disabled={home.score <= 0}
               title="Minus 1 Home Score"
@@ -519,14 +519,14 @@ export function ScoreTab({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               className="btn"
-              style={{ flex: 1, padding: '10px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, padding: '8px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}
             >
               + FOUL (H)
             </button>
             <button
               className="btn"
-              style={{ flex: 1, padding: '10px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, padding: '8px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'home' })}
               disabled={home.fouls <= 0}
             >
@@ -560,21 +560,21 @@ export function ScoreTab({
             {/* Point Buttons +3, +2, +1 */}
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('away', 3)}
             >
               +3
             </button>
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)', color: '#fff', border: '3px solid #34d399', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('away', 2)}
             >
               +2
             </button>
             <button
               className="btn"
-              style={{ flex: 1, height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#fff', border: '3px solid #fbbf24', borderRadius: '10px', fontSize: '2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => handleAddPoints('away', 1)}
             >
               +1
@@ -583,7 +583,7 @@ export function ScoreTab({
             {/* Minus 1 Point */}
             <button
               className="btn"
-              style={{ width: '85px', height: '100%', minHeight: '75px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.4rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ width: '85px', height: '100%', minHeight: '60px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '3px solid #f87171', borderRadius: '10px', fontSize: '2.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'SUBTRACT_SCORE', team: 'away' })}
               disabled={away.score <= 0}
               title="Minus 1 Away Score"
@@ -596,14 +596,14 @@ export function ScoreTab({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               className="btn"
-              style={{ flex: 1, padding: '10px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, padding: '8px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'away' })}
             >
               + FOUL (A)
             </button>
             <button
               className="btn"
-              style={{ flex: 1, padding: '10px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', touchAction: 'manipulation' }}
+              style={{ flex: 1, padding: '8px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
               onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}
               disabled={away.fouls <= 0}
             >
