@@ -684,7 +684,7 @@ export function ScoreTab({
       </div>
 
       {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.4) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', flex: 0.4, minHeight: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '10px', flex: 0.4, minHeight: 0 }}>
         <button
           className="btn"
           style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
@@ -735,6 +735,15 @@ export function ScoreTab({
           title="Open Shot Clock TV Display"
         >
           ⏱ SHOT TV
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: 'linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%)', color: '#fff', border: '2px solid #a78bfa', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => onTabChange('BOXSCORE')}
+          title="View Player Statistics & Export"
+        >
+          📊 STATS
         </button>
 
         <button
