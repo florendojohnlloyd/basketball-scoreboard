@@ -613,27 +613,27 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 3: SHOT CLOCK & TIMEOUTS BAR (Flex 1) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '14px', flex: 1, minHeight: 0 }}>
+      {/* ── ROW 3: SHOT CLOCK & TIMEOUTS BAR (Flex 0.3) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 1fr', gap: '14px', flex: 0.3, minHeight: 0 }}>
         {/* Shot Clock Controls (24s, 14s, Reset, SHOT ON/OFF) */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', gap: '8px', border: '2px solid #2a3447', alignItems: 'center' }}>
           <button
             className="btn"
-            style={{ flex: 1, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            style={{ flex: 1, height: '100%', minHeight: '50px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
             onClick={() => sendCommand({ type: 'SET_SHOT_CLOCK_DURATION', seconds: 24 })}
           >
             24s
           </button>
           <button
             className="btn"
-            style={{ flex: 1, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            style={{ flex: 1, height: '100%', minHeight: '50px', background: '#1e2638', color: '#fff', border: '2px solid #3b82f6', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
             onClick={() => sendCommand({ type: 'SET_SHOT_CLOCK_DURATION', seconds: 14 })}
           >
             14s
           </button>
           <button
             className="btn"
-            style={{ flex: 1.2, height: '100%', minHeight: '60px', background: '#1e2638', color: '#fff', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            style={{ flex: 1.2, height: '100%', minHeight: '50px', background: '#1e2638', color: '#fff', border: '2px solid #8b5cf6', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
             onClick={() => sendCommand({ type: 'RESET_SHOT_CLOCK' })}
           >
             ↺ SHOT
@@ -643,7 +643,7 @@ export function ScoreTab({
             style={{
               flex: 1.5,
               height: '100%',
-              minHeight: '60px',
+              minHeight: '50px',
               background: isShotEnabled ? 'linear-gradient(180deg, #10b981 0%, #047857 100%)' : 'linear-gradient(180deg, #dc2626 0%, #881337 100%)',
               color: '#fff',
               border: isShotEnabled ? '2px solid #34d399' : '2px solid #f87171',
@@ -664,7 +664,7 @@ export function ScoreTab({
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', border: '2px solid #6b3fa0', alignItems: 'center' }}>
           <button
             className="btn"
-            style={{ flex: 1, height: '100%', minHeight: '60px', padding: '10px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.3rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            style={{ flex: 1, height: '100%', minHeight: '50px', padding: '8px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
             onClick={() => {
               sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' })
               sendCommand({ type: 'START_TIMEOUT', team: 'home' })
@@ -679,7 +679,7 @@ export function ScoreTab({
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', display: 'flex', border: '2px solid #6b3fa0', alignItems: 'center' }}>
           <button
             className="btn"
-            style={{ flex: 1, height: '100%', minHeight: '60px', padding: '10px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.3rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+            style={{ flex: 1, height: '100%', minHeight: '50px', padding: '8px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '8px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
             onClick={() => {
               sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' })
               sendCommand({ type: 'START_TIMEOUT', team: 'away' })
