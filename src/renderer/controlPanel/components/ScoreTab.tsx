@@ -251,8 +251,8 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.65) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.65, minHeight: 0 }}>
+      {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.4) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.4, minHeight: 0 }}>
         {/* Home Players */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>HOME PLAYERS</div>
@@ -456,8 +456,8 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 0.9) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.9, minHeight: 0 }}>
+      {/* ── ROW 2: TOUCH SCORE CONTROLS (+3, +2, +1, -1) & POSSESSION (Flex 0.5) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.5, minHeight: 0 }}>
         {/* Home Controls Box */}
         <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '12px', borderRadius: '14px', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)' }}>
           <button
@@ -691,11 +691,11 @@ export function ScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.9) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', flex: 0.9, minHeight: 0 }}>
+      {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.4) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', flex: 0.4, minHeight: 0 }}>
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => sendCommand({ type: 'ADVANCE_PERIOD' })}
         >
           ⏭ NEXT Q
@@ -703,7 +703,7 @@ export function ScoreTab({
 
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #f43f5e 0%, #be123c 100%)', color: '#fff', border: '2px solid #fda4af', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: 'linear-gradient(180deg, #f43f5e 0%, #be123c 100%)', color: '#fff', border: '2px solid #fda4af', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}
         >
           ⇄ SWITCH
@@ -711,7 +711,7 @@ export function ScoreTab({
 
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #78350f 0%, #451a03 100%)', color: '#fbbf24', border: '2px solid #f59e0b', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: 'linear-gradient(180deg, #78350f 0%, #451a03 100%)', color: '#fbbf24', border: '2px solid #f59e0b', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           disabled={!canUndo}
           title={canUndo ? `Undo last action: ${undoDesc}` : 'Nothing to undo'}
           onClick={() => sendCommand({ type: 'UNDO' })}
@@ -721,7 +721,7 @@ export function ScoreTab({
 
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #0284c7 0%, #075985 100%)', color: '#bae6fd', border: '2px solid #38bdf8', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: 'linear-gradient(180deg, #0284c7 0%, #075985 100%)', color: '#bae6fd', border: '2px solid #38bdf8', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => setShowSubModal(selectedPlayer?.team ?? 'home')}
         >
           👤 SUB
@@ -729,7 +729,7 @@ export function ScoreTab({
 
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}
           title="Open Scoreboard TV Display"
         >
@@ -738,7 +738,7 @@ export function ScoreTab({
 
         <button
           className="btn"
-          style={{ height: '100%', minHeight: '55px', padding: '10px 4px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '2px solid #f87171', borderRadius: '10px', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)', color: '#fff', border: '2px solid #f87171', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}
         >
           🔄 RESET
