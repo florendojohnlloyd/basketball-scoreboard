@@ -126,8 +126,9 @@ function AuditLogContent(): React.ReactElement {
 
   // Initial load
   useEffect(() => {
-    fetchEntries(buildFilter())
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    const filter: AuditFilter = {}
+    fetchEntries(filter)
+  }, [fetchEntries])
 
   // Debounced re-fetch on filter change (500 ms)
   useEffect(() => {

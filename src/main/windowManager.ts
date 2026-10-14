@@ -43,6 +43,7 @@ export interface WindowManager {
   onDisplayRemoved(handler: (display: Electron.Display) => void): void;
   getControlPanelWindow(): BrowserWindow | null;
   getScoreboardWindow(): BrowserWindow | null;
+  getShotClockWindow(): BrowserWindow | null;
   isSingleMonitor: boolean;
   dispose(): void;
 }
@@ -390,6 +391,10 @@ export function createWindowManager(): WindowManager {
     return state.scoreboardWindow;
   }
 
+  function getShotClockWindow(): BrowserWindow | null {
+    return state.shotClockWindow;
+  }
+
   function dispose(): void {
     stopHeartbeat();
     persistBounds();
@@ -407,6 +412,7 @@ export function createWindowManager(): WindowManager {
     onDisplayRemoved,
     getControlPanelWindow,
     getScoreboardWindow,
+    getShotClockWindow,
     get isSingleMonitor() {
       return state.isSingleMonitor;
     },

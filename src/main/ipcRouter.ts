@@ -398,8 +398,10 @@ export function createIpcRouter(
   function broadcastState(state: GameState): void {
     const cpWin = windowManager.getControlPanelWindow();
     const sbWin = windowManager.getScoreboardWindow();
+    const scWin = windowManager.getShotClockWindow();
     if (cpWin && !cpWin.isDestroyed()) cpWin.webContents.send(SCOREBOARD_STATE, state);
     if (sbWin && !sbWin.isDestroyed()) sbWin.webContents.send(SCOREBOARD_STATE, state);
+    if (scWin && !scWin.isDestroyed()) scWin.webContents.send(SCOREBOARD_STATE, state);
     // Push to any connected mobile viewer clients (Requirement 36.2 — within 500ms).
     if (mobileViewerServer && mobileViewerServer.isRunning()) {
       try {
