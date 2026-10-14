@@ -139,7 +139,7 @@ function AuditLogContent(): React.ReactElement {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [fromDate, toDate, username, actionType, fetchEntries, buildFilter])
+  }, [fromDate, toDate, username, actionType, fetchEntries]) // removed buildFilter from deps
 
   // Export CSV handler
   async function handleExportCsv(): Promise<void> {
