@@ -619,6 +619,15 @@ function ControlPanel({
   const clockStr = formatClockDisplay(gameClock.displayMs)
   const shotSec = Math.ceil(shotClock.displayMs / 1000)
 
+  // Handler for tab changes that intercepts BOXSCORE to show modal instead
+  function handleTabChange(newTab: string): void {
+    if (newTab === 'BOXSCORE') {
+      setShowBoxScore(true)
+    } else {
+      setTab(newTab as Tab)
+    }
+  }
+
   return (
     <div className="cp" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ background: '#0e0e0e' }}>
 
@@ -657,8 +666,8 @@ function ControlPanel({
       {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (
         gs.sport === 'volleyball'
-          ? <VolleyballScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
-          : <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={setTab} />
+          ? <VolleyballScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />
+          : <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />
       )}
 
       {/* ── ROSTER TAB ── */}

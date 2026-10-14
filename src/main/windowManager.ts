@@ -395,33 +395,6 @@ export function createWindowManager(): WindowManager {
     return state.shotClockWindow;
   }
 
-  function dispose(): void {
-    stopHeartbeat();
-    persistBounds();
-  }
-
-  // Return the public interface with a getter for isSingleMonitor so it
-  // reflects the live state rather than a snapshot
-  const manager: WindowManager = {
-    createWindows,
-    openScoreboard,
-    openShotClock,
-    getAvailableDisplays,
-    assignScoreboardToDisplay,
-    onDisplayAdded,
-    onDisplayRemoved,
-    getControlPanelWindow,
-    getScoreboardWindow,
-    getShotClockWindow,
-    get isSingleMonitor() {
-      return state.isSingleMonitor;
-    },
-    dispose
-  };
-
-  return manager;
-}
-
   function openShotClock(): void {
     if (state.shotClockWindow && !state.shotClockWindow.isDestroyed()) {
       state.shotClockWindow.focus();
@@ -449,3 +422,30 @@ export function createWindowManager(): WindowManager {
       state.shotClockWindow = null;
     });
   }
+
+  function dispose(): void {
+    stopHeartbeat();
+    persistBounds();
+  }
+
+  // Return the public interface with a getter for isSingleMonitor so it
+  // reflects the live state rather than a snapshot
+  const manager: WindowManager = {
+    createWindows,
+    openScoreboard,
+    openShotClock,
+    getAvailableDisplays,
+    assignScoreboardToDisplay,
+    onDisplayAdded,
+    onDisplayRemoved,
+    getControlPanelWindow,
+    getScoreboardWindow,
+    getShotClockWindow,
+    get isSingleMonitor() {
+      return state.isSingleMonitor;
+    },
+    dispose
+  };
+
+  return manager;
+}
