@@ -101,53 +101,63 @@ function AuditLogContent(): React.ReactElement {
         setKnownActions(actions)
       } else {
         setError(result.error ?? 'Failed to load audit log.')
+        setEntries([])
       }
-    } catch {
-      setError('Failed to load audit log.')
+    } catch (err) {
+      setError('Failed to load audit log: ' + String(err))
+      setEntries([])
     } finally {
       setLoading(false)
     }
   }, [])
 
-  // Build filter object from current filter state
-  const buildFilter = useCallback((): AuditFilter => {
-    const filter: AuditFilter = {}
-    if (fromDate) filter.fromDate = new Date(fromDate).toISOString()
-    if (toDate) {
-      // toDate should include the entire day
-      const end = new Date(toDate)
-      end.setHours(23, 59, 59, 999)
-      filter.toDate = end.toISOString()
-    }
-    if (username) filter.username = username
-    if (actionType) filter.actionType = actionType
-    return filter
-  }, [fromDate, toDate, username, actionType])
-
-  // Initial load
+  // Initial load - only once on mount
   useEffect(() => {
-    const filter: AuditFilter = {}
-    fetchEntries(filter)
-  }, [fetchEntries])
+    fetchEntries({})
+  }, []) // Empty deps - only run once
 
   // Debounced re-fetch on filter change (500 ms)
   useEffect(() => {
+    // Skip if this is the initial render (all filters empty)
+    if (!fromDate && !toDate && !username && !actionType) {
+      return
+    }
+
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      fetchEntries(buildFilter())
+      const filter: AuditFilter = {}
+      if (fromDate) filter.fromDate = new Date(fromDate).toISOString()
+      if (toDate) {
+        const end = new Date(toDate)
+        end.setHours(23, 59, 59, 999)
+        filter.toDate = end.toISOString()
+      }
+      if (username) filter.username = username
+      if (actionType) filter.actionType = actionType
+      fetchEntries(filter)
     }, 500)
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [fromDate, toDate, username, actionType, fetchEntries]) // removed buildFilter from deps
+  }, [fromDate, toDate, username, actionType]) // Only filter state changes
 
   // Export CSV handler
   async function handleExportCsv(): Promise<void> {
     setExportMessage(null)
     try {
+      const filter: AuditFilter = {}
+      if (fromDate) filter.fromDate = new Date(fromDate).toISOString()
+      if (toDate) {
+        const end = new Date(toDate)
+        end.setHours(23, 59, 59, 999)
+        filter.toDate = end.toISOString()
+      }
+      if (username) filter.username = username
+      if (actionType) filter.actionType = actionType
+
       const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
         type: 'AUDIT_EXPORT_CSV',
-        filter: buildFilter(),
+        filter,
       }) as { success: boolean; filePath?: string; cancelled?: boolean; error?: string }
       if (result.success && result.filePath) {
         setExportMessage(`Exported to: ${result.filePath}`)

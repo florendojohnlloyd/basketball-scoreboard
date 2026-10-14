@@ -403,17 +403,25 @@ export function createWindowManager(): WindowManager {
 
     const preloadPath = join(__dirname, '../preload/index.js');
     
-    // Open shot clock on primary display, small window
+    // Get primary display for fullscreen shot clock
+    const primaryDisplay = screen.getPrimaryDisplay();
+    
+    // Open shot clock fullscreen on primary display
     state.shotClockWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
-      frame: true,
+      x: primaryDisplay.bounds.x,
+      y: primaryDisplay.bounds.y,
+      width: primaryDisplay.bounds.width,
+      height: primaryDisplay.bounds.height,
+      frame: false,
+      fullscreen: true,
       webPreferences: {
         preload: preloadPath,
         sandbox: false,
       },
       title: 'Shot Clock TV',
-      backgroundColor: '#000000'
+      backgroundColor: '#000000',
+      alwaysOnTop: true,
+      skipTaskbar: false,
     });
 
     loadRenderer(state.shotClockWindow, 'shotclock');
