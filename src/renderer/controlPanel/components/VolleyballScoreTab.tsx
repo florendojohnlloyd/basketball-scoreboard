@@ -354,8 +354,8 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 3: TOUCH SCORE CONTROLS (+ / -) & SERVING (Flex 0.5) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.5, minHeight: 0 }}>
+      {/* ── ROW 3: TOUCH SCORE CONTROLS (+ / -) & SERVING (Flex 0.45) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.45, minHeight: 0 }}>
         {/* Home Controls Box */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', display: 'flex', flexDirection: 'column', gap: '10px', border: '2px solid #2a3a50', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
           <button
@@ -521,8 +521,8 @@ export function VolleyballScoreTab({
         </div>
       </div>
 
-      {/* ── ROW 3: TOUCH TIMEOUTS (Flex 0.4) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.4, minHeight: 0 }}>
+      {/* ── ROW 3: TOUCH TIMEOUTS (Flex 0.3) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.3, minHeight: 0 }}>
         {/* Home Timeout */}
         <div style={{ background: 'var(--cp-panel)', padding: '12px', borderRadius: 'var(--r-md)', display: 'flex', border: '2px solid #6b3fa0', alignItems: 'center' }}>
           <button
