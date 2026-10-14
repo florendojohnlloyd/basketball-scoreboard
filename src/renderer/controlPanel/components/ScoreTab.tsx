@@ -309,8 +309,23 @@ export function ScoreTab({
           {/* Basketball Stats Buttons for Selected HOME Player */}
           {selectedPlayer?.team === 'home' && (
             <div style={{ borderTop: '1px solid #2a3447', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600 }}>
-                {home.players.find(p => p.id === selectedPlayer.id)?.name} - Stats
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#ffcc00', fontWeight: 700 }}>
+                  {home.players.find(p => p.id === selectedPlayer.id)?.name}
+                </div>
+                <button
+                  style={{ padding: '4px 12px', background: '#4a5568', color: '#fff', border: '1px solid #718096', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setSelectedPlayer(null)}
+                >
+                  ← Back
+                </button>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600, marginBottom: '4px' }}>
+                Stats: {home.players.find(p => p.id === selectedPlayer.id)?.points}pts | 
+                {home.players.find(p => p.id === selectedPlayer.id)?.rebounds}reb | 
+                {home.players.find(p => p.id === selectedPlayer.id)?.assists}ast | 
+                {home.players.find(p => p.id === selectedPlayer.id)?.steals}stl | 
+                {home.players.find(p => p.id === selectedPlayer.id)?.blocks}blk
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                 <button
@@ -410,8 +425,23 @@ export function ScoreTab({
           {/* Basketball Stats Buttons for Selected AWAY Player */}
           {selectedPlayer?.team === 'away' && (
             <div style={{ borderTop: '1px solid #2a3447', paddingTop: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600 }}>
-                {away.players.find(p => p.id === selectedPlayer.id)?.name} - Stats
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                <div style={{ fontSize: '0.85rem', color: '#ffcc00', fontWeight: 700 }}>
+                  {away.players.find(p => p.id === selectedPlayer.id)?.name}
+                </div>
+                <button
+                  style={{ padding: '4px 12px', background: '#4a5568', color: '#fff', border: '1px solid #718096', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setSelectedPlayer(null)}
+                >
+                  ← Back
+                </button>
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#aaa', textAlign: 'center', fontWeight: 600, marginBottom: '4px' }}>
+                Stats: {away.players.find(p => p.id === selectedPlayer.id)?.points}pts | 
+                {away.players.find(p => p.id === selectedPlayer.id)?.rebounds}reb | 
+                {away.players.find(p => p.id === selectedPlayer.id)?.assists}ast | 
+                {away.players.find(p => p.id === selectedPlayer.id)?.steals}stl | 
+                {away.players.find(p => p.id === selectedPlayer.id)?.blocks}blk
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
                 <button
@@ -514,25 +544,6 @@ export function ScoreTab({
               −1
             </button>
           </div>
-
-          {/* Fouls Row */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className="btn"
-              style={{ flex: 1, padding: '8px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
-              onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'home' })}
-            >
-              + FOUL (H)
-            </button>
-            <button
-              className="btn"
-              style={{ flex: 1, padding: '8px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
-              onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'home' })}
-              disabled={home.fouls <= 0}
-            >
-              − FOUL (H)
-            </button>
-          </div>
         </div>
 
         {/* Away Controls Box */}
@@ -589,25 +600,6 @@ export function ScoreTab({
               title="Minus 1 Away Score"
             >
               −1
-            </button>
-          </div>
-
-          {/* Fouls Row */}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              className="btn"
-              style={{ flex: 1, padding: '8px', background: '#3b1c1c', border: '2px solid #e53e3e', color: '#ffaaaa', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
-              onClick={() => sendCommand({ type: 'ADD_FOUL', team: 'away' })}
-            >
-              + FOUL (A)
-            </button>
-            <button
-              className="btn"
-              style={{ flex: 1, padding: '8px', background: '#252836', border: '2px solid #4a5568', color: '#cbd5e0', borderRadius: '8px', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', touchAction: 'manipulation' }}
-              onClick={() => sendCommand({ type: 'SUBTRACT_FOUL', team: 'away' })}
-              disabled={away.fouls <= 0}
-            >
-              − FOUL (A)
             </button>
           </div>
         </div>
@@ -692,7 +684,7 @@ export function ScoreTab({
       </div>
 
       {/* ── ROW 4: TOUCH ACTION CONTROLS (Flex 0.4) ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', flex: 0.4, minHeight: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', flex: 0.4, minHeight: 0 }}>
         <button
           className="btn"
           style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
@@ -731,9 +723,18 @@ export function ScoreTab({
           className="btn"
           style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
           onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}
-          title="Open Scoreboard TV Display"
+          title="Open Main Scoreboard TV Display"
         >
           📺 TV
+        </button>
+
+        <button
+          className="btn"
+          style={{ height: '100%', minHeight: '48px', padding: '8px 4px', background: '#047857', color: '#fff', border: '2px solid #10b981', borderRadius: '10px', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation' }}
+          onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SHOTCLOCK' })}
+          title="Open Shot Clock TV Display"
+        >
+          ⏱ SHOT TV
         </button>
 
         <button

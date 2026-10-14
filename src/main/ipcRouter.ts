@@ -698,6 +698,11 @@ export function createIpcRouter(
         return { success: true };
       }
 
+      case 'OPEN_SHOTCLOCK': {
+        windowManager.openShotClock();
+        return { success: true };
+      }
+
       // ── Scoreboard window fullscreen / windowed ──
       case 'GET_WINDOW_STATE': {
         const win = windowManager.getScoreboardWindow()

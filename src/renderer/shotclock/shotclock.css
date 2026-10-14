@@ -1,0 +1,120 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: 'Arial', sans-serif;
+}
+
+.shotclock-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+}
+
+.shotclock-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+  background: linear-gradient(180deg, #1a2332 0%, #0d1219 100%);
+  border: 8px solid #2a3f5f;
+  border-radius: 30px;
+  box-shadow: 
+    0 0 60px rgba(0, 255, 128, 0.3),
+    0 0 120px rgba(0, 255, 128, 0.2),
+    inset 0 0 40px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.shotclock-display.shotclock-running {
+  border-color: #00ff80;
+  box-shadow: 
+    0 0 80px rgba(0, 255, 128, 0.5),
+    0 0 150px rgba(0, 255, 128, 0.3),
+    inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+.shotclock-display.shotclock-low {
+  border-color: #ff3d00;
+  animation: pulse-red 0.5s ease-in-out infinite;
+  box-shadow: 
+    0 0 80px rgba(255, 61, 0, 0.6),
+    0 0 150px rgba(255, 61, 0, 0.4),
+    inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    box-shadow: 
+      0 0 80px rgba(255, 61, 0, 0.6),
+      0 0 150px rgba(255, 61, 0, 0.4),
+      inset 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow: 
+      0 0 120px rgba(255, 61, 0, 0.9),
+      0 0 200px rgba(255, 61, 0, 0.6),
+      inset 0 0 40px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.shotclock-label {
+  font-size: 3rem;
+  font-weight: 900;
+  color: #ffaa00;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  text-shadow: 
+    0 0 20px rgba(255, 170, 0, 0.8),
+    0 0 40px rgba(255, 170, 0, 0.5);
+  margin-bottom: 20px;
+}
+
+.shotclock-time {
+  font-size: 18rem;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  color: #00ff80;
+  text-shadow: 
+    0 0 30px rgba(0, 255, 128, 0.8),
+    0 0 60px rgba(0, 255, 128, 0.6),
+    0 0 90px rgba(0, 255, 128, 0.4);
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.shotclock-low .shotclock-time {
+  color: #ff3d00;
+  text-shadow: 
+    0 0 30px rgba(255, 61, 0, 0.9),
+    0 0 60px rgba(255, 61, 0, 0.7),
+    0 0 90px rgba(255, 61, 0, 0.5);
+  animation: flash-red 0.5s ease-in-out infinite;
+}
+
+@keyframes flash-red {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.shotclock-loading {
+  font-size: 3rem;
+  color: #ffaa00;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(255, 170, 0, 0.6);
+}

@@ -28,6 +28,7 @@ interface PersistedBounds {
 interface WindowManagerState {
   controlPanelWindow: BrowserWindow | null;
   scoreboardWindow: BrowserWindow | null;
+  shotClockWindow: BrowserWindow | null;
   isSingleMonitor: boolean;
 }
 
@@ -35,6 +36,7 @@ interface WindowManagerState {
 export interface WindowManager {
   createWindows(): void;
   openScoreboard(): void;
+  openShotClock(): void;
   getAvailableDisplays(): Electron.Display[];
   assignScoreboardToDisplay(displayId: number): void;
   onDisplayAdded(handler: (display: Electron.Display) => void): void;
@@ -58,7 +60,7 @@ export interface WindowManager {
  * In production the built files are in `out/renderer/<entryName>.html`.
  */
 function getRendererUrl(
-  entryName: 'controlPanel' | 'scoreboard'
+  entryName: 'controlPanel' | 'scoreboard' | 'shotclock'
 ): { type: 'url'; value: string } | { type: 'file'; value: string } {
   const devServerUrl = process.env['ELECTRON_RENDERER_URL'];
 
@@ -78,7 +80,7 @@ function getRendererUrl(
 
 function loadRenderer(
   win: BrowserWindow,
-  entryName: 'controlPanel' | 'scoreboard'
+  entryName: 'controlPanel' | 'scoreboard' | 'shotclock'
 ): void {
   const resolved = getRendererUrl(entryName);
   if (resolved.type === 'url') {
@@ -105,6 +107,7 @@ export function createWindowManager(): WindowManager {
   const state: WindowManagerState = {
     controlPanelWindow: null,
     scoreboardWindow: null,
+    shotClockWindow: null,
     isSingleMonitor: false
   };
 
@@ -397,6 +400,7 @@ export function createWindowManager(): WindowManager {
   const manager: WindowManager = {
     createWindows,
     openScoreboard,
+    openShotClock,
     getAvailableDisplays,
     assignScoreboardToDisplay,
     onDisplayAdded,
@@ -411,3 +415,31 @@ export function createWindowManager(): WindowManager {
 
   return manager;
 }
+
+  function openShotClock(): void {
+    if (state.shotClockWindow && !state.shotClockWindow.isDestroyed()) {
+      state.shotClockWindow.focus();
+      return;
+    }
+
+    const preloadPath = join(__dirname, '../preload/index.js');
+    
+    // Open shot clock on primary display, small window
+    state.shotClockWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      frame: true,
+      webPreferences: {
+        preload: preloadPath,
+        sandbox: false,
+      },
+      title: 'Shot Clock TV',
+      backgroundColor: '#000000'
+    });
+
+    loadRenderer(state.shotClockWindow, 'shotclock');
+    
+    state.shotClockWindow.on('closed', () => {
+      state.shotClockWindow = null;
+    });
+  }

@@ -42,7 +42,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           controlPanel: resolve(__dirname, 'src/renderer/controlPanel/index.html'),
-          scoreboard: resolve(__dirname, 'src/renderer/scoreboard/index.html')
+          scoreboard: resolve(__dirname, 'src/renderer/scoreboard/index.html'),
+          shotclock: resolve(__dirname, 'src/renderer/shotclock/index.html')
         }
       }
     },
