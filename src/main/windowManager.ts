@@ -403,15 +403,16 @@ export function createWindowManager(): WindowManager {
 
     const preloadPath = join(__dirname, '../preload/index.js');
     
-    // Get primary display for fullscreen shot clock
-    const primaryDisplay = screen.getPrimaryDisplay();
+    // Get all displays and find the 3rd one (index 2)
+    const displays = screen.getAllDisplays();
+    const targetDisplay = displays.length >= 3 ? displays[2] : displays[0]; // 3rd monitor or fallback to primary
     
-    // Open shot clock fullscreen on primary display
+    // Open shot clock fullscreen on 3rd display
     state.shotClockWindow = new BrowserWindow({
-      x: primaryDisplay.bounds.x,
-      y: primaryDisplay.bounds.y,
-      width: primaryDisplay.bounds.width,
-      height: primaryDisplay.bounds.height,
+      x: targetDisplay.bounds.x,
+      y: targetDisplay.bounds.y,
+      width: targetDisplay.bounds.width,
+      height: targetDisplay.bounds.height,
       frame: false,
       fullscreen: true,
       webPreferences: {

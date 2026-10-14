@@ -63,7 +63,7 @@ function AuditLogView(): React.ReactElement {
 
 function AuditLogContent(): React.ReactElement {
   const [entries, setEntries] = useState<AuditEntry[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [exportMessage, setExportMessage] = useState<string | null>(null)
 
@@ -77,24 +77,23 @@ function AuditLogContent(): React.ReactElement {
   const [knownUsers, setKnownUsers] = useState<string[]>([])
   const [knownActions, setKnownActions] = useState<string[]>([])
 
-  // Debounce filter changes
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const fetchEntries = useCallback(async (filter: AuditFilter) => {
+  // Single fetch function that builds filter inline
+  async function fetchEntries(customFilter?: AuditFilter): Promise<void> {
     setLoading(true)
     setError(null)
     try {
+      const filter: AuditFilter = customFilter || {}
+      
       const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
         type: 'AUDIT_QUERY',
         filter,
       }) as { success: boolean; entries?: AuditEntry[]; error?: string }
+      
       if (result.success && result.entries) {
-        // Sort descending by timestamp
         const sorted = [...result.entries].sort(
           (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
         )
         setEntries(sorted)
-        // Derive unique usernames and action types for filter dropdowns
         const users = [...new Set(sorted.map(e => e.username))].sort()
         const actions = [...new Set(sorted.map(e => e.actionType))].sort()
         setKnownUsers(users)
@@ -109,22 +108,28 @@ function AuditLogContent(): React.ReactElement {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }
 
-  // Initial load - only once on mount
+  // Initial load - only once
   useEffect(() => {
     fetchEntries({})
-  }, []) // Empty deps - only run once
+  }, []) // ONLY runs once on mount
 
-  // Debounced re-fetch on filter change (500 ms)
+  // Manual refresh when filters change - with simple debounce
+  const timeoutRef = useRef<NodeJS.Timeout>()
   useEffect(() => {
-    // Skip if this is the initial render (all filters empty)
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    // Only fetch if at least one filter is set (avoid re-fetching on initial render)
     if (!fromDate && !toDate && !username && !actionType) {
       return
     }
 
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
+    // Debounce filter changes
+    timeoutRef.current = setTimeout(() => {
       const filter: AuditFilter = {}
       if (fromDate) filter.fromDate = new Date(fromDate).toISOString()
       if (toDate) {
@@ -136,10 +141,7 @@ function AuditLogContent(): React.ReactElement {
       if (actionType) filter.actionType = actionType
       fetchEntries(filter)
     }, 500)
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-    }
-  }, [fromDate, toDate, username, actionType]) // Only filter state changes
+  }, [fromDate, toDate, username, actionType])
 
   // Export CSV handler
   async function handleExportCsv(): Promise<void> {
