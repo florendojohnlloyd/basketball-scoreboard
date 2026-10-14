@@ -254,7 +254,7 @@ export function ScoreTab({
       {/* ── ROW 1.5: PLAYER SELECTION & STATS (Flex 0.4) ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', flex: 0.4, minHeight: 0 }}>
         {/* Home Players */}
-        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'auto', minHeight: 0 }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>HOME PLAYERS</div>
           <div style={{ 
             flex: 1, 
@@ -355,7 +355,7 @@ export function ScoreTab({
         </div>
 
         {/* Away Players */}
-        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'linear-gradient(180deg, #161b26 0%, #0d111a 100%)', padding: '10px', borderRadius: '14px', border: '2px solid #2a3447', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column', gap: '8px', overflow: 'auto', minHeight: 0 }}>
           <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#ffcc00', textAlign: 'center' }}>AWAY PLAYERS</div>
           <div style={{ 
             flex: 1, 
