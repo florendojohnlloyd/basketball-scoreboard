@@ -47,7 +47,7 @@
   font-size: 4.5rem;
   font-weight: 900;
   color: #ffcc00;
-  margin-bottom: 60px;
+  margin-top: 40px;
   letter-spacing: 0.1em;
 }
 
@@ -486,11 +486,7 @@
 }
 
 .tv-timeout__remaining-label {
-  font-size: clamp(2.5rem, 3.5vw, 3.8rem);
-  font-weight: 900;
-  color: #4dc9f6;
-  letter-spacing: 0.25em;
-  text-align: center;
+  display: none; /* Hidden to match basketball timeout layout */
 }
 
 .tv-timeout__video-panel {

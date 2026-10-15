@@ -212,7 +212,6 @@ function VolleyballScoreboardLayout(): React.ReactElement {
     return (
       <div className="vb-tv vb-tv--pregame">
         <div className="vb-pre">
-          <div className="vb-pre__title">VOLLEYBALL</div>
           <div className="vb-pre__matchup">
             <div className="vb-pre__team">
               <div className="vb-pre__logo-circle">
@@ -240,6 +239,7 @@ function VolleyballScoreboardLayout(): React.ReactElement {
               </div>
             </div>
           </div>
+          <div className="vb-pre__title">VOLLEYBALL</div>
         </div>
       </div>
     )
