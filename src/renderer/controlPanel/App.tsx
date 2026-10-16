@@ -25,6 +25,7 @@ import BackupPanel from './components/BackupPanel'
 import TournamentManager from './components/TournamentManager'
 import { TimeoutSettings } from './components/TimeoutSettings'
 import { LanguagePicker } from './components/LanguagePicker'
+import { RelayBuzzerSettings } from './components/RelayBuzzerSettings'
 import sponsorLogo from '../../../pictures/BG.png'
 import fitnessLogo from '../../../pictures/red.png'
 import './App.css'
@@ -875,14 +876,14 @@ function ControlPanel({
       {/* ── SETTINGS TAB ── */}
       {tab === 'SETTINGS' && (
         <div className="settings-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-         <SafeWrap name="Settings">
+         <SafeWrap name="Settings" resetKey={tab}>
           {/* User Management — Admin only (Req 28, Task 60) */}
           {session?.role === 'Admin' && (
             <>
               <h3>Admin</h3>
               <button className="btn btn--dark" onClick={() => setShowUserManagement(true)}>👥 User Management</button>
               <h3>Backup &amp; Restore</h3>
-              <SafeWrap name="Backup">
+              <SafeWrap name="Backup" resetKey={tab}>
                 <BackupPanel />
               </SafeWrap>
             </>
@@ -912,8 +913,9 @@ function ControlPanel({
           </div>
           <h3>Display</h3>
           <button className="btn btn--dark" onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>Open TV Display</button>
-          <SafeLanguagePicker />
-          <SafeTimeoutSettings />
+          <SafeLanguagePicker resetKey={tab} />
+          <SafeTimeoutSettings resetKey={tab} />
+          <RelayBuzzerSettings />
           <h3>Game Event Log ({gs.events.length} events)</h3>
           <div className="settings-tab__log">
             {gs.events.slice(-20).reverse().map(ev => (
@@ -1177,29 +1179,37 @@ function TournamentLigaPicker({
 // ---------------------------------------------------------------------------
 // Safe wrappers — catch errors from cross-bundle imports gracefully
 // ---------------------------------------------------------------------------
-class SafeWrap extends React.Component<{ children: React.ReactNode; name: string }, { err: boolean }> {
-  constructor(props: { children: React.ReactNode; name: string }) {
+class SafeWrap extends React.Component<
+  { children: React.ReactNode; name: string; resetKey?: unknown },
+  { err: boolean }
+> {
+  constructor(props: { children: React.ReactNode; name: string; resetKey?: unknown }) {
     super(props)
     this.state = { err: false }
   }
   static getDerivedStateFromError(): { err: boolean } { return { err: true } }
+  componentDidUpdate(prev: { children: React.ReactNode; name: string; resetKey?: unknown }): void {
+    if (prev.resetKey !== this.props.resetKey) {
+      this.setState({ err: false })
+    }
+  }
   render(): React.ReactNode {
     if (this.state.err) return <p style={{ color: '#f66', fontSize: '0.75rem' }}>⚠ {this.props.name} unavailable</p>
     return this.props.children
   }
 }
 
-function SafeLanguagePicker(): React.ReactElement {
+function SafeLanguagePicker({ resetKey }: { resetKey?: unknown }): React.ReactElement {
   return (
-    <SafeWrap name="Language Picker">
+    <SafeWrap name="Language Picker" resetKey={resetKey}>
       <LanguagePicker />
     </SafeWrap>
   )
 }
 
-function SafeTimeoutSettings(): React.ReactElement {
+function SafeTimeoutSettings({ resetKey }: { resetKey?: unknown }): React.ReactElement {
   return (
-    <SafeWrap name="Timeout Settings">
+    <SafeWrap name="Timeout Settings" resetKey={resetKey}>
       <TimeoutSettings />
     </SafeWrap>
   )
