@@ -171,12 +171,14 @@ function VolleyballBoxScore(): React.ReactElement {
           className={`box-score__export-status box-score__export-status--${exportStatus.type}`}
           role={exportStatus.type === 'error' ? 'alert' : 'status'}
           aria-live="polite"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
         >
-          {exportStatus.message}
+          <span>{exportStatus.message}</span>
           <button
             className="box-score__export-status-close"
             onClick={() => setExportStatus(null)}
             aria-label="Dismiss export message"
+            style={{ marginLeft: 'auto' }}
           >
             ✕
           </button>
