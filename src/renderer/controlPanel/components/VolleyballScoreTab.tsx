@@ -458,7 +458,7 @@ export function VolleyballScoreTab({
             ◀ {servingTeam === 'home' ? 'SERVE ON (TAP TO TOGGLE)' : 'HOME SERVE'}
           </button>
 
-          <div style={{ display: 'flex', gap: '10px', flex: 1, minHeight: 0 }}>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
             <button
               className="vb-btn vb-btn--score"
               style={{
@@ -540,7 +540,7 @@ export function VolleyballScoreTab({
             {servingTeam === 'away' ? 'SERVE ON (TAP TO TOGGLE)' : 'AWAY SERVE'} ▶
           </button>
 
-          <div style={{ display: 'flex', gap: '10px', flex: 1, minHeight: 0 }}>
+          <div style={{ display: 'flex', gap: '16px', flex: 1, minHeight: 0 }}>
             <button
               className="vb-btn vb-btn--score"
               style={{
@@ -630,10 +630,10 @@ export function VolleyballScoreTab({
       </div>
 
       {/* ── ROW 4: TOUCH ACTION CONTROLS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '24px', flexShrink: 0 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px', flexShrink: 0 }}>
         <button
           className="vb-btn vb-btn--advance"
-          style={{ minHeight: '60px', padding: '16px 12px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: '#6b3fa0', color: '#fff', border: '2px solid #8550c0', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => sendCommand({ type: 'ADVANCE_SET' })}
         >
           ⏭ NEXT SET
@@ -641,7 +641,7 @@ export function VolleyballScoreTab({
 
         <button
           className="vb-btn vb-btn--switch"
-          style={{ minHeight: '60px', padding: '16px 12px', background: 'var(--btn-switch)', color: '#fff', border: '2px solid #e03818', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: 'var(--btn-switch)', color: '#fff', border: '2px solid #e03818', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => sendCommand({ type: 'SWITCH_SIDES' })}
         >
           ⇄ SWITCH
@@ -649,7 +649,7 @@ export function VolleyballScoreTab({
 
         <button
           className="vb-btn"
-          style={{ minHeight: '60px', padding: '16px 12px', background: 'var(--btn-ctrl)', color: '#fff', border: '2px solid var(--btn-ctrl-bdr)', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: 'var(--btn-ctrl)', color: '#fff', border: '2px solid var(--btn-ctrl-bdr)', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => sendCommand({ type: 'UNDO' })}
         >
           ↶ UNDO
@@ -657,7 +657,7 @@ export function VolleyballScoreTab({
 
         <button
           className="vb-btn"
-          style={{ minHeight: '60px', padding: '16px 12px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => setShowBoxScore(true)}
           title="View Player Statistics Box Score"
         >
@@ -666,7 +666,7 @@ export function VolleyballScoreTab({
 
         <button
           className="vb-btn"
-          style={{ minHeight: '60px', padding: '16px 12px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: '#2d3748', color: '#fff', border: '2px solid #4a5568', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}
           title="Open Scoreboard TV Display"
         >
@@ -675,7 +675,7 @@ export function VolleyballScoreTab({
 
         <button
           className="vb-btn"
-          style={{ minHeight: '60px', padding: '16px 12px', background: '#b02020', color: '#fff', border: '2px solid #e03030', borderRadius: 'var(--r-md)', fontSize: '1.1rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
+          style={{ minHeight: '70px', padding: '16px 12px', background: '#b02020', color: '#fff', border: '2px solid #e03030', borderRadius: 'var(--r-md)', fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', touchAction: 'manipulation', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', whiteSpace: 'nowrap' }}
           onClick={() => sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })}
         >
           🔄 RESET
