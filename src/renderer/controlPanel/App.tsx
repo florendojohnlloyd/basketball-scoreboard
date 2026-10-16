@@ -666,15 +666,18 @@ function ControlPanel({
 
       {/* ── SCORE TAB — per-button editable ── */}
       {tab === 'SCORE' && (
-        gs.sport === 'volleyball'
-          ? <VolleyballScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />
-          : <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />
+        <SafeWrap name="Score" resetKey={tab}>
+          {gs.sport === 'volleyball'
+            ? <VolleyballScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />
+            : <ScoreTab selectedPlayer={selectedPlayer} setSelectedPlayer={setSelectedPlayer} setShowSubModal={setShowSubModal} currentTab={tab} onTabChange={handleTabChange} />}
+        </SafeWrap>
       )}
 
       {/* ── ROSTER TAB ── */}
       {tab === 'ROSTER' && (
         <div className="roster-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          {(['home', 'away'] as const).map(team => {
+          <SafeWrap name="Roster" resetKey={tab}>
+            {(['home', 'away'] as const).map(team => {
             const t = gs[team]
             return (
               <div key={team} className="roster-tab__team">
@@ -704,13 +707,15 @@ function ControlPanel({
 
           {/* Advanced Metrics Panel (Req 21) */}
           <AdvancedMetricsPanel />
+          </SafeWrap>
         </div>
       )}
 
       {/* ── BRANDING TAB ── */}
       {tab === 'BRANDING' && (
         <div className="brand-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          {(['home', 'away'] as const).map(team => (
+          <SafeWrap name="Branding" resetKey={tab}>
+            {(['home', 'away'] as const).map(team => (
             <div key={team} className="brand-tab__team">
               <h3>{team === 'home' ? 'Home' : 'Away'} Team</h3>
               <label>Name: <input defaultValue={gs[team].config.name} onBlur={e => sendCommand({ type: 'SET_TEAM_CONFIG', team, config: { name: e.target.value } })} /></label>
@@ -807,41 +812,51 @@ function ControlPanel({
               )
             })}
           </div>
+          </SafeWrap>
         </div>
       )}
 
       {/* ── HISTORY TAB (Game History — Req 18) ── */}
       {tab === 'HISTORY' && (
         <div className="history-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <GameHistoryView />
+          <SafeWrap name="History" resetKey={tab}>
+            <GameHistoryView />
+          </SafeWrap>
         </div>
       )}
 
       {/* ── SEASON TAB (Season Stats — Req 19) ── */}
       {tab === 'SEASON' && (
         <div className="season-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <SeasonStatsView />
+          <SafeWrap name="Season" resetKey={tab}>
+            <SeasonStatsView />
+          </SafeWrap>
         </div>
       )}
 
       {/* ── LEADERS TAB (Leaderboards — Req 20) ── */}
       {tab === 'LEADERS' && (
         <div className="leaders-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <LeaderboardsView />
+          <SafeWrap name="Leaders" resetKey={tab}>
+            <LeaderboardsView />
+          </SafeWrap>
         </div>
       )}
 
       {/* ── AUDIT TAB (Audit Log — Req 31) ── */}
       {tab === 'AUDIT' && (
         <div className="audit-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <AuditLogView />
+          <SafeWrap name="Audit" resetKey={tab}>
+            <AuditLogView />
+          </SafeWrap>
         </div>
       )}
 
       {/* ── TOURNAMENT TAB ── */}
       {tab === 'TOURNAMENT' && (
         <div className="tournament-tab" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          {effectiveLigaId ? (
+          <SafeWrap name="Tournament" resetKey={tab}>
+            {effectiveLigaId ? (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 16px', background: '#111119', borderBottom: '1px solid #242432' }}>
                 <span style={{ fontSize: '0.82rem', color: '#7aaed4', fontWeight: 700 }}>
@@ -870,6 +885,7 @@ function ControlPanel({
               refreshLigas={refreshLigas}
             />
           )}
+          </SafeWrap>
         </div>
       )}
 
