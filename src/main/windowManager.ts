@@ -4,7 +4,7 @@
  * heartbeat monitoring, and persists window bounds via electron-store.
  */
 
-import { BrowserWindow, screen, app } from 'electron';
+import { BrowserWindow, screen, app, shell } from 'electron';
 import { join } from 'path';
 import Store from 'electron-store';
 import { SCOREBOARD_EVENT } from '@shared/types';
@@ -256,6 +256,84 @@ export function createWindowManager(): WindowManager {
 
     state.controlPanelWindow = new BrowserWindow(controlPanelOptions);
     state.controlPanelWindow.maximize();
+
+    // Handle external links (e.g., http://localhost:5000 Relay server) to open in system browser
+    state.controlPanelWindow.webContents.setWindowOpenHandler(({ url }) => {
+      if (url.startsWith('http:') || url.startsWith('https:')) {
+        void shell.openExternal(url);
+      }
+      return { action: 'deny' };
+    });
+
+    // Configure Web Serial API permissions for USB Relay hardware
+    const cpSession = state.controlPanelWindow.webContents.session;
+    cpSession.on('select-serial-port', (event, portList, _webContents, callback) => {
+      event.preventDefault();
+      console.log('[Electron Serial] Available ports for selection:', portList);
+
+      const findRelayPort = (list: any[]): any => {
+        if (!list || list.length === 0) return null;
+        // 1. CH340 match (hex 1a86, dec 6790, or name string)
+        const ch340 = list.find((p) => {
+          const vId = String(p.vendorId || '').toLowerCase();
+          const name = `${p.displayName || ''} ${p.portName || ''}`.toUpperCase();
+          return vId === '1a86' || vId === '6790' || name.includes('CH340') || name.includes('1A86');
+        });
+        if (ch340) return ch340;
+
+        // 2. Any USB Serial or COM port (filter out Bluetooth)
+        const usbPort = list.find((p) => {
+          const name = `${p.displayName || ''} ${p.portName || ''}`.toUpperCase();
+          return (name.includes('USB') || name.includes('COM') || name.includes('SERIAL')) && !name.includes('BLUETOOTH');
+        });
+        if (usbPort) return usbPort;
+
+        // 3. Fallback to first non-bluetooth or first port
+        const nonBt = list.find((p) => !`${p.displayName || ''} ${p.portName || ''}`.toUpperCase().includes('BLUETOOTH'));
+        return nonBt || list[0];
+      };
+
+      const selected = findRelayPort(portList);
+      if (selected) {
+        console.log('[Electron Serial] Automatically matched relay port:', selected.portName || selected.displayName, selected.portId);
+        state.controlPanelWindow?.webContents.send(SCOREBOARD_EVENT, {
+          type: 'SERIAL_PORT_SELECTED',
+          portName: selected.portName || selected.displayName || 'USB Relay',
+        });
+        callback(selected.portId);
+        return;
+      }
+
+      // If portList was empty initially, wait for serial-port-added
+      let callbackDone = false;
+      const onPortAdded = (_e: any, port: any): void => {
+        if (callbackDone) return;
+        callbackDone = true;
+        console.log('[Electron Serial] serial-port-added received:', port);
+        callback(port.portId);
+      };
+
+      cpSession.once('serial-port-added', onPortAdded as any);
+
+      setTimeout(() => {
+        if (!callbackDone) {
+          callbackDone = true;
+          cpSession.removeListener('serial-port-added', onPortAdded as any);
+          console.warn('[Electron Serial] Timed out waiting for serial port');
+          callback('');
+        }
+      }, 3000);
+    });
+
+    cpSession.setPermissionCheckHandler((_webContents, permission) => {
+      if (permission === 'serial') return true;
+      return true;
+    });
+
+    cpSession.setDevicePermissionHandler((details) => {
+      if (details.deviceType === 'serial') return true;
+      return true;
+    });
 
     // ------------------------------------------------------------------
     // Scoreboard Display window — created on demand

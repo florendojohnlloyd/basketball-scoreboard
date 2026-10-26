@@ -6,6 +6,7 @@ import MobileViewerPanel from './MobileViewerPanel'
 import ApiKeysPanel from './ApiKeysPanel'
 import SocialSharePanel from './SocialSharePanel'
 import LiveStreamingPanel from './LiveStreamingPanel'
+import { RelayBuzzerSettings } from './RelayBuzzerSettings'
 import './SettingsPanel.css'
 
 const TABS = ['General', 'Design', 'Team/Player', 'Sound', 'Time', 'Display'] as const
@@ -285,6 +286,7 @@ function SettingsPanel({ onClose }: SettingsPanelProps): React.ReactElement {
                   <button className="btn btn--ctrl" onClick={() => { import('../audio/audioEngine').then(m => m.audioEngine.playShotClockViolation()) }}>Test Shot Clock Buzzer</button>
                 </div>
               </fieldset>
+              <RelayBuzzerSettings />
             </div>
           )}
 

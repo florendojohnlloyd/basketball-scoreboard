@@ -227,7 +227,7 @@ export function LayoutEditor({ onBack }: LayoutEditorProps): React.ReactElement 
 
           {/* New Game */}
           <DraggableWidget id="ctrl-newGame" layout={ctrlLayouts['ctrl-newGame']} editing={editing} onLayoutChange={handleControlChange} label="New Game">
-            <button className="le-c-btn le-c-btn--r" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false })}>New Game</button>
+            <button className="le-c-btn le-c-btn--r" onClick={() => sendCommand({ type: 'NEW_GAME', clearTeams: false, forceReset: true })}>New Game</button>
           </DraggableWidget>
 
         </div>

@@ -33,6 +33,7 @@ import { createMobileViewerServer } from './mobileViewerServer';
 import { createApiKeyStore } from './apiKeyStore';
 import { createApiServer } from './apiServer';
 import { createSocialShareService } from './socialShareService';
+import { relayBridgeServer } from './relayBridgeServer';
 import { initAutoUpdater } from './autoUpdater';
 import { SCOREBOARD_EVENT } from '../shared/types';
 import type { GameState, GameLogRecord } from '../shared/types';
@@ -344,6 +345,23 @@ function bootstrap(): void {
   // 7. IpcRouter
   const ipcRouter = createIpcRouter(gameStore, clockEngine, windowManager, presetStore, ligaStore, autosaveStore, auditStore, undefined, roleStore, backupServiceInstance, bracketEngineInstance, offlineSyncServiceInstance, mobileViewerServerInstance, apiKeyStoreInstance, apiServerInstance, socialShareServiceInstance, overlayServer);
   broadcastFn = ipcRouter.broadcastWithBuzzerCheck.bind(ipcRouter);
+
+  // 8. Start Relay Bridge Server for Vercel Web Console (Dual Mode)
+  try {
+    void relayBridgeServer.start();
+    relayBridgeServer.onStatusChange((status) => {
+      const cpWin = windowManager.getControlPanelWindow();
+      if (cpWin && !cpWin.isDestroyed()) {
+        cpWin.webContents.send(SCOREBOARD_EVENT, {
+          type: 'RELAY_BRIDGE_STATUS',
+          connected: status.webClientsCount > 0,
+          clientsCount: status.webClientsCount,
+        });
+      }
+    });
+  } catch (err) {
+    console.warn('[LigaControl] RelayBridgeServer startup error:', err);
+  }
 
   // If autosave was found, notify the control panel after it opens
   if (savedState) {

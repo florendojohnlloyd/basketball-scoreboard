@@ -410,6 +410,7 @@ describe('Integration: AuditStore + IpcRouter command dispatch', () => {
     const noopWindowManager = {
       getControlPanelWindow: () => null,
       getScoreboardWindow: () => null,
+      getShotClockWindow: () => null,
       getAvailableDisplays: () => [],
       assignScoreboardToDisplay: () => {},
       openScoreboard: () => {},

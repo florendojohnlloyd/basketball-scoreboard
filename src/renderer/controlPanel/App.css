@@ -519,29 +519,304 @@ html, body, #root { height: 100%; overflow: hidden; }
 .btn--sub-player { text-align: left; justify-content: flex-start; font-size: 0.7rem; min-height: 40px; padding: 6px 10px; }
 
 /* ═══ LIGA / MATCHUP ═══ */
-.liga-picker { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 16px; background: radial-gradient(ellipse at 50% 30%, rgba(204,102,0,0.05), transparent 60%), linear-gradient(135deg, #0a0a0a, #1a1a1a); overflow: hidden; }
+.liga-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 50% 20%, rgba(255, 69, 0, 0.15), transparent 55%),
+              radial-gradient(circle at 80% 85%, rgba(14, 165, 233, 0.12), transparent 50%),
+              linear-gradient(135deg, #070a10 0%, #0d121c 100%);
+  overflow: hidden;
+}
 .liga-picker__sponsor { width: 360px; height: 80px; display: flex; align-items: center; justify-content: center; background: transparent; border-radius: 8px; overflow: hidden; }
 .liga-picker__sponsor-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)) drop-shadow(0 0 24px rgba(255,255,255,0.25)); animation: sponsor-glow 3s ease-in-out infinite; }
 
 /* Brand logo inside the card */
-.liga-picker__logo-img { width: 280px; height: 70px; display: flex; align-items: center; justify-content: center; }
-.liga-picker__brand-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.6)) drop-shadow(0 0 24px rgba(255,255,255,0.3)) drop-shadow(0 0 40px rgba(200,200,255,0.15)); animation: sponsor-glow 3s ease-in-out infinite; }
-.liga-picker__card { display: flex; flex-direction: column; align-items: center; gap: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 24px 20px; width: 360px; max-width: min(360px, 90vw); max-height: 85vh; overflow: hidden; border-top: 3px solid #cc6600; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+.liga-picker__logo-img { width: 100%; max-width: 300px; height: 75px; display: flex; align-items: center; justify-content: center; }
+.liga-picker__brand-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 14px rgba(255,60,0,0.5)) drop-shadow(0 0 28px rgba(255,255,255,0.25)); animation: sponsor-glow 3s ease-in-out infinite; }
+
+.liga-picker__sport-badge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  box-sizing: border-box;
+}
+
+.liga-picker__sport-switch {
+  background: transparent;
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  border-radius: 6px;
+  color: #ff7733;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.liga-picker__sport-switch:hover {
+  background: rgba(255, 85, 0, 0.15);
+  border-color: #ff5500;
+  color: #fff;
+}
+
+.liga-picker__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background: radial-gradient(130% 120% at 50% 0%, rgba(22, 30, 46, 0.96) 0%, rgba(10, 14, 23, 0.98) 100%);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 3px solid #ff4500;
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 460px;
+  max-width: min(460px, 94vw);
+  max-height: 90vh;
+  box-sizing: border-box;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(255, 69, 0, 0.18);
+}
 .liga-picker__logo { font-size: 2.5rem; }
 .liga-picker__title { font-size: 1.3rem; font-weight: 900; color: #fff; }
-.liga-picker__sub { font-size: 0.72rem; color: #666; }
-.liga-picker__actions { width: 100%; display: flex; flex-direction: column; gap: 12px; }
-.liga-picker__new { display: flex; gap: 6px; width: 100%; max-width: 100%; }
-.liga-picker__new .btn { flex-shrink: 0; width: auto !important; min-width: 0 !important; max-width: 140px; padding: 8px 12px; }
-.liga-picker__inp { flex: 1; padding: 10px; background: #0a0a0a; border: 1px solid #333; border-radius: 5px; color: #fff; font-size: 0.8rem; min-height: 40px; outline: none; }
-.liga-picker__inp:focus { border-color: #ffaa00; }
-.liga-picker__list { display: flex; flex-direction: column; gap: 5px; }
-.liga-picker__list h3 { font-size: 0.7rem; color: #888; text-transform: uppercase; }
-.liga-picker__liga-btn { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #222; border: 1px solid #333; border-radius: 6px; cursor: pointer; min-height: 44px; color: #fff; font-size: 0.8rem; font-weight: 600; }
-.liga-picker__liga-btn:hover { border-color: #cc6600; background: #2a1a10; }
-.liga-picker__actions .btn { width: 100%; max-width: 100%; min-width: 0 !important; align-self: center; box-sizing: border-box; }
-.liga-picker__liga-name { font-weight: 800; }
-.liga-picker__liga-teams { font-size: 0.62rem; color: #666; }
+.liga-picker__sub { font-size: 0.76rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #7f93aa; margin-top: -4px; }
+.liga-picker__actions { width: 100%; display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+
+.liga-picker__new {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+.liga-picker__new-btn {
+  flex-shrink: 0;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 16px !important;
+  height: 44px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  border: 1px solid #34d399;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.liga-picker__new-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+}
+.liga-picker__new-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.liga-picker__inp {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  background: rgba(5, 8, 14, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-height: 44px;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.liga-picker__inp::placeholder {
+  color: #556980;
+  font-weight: 500;
+}
+.liga-picker__inp:focus {
+  border-color: #ff5500;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.25);
+  background: rgba(10, 15, 26, 0.95);
+}
+
+.liga-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 85, 0, 0.4) transparent;
+  padding-right: 2px;
+}
+.liga-picker__list::-webkit-scrollbar {
+  width: 5px;
+}
+.liga-picker__list::-webkit-scrollbar-thumb {
+  background: rgba(255, 85, 0, 0.4);
+  border-radius: 4px;
+}
+.liga-picker__list h3 {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0 0 2px 2px;
+}
+
+.liga-picker__liga-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.liga-picker__liga-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  cursor: pointer;
+  min-height: 44px;
+  color: #f1f5f9;
+  font-size: 0.88rem;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+.liga-picker__liga-btn:hover {
+  border-color: #ff5500;
+  background: rgba(255, 85, 0, 0.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 85, 0, 0.18);
+}
+.liga-picker__liga-name {
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.liga-picker__liga-year {
+  color: #ff9955;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.liga-picker__liga-teams {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+.liga-picker__liga-del {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  padding: 0;
+}
+.liga-picker__liga-del:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+  transform: scale(1.04);
+}
+
+.liga-picker__trial-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.liga-picker__trial-btn {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.liga-picker__trial-btn:hover {
+  border-color: #38bdf8;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(15, 23, 42, 0.95) 100%);
+  box-shadow: 0 6px 24px rgba(56, 189, 248, 0.3);
+  transform: translateY(-1px);
+}
+.liga-picker__trial-hint {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-align: center;
+  font-weight: 500;
+  margin: 0;
+}
 
 /* ═══ LIGA MANAGE — redesigned ═══ */
 .liga-manage {
@@ -816,28 +1091,41 @@ html, body, #root { height: 100%; overflow: hidden; }
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(30, 58, 95, 0.5);
 }
 
-.box-score-modal__close {
+.box-score-modal__header-bar {
   position: sticky;
   top: 0;
-  display: block;
-  width: 100%;
-  background: #14243e;
-  color: #a0c4e0;
-  border: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  background: #101d36;
   border-bottom: 1px solid #1e3a5f;
   border-radius: 8px 8px 0 0;
-  padding: 0.65rem 1rem;
+  padding: 0.55rem 1.2rem;
+  z-index: 10;
+}
+
+.box-score-modal__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(235, 87, 87, 0.15);
+  color: #ff8e8e;
+  border: 1px solid rgba(235, 87, 87, 0.4);
+  border-radius: 6px;
+  padding: 0.45rem 1.1rem;
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
-  text-align: left;
-  z-index: 1;
   letter-spacing: 0.04em;
+  transition: all 0.2s ease;
 }
 
 .box-score-modal__close:hover {
-  background: #1e3a5f;
+  background: #e53e3e;
   color: #fff;
+  border-color: #f56565;
+  box-shadow: 0 2px 10px rgba(229, 62, 62, 0.4);
+  transform: translateY(-1px);
 }
 
 /* History / Season / Leaders tabs */
@@ -1464,23 +1752,49 @@ html, body, #root { height: 100%; overflow: hidden; }
 .liga-picker__liga-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
 }
 .liga-picker__liga-row .liga-picker__liga-btn {
   flex: 1;
+  min-width: 0;
 }
+.liga-picker__actions .liga-picker__liga-del,
+.liga-picker__liga-row .liga-picker__liga-del,
 .liga-picker__liga-del {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-  min-width: 28px;
-  opacity: 0.6;
-  transition: opacity 0.15s;
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  border-radius: 8px !important;
+  background: rgba(220, 38, 38, 0.16) !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  opacity: 0.85;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  outline: none;
+  box-shadow: none !important;
 }
+.liga-picker__actions .liga-picker__liga-del:hover,
+.liga-picker__liga-row .liga-picker__liga-del:hover,
 .liga-picker__liga-del:hover {
-  opacity: 1;
+  opacity: 1 !important;
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+  transform: scale(1.08);
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.5) !important;
 }
 
 /* ═══ MINI SCOREBOARD PREVIEW (control panel) ═══ */

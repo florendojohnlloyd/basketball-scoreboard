@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface EditableTextProps {
   /** Stable label id used to persist the override. */
@@ -10,13 +10,14 @@ interface EditableTextProps {
   /** Called with the new text when the user finishes editing. */
   onChange: (id: string, text: string) => void
   className?: string
+  style?: React.CSSProperties
 }
 
 /**
  * A text span that becomes editable (inline) when the board is in Edit mode.
  * Outside edit mode it renders as plain text so the scoreboard stays clean.
  */
-export function EditableText({ id, value, editing, onChange, className }: EditableTextProps): React.ReactElement {
+export function EditableText({ id, value, editing, onChange, className, style }: EditableTextProps): React.ReactElement {
   const [draft, setDraft] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -26,7 +27,7 @@ export function EditableText({ id, value, editing, onChange, className }: Editab
   }, [value])
 
   if (!editing) {
-    return <span className={className}>{value}</span>
+    return <span className={className} style={style}>{value}</span>
   }
 
   function commit(): void {

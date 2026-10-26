@@ -174,7 +174,16 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       const newGameClock = tickClock(state.gameClock, deltaMs);
       const newShotClock = tickShotClock(state.shotClock, deltaMs);
 
-      // Shot clock violation: shot clock just expired → stop game clock (dead ball)
+      // 1. Period end: game clock just expired (00:00) → stop both game clock & shot clock
+      if (state.gameClock.running && !newGameClock.running && newGameClock.displayMs === 0) {
+        return {
+          ...state,
+          gameClock: newGameClock,
+          shotClock: { ...newShotClock, running: false },
+        };
+      }
+
+      // 2. Shot clock violation: shot clock just expired → stop game clock (dead ball)
       if (state.shotClock.running && !newShotClock.running && newShotClock.displayMs === 0) {
         return {
           ...state,
@@ -471,9 +480,17 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
         team, playerId, points, playerName: player?.name,
         description: `${player?.name ?? '?'} +${points} pts`,
       });
+      const volleyball = state.volleyball ? {
+        ...state.volleyball,
+        pointsCurrentSet: {
+          ...state.volleyball.pointsCurrentSet,
+          [team]: state.volleyball.pointsCurrentSet[team] + points,
+        },
+      } : undefined;
       return {
         ...state,
         [team]: { ...ts, players, score: ts.score + points },
+        ...(volleyball ? { volleyball } : {}),
         events: [...state.events, ev],
       };
     }

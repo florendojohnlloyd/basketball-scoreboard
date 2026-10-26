@@ -6,14 +6,15 @@ export function ShotClockDisplay(): React.ReactElement {
 
   useEffect(() => {
     // Subscribe to game state updates
-    const unsub = window.electron.ipcRenderer.on('gameState:update', (state: GameState) => {
+    const unsub = window.electron.ipcRenderer.on('gameState:update', (...args: any[]) => {
+      const state = args[0] as GameState
       setGameState(state)
     })
 
     // Request initial state
     window.electron.ipcRenderer
       .invoke('scoreboard:query', { type: 'GET_STATE' })
-      .then((state: GameState) => {
+      .then((state: any) => {
         setGameState(state)
       })
       .catch(console.error)
@@ -30,9 +31,7 @@ export function ShotClockDisplay(): React.ReactElement {
   }
 
   const { shotClock } = gameState
-  const shotSec = shotClock.displayMs > 0 
-    ? Math.ceil(shotClock.displayMs / 1000) 
-    : shotClock.configuredDurationSeconds
+  const shotSec = Math.ceil((shotClock?.displayMs ?? 0) / 1000)
   const isLow = shotSec <= 5
   const isRunning = shotClock.running
 

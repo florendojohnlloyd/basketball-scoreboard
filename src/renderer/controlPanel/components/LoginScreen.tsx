@@ -6,10 +6,13 @@
  * - Login form with username/password fields
  * - Error messages on invalid credentials
  * - Lockout message with remaining time when account is locked
+ * - Show/hide password toggles
+ * - High-end modern sports-tech UI with Fitness Exclusive branding
  */
 
 import React, { useState, useEffect, useRef } from 'react'
 import { SCOREBOARD_QUERY } from '@shared/types'
+import fitnessLogo from '../../../../pictures/red.png'
 import './LoginScreen.css'
 
 // Password validation rules (mirrors roleStore.validatePassword)
@@ -30,6 +33,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [lockoutMessage, setLockoutMessage] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -157,11 +162,23 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
     }
   }
 
+  // Password requirement checks for visual feedback during setup
+  const hasMinLength = password.length >= 8
+  const hasUpper = /[A-Z]/.test(password)
+  const hasDigit = /[0-9]/.test(password)
+  const hasSpecial = /[^A-Za-z0-9]/.test(password)
+
   if (mode === 'loading') {
     return (
       <div className="login-screen" data-testid="login-screen">
         <div className="login-screen__card">
-          <p className="login-screen__loading">Loading...</p>
+          <div className="login-screen__brand">
+            <div className="login-screen__logo-wrap">
+              <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
+            </div>
+          </div>
+          <div className="login-screen__spinner" />
+          <p className="login-screen__loading">Initializing system security...</p>
         </div>
       </div>
     )
@@ -171,48 +188,115 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
     return (
       <div className="login-screen" data-testid="login-screen">
         <div className="login-screen__card">
+          <div className="login-screen__brand">
+            <div className="login-screen__logo-wrap">
+              <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
+            </div>
+            <div className="login-screen__badge">FIRST LAUNCH SETUP</div>
+          </div>
+
           <h1 className="login-screen__title">Admin Setup</h1>
           <p className="login-screen__subtitle">Create the initial Admin account to get started.</p>
 
           <form className="login-screen__form" onSubmit={handleSetup}>
             <div className="login-screen__field">
               <label htmlFor="setup-username">Username</label>
-              <input
-                id="setup-username"
-                type="text"
-                autoComplete="username"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                placeholder="Admin username"
-                disabled={submitting}
-                autoFocus
-              />
+              <div className="login-screen__input-wrapper">
+                <input
+                  id="setup-username"
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="Admin username"
+                  disabled={submitting}
+                  autoFocus
+                />
+              </div>
             </div>
 
             <div className="login-screen__field">
               <label htmlFor="setup-password">Password</label>
-              <input
-                id="setup-password"
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Min 8 chars, 1 upper, 1 digit, 1 special"
-                disabled={submitting}
-              />
+              <div className="login-screen__input-wrapper">
+                <input
+                  id="setup-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Min 8 chars, 1 upper, 1 digit, 1 special"
+                  disabled={submitting}
+                />
+                <button
+                  type="button"
+                  className="login-screen__toggle-pwd"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="login-screen__field">
               <label htmlFor="setup-confirm">Confirm Password</label>
-              <input
-                id="setup-confirm"
-                type="password"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter password"
-                disabled={submitting}
-              />
+              <div className="login-screen__input-wrapper">
+                <input
+                  id="setup-confirm"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  disabled={submitting}
+                />
+                <button
+                  type="button"
+                  className="login-screen__toggle-pwd"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showConfirmPassword ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                      <line x1="1" y1="1" x2="23" y2="23" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Visual Password Requirements Tracker */}
+            <div className="login-screen__reqs">
+              <span className={`login-screen__req-item ${hasMinLength ? 'login-screen__req-item--valid' : ''}`}>
+                {hasMinLength ? '✓' : '•'} 8+ characters
+              </span>
+              <span className={`login-screen__req-item ${hasUpper ? 'login-screen__req-item--valid' : ''}`}>
+                {hasUpper ? '✓' : '•'} Uppercase letter
+              </span>
+              <span className={`login-screen__req-item ${hasDigit ? 'login-screen__req-item--valid' : ''}`}>
+                {hasDigit ? '✓' : '•'} At least 1 digit
+              </span>
+              <span className={`login-screen__req-item ${hasSpecial ? 'login-screen__req-item--valid' : ''}`}>
+                {hasSpecial ? '✓' : '•'} Special character
+              </span>
             </div>
 
             {error && <div className="login-screen__error" role="alert">{error}</div>}
@@ -238,35 +322,65 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
   return (
     <div className="login-screen" data-testid="login-screen">
       <div className="login-screen__card">
+        <div className="login-screen__brand">
+          <div className="login-screen__logo-wrap">
+            <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
+          </div>
+          <div className="login-screen__badge">OFFICIAL CONTROL SYSTEM</div>
+        </div>
+
         <h1 className="login-screen__title">Login</h1>
         <p className="login-screen__subtitle">Basketball Scoreboard System</p>
 
         <form className="login-screen__form" onSubmit={handleLogin}>
           <div className="login-screen__field">
             <label htmlFor="login-username">Username</label>
-            <input
-              id="login-username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="Username"
-              disabled={submitting}
-              autoFocus
-            />
+            <div className="login-screen__input-wrapper">
+              <input
+                id="login-username"
+                type="text"
+                autoComplete="username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder="Enter username"
+                disabled={submitting}
+                autoFocus
+              />
+            </div>
           </div>
 
           <div className="login-screen__field">
             <label htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Password"
-              disabled={submitting}
-            />
+            <div className="login-screen__input-wrapper">
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Enter password"
+                disabled={submitting}
+              />
+              <button
+                type="button"
+                className="login-screen__toggle-pwd"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {error && <div className="login-screen__error" role="alert">{error}</div>}
@@ -280,6 +394,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
             {submitting ? 'Logging in...' : 'Log In'}
           </button>
         </form>
+
+        <div className="login-screen__footer">
+          <span className="login-screen__footer-dot" />
+          <span>RBAC Protected Session • Local Auth</span>
+        </div>
       </div>
     </div>
   )

@@ -5,9 +5,10 @@
  * V17.13: Added RBAC middleware + session map + user management IPC (Requirement 28, Task 59).
  */
 
-import { ipcMain, dialog, app } from 'electron';
-import { statSync } from 'fs';
-import { relative } from 'path';
+import { ipcMain, dialog, app, shell } from 'electron';
+import { statSync, existsSync } from 'fs';
+import { relative, resolve } from 'path';
+import { spawn } from 'child_process';
 import { exportPdf, exportExcel } from './exportService';
 import type { ExportData } from './exportService';
 import type { GameStore } from './gameStore';
@@ -34,6 +35,7 @@ import { ReauthorizationRequiredError } from './socialShareService';
 import type { SocialPlatform } from '../shared/types';
 import { randomUUID } from 'crypto';
 import { computeSeasonAverages, computeLeaderboards } from './analytics';
+import { relayBridgeServer } from './relayBridgeServer';
 
 // ---------------------------------------------------------------------------
 // In-memory session map: webContentsId → { userId, username, role }
@@ -230,9 +232,16 @@ type QueryMessage =
   | { type: 'DELETE_PRESET'; name: string }
   | { type: 'ASSIGN_DISPLAY'; displayId: number }
   | { type: 'OPEN_SCOREBOARD' }
+  | { type: 'OPEN_SHOTCLOCK' }
+  | { type: 'GET_WINDOW_STATE' }
+  | { type: 'SET_WINDOW_FULLSCREEN' }
+  | { type: 'SET_WINDOW_WINDOWED' }
+  | { type: 'LAYOUT_SAVE_FILE'; layoutData: string; defaultName?: string }
+  | { type: 'LAYOUT_LOAD_FILE' }
   // Liga
   | { type: 'LIGA_LIST' }
   | { type: 'LIGA_LOAD'; id: string }
+  | { type: 'LIGA_DELETE'; id: string }
   | { type: 'LIGA_CREATE'; name: string; year: number }
   | { type: 'LIGA_ADD_TEAM'; ligaId: string; team: import('../shared/types').LigaTeam }
   | { type: 'LIGA_UPDATE_TEAM'; ligaId: string; teamId: string; updates: Partial<import('../shared/types').LigaTeam> }
@@ -341,7 +350,12 @@ type QueryMessage =
   | { type: 'TOURNAMENT_RECORD_RESULT'; tournamentId: string; matchNodeId: string; homeScore: number; awayScore: number }
   | { type: 'TOURNAMENT_REVERT_RESULT'; tournamentId: string; matchNodeId: string }
   | { type: 'TOURNAMENT_EXPORT_PDF'; tournamentId: string }
-  | { type: 'TOURNAMENT_PRINT'; tournamentId: string };
+  | { type: 'TOURNAMENT_PRINT'; tournamentId: string }
+  // Relay Server & Web Console
+  | { type: 'OPEN_EXTERNAL_URL'; url: string }
+  | { type: 'START_RELAY_SERVER' }
+  | { type: 'RELAY_BRIDGE_TRIGGER_BUZZ'; payload?: { duration?: number; source?: string } }
+  | { type: 'GET_RELAY_BRIDGE_STATUS' };
 
 // ---------------------------------------------------------------------------
 // Public interface
@@ -350,15 +364,15 @@ type QueryMessage =
 export interface IpcRouter {
   dispose(): void;
   broadcastState(state: GameState): void;
-  broadcastWithBuzzerCheck(prevState: GameState, nextState: GameState): void;
+  broadcastWithBuzzerCheck(prevState: GameState, nextState: GameState, isExplicitZero?: boolean): void;
 }
 
 // ---------------------------------------------------------------------------
 // Buzzer helper
 // ---------------------------------------------------------------------------
 
-function clockJustExpired(pRun: boolean, pMs: number, nRun: boolean, nMs: number): boolean {
-  return pRun && pMs > 0 && !nRun && nMs === 0;
+function clockJustExpired(_pRun: boolean, pMs: number, _nRun: boolean, nMs: number): boolean {
+  return pMs > 0 && nMs <= 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -436,12 +450,20 @@ export function createIpcRouter(
     }
   }
 
-  function checkAndSendBuzzerEvents(prevState: GameState, nextState: GameState): void {
-    if (clockJustExpired(prevState.gameClock.running, prevState.gameClock.displayMs, nextState.gameClock.running, nextState.gameClock.displayMs)) {
+  function checkAndSendBuzzerEvents(prevState: GameState, nextState: GameState, isExplicitZero = false): void {
+    if (isExplicitZero || clockJustExpired(prevState.gameClock.running, prevState.gameClock.displayMs, nextState.gameClock.running, nextState.gameClock.displayMs)) {
+      console.log('[ipcRouter] 🏀 Period End (00:00) reached! Stopping clocks and firing 3.0s buzzer.');
+      clockEngine.stopGameClock();
+      clockEngine.stopShotClock();
       sendEventToControlPanel({ type: 'BUZZER_END_PERIOD' });
+      relayBridgeServer.triggerBuzz(3.0, 'PERIOD_END');
     }
     if (clockJustExpired(prevState.shotClock.running, prevState.shotClock.displayMs, nextState.shotClock.running, nextState.shotClock.displayMs)) {
+      console.log('[ipcRouter] ⏱️ Shot Clock expired (00.0)! Stopping clocks and firing 1.5s horn.');
+      clockEngine.stopGameClock();
+      clockEngine.stopShotClock();
       sendEventToControlPanel({ type: 'BUZZER_SHOT_CLOCK' });
+      relayBridgeServer.triggerBuzz(1.5, 'SHOT_CLOCK');
     }
   }
 
@@ -527,20 +549,24 @@ export function createIpcRouter(
 
     // ── Save prompt before NEW_GAME when game is active (Requirement 18) ──
     if (command.type === 'NEW_GAME') {
-      const phase = prevState.gamePhase;
-      if (phase === 'in-game' || phase === 'post-game') {
-        // Notify Control Panel to show save/discard/cancel dialog
-        sendEventToControlPanel({
-          type: 'SAVE_GAME_LOG_PROMPT',
-          gamePhase: phase,
-          homeTeam: prevState.home.config.name,
-          awayTeam: prevState.away.config.name,
-          homeScore: prevState.home.score,
-          awayScore: prevState.away.score,
-          ligaId: prevState.ligaId,
-        });
-        // The actual NEW_GAME dispatch will be re-sent by the renderer after the dialog resolves
-        return;
+      if ((command as any).forceReset) {
+        // Direct reset from Reset button — bypass save dialog
+      } else {
+        const phase = prevState.gamePhase;
+        if (phase === 'in-game' || phase === 'post-game') {
+          // Notify Control Panel to show save/discard/cancel dialog
+          sendEventToControlPanel({
+            type: 'SAVE_GAME_LOG_PROMPT',
+            gamePhase: phase,
+            homeTeam: prevState.home.config.name,
+            awayTeam: prevState.away.config.name,
+            homeScore: prevState.home.score,
+            awayScore: prevState.away.score,
+            ligaId: prevState.ligaId,
+          });
+          // The actual NEW_GAME dispatch will be re-sent by the renderer after the dialog resolves
+          return;
+        }
       }
     }
 
@@ -575,6 +601,14 @@ export function createIpcRouter(
       case 'STOP_GAME_CLOCK':   clockEngine.stopGameClock(); clockEngine.stopShotClock(); break;
       case 'START_SHOT_CLOCK':  clockEngine.startShotClock(); break;
       case 'STOP_SHOT_CLOCK':   clockEngine.stopShotClock();  break;
+      case 'RESET_GAME_CLOCK':  clockEngine.stopGameClock(); break;
+      case 'RESET_SHOT_CLOCK':  clockEngine.stopShotClock(); break;
+      case 'NEW_GAME':
+      case 'NEW_VOLLEYBALL_GAME':
+        clockEngine.stopGameClock();
+        clockEngine.stopShotClock();
+        clockEngine.stopTimeoutClock();
+        break;
       case 'START_TIMEOUT':
       case 'USE_VB_TIMEOUT':
         clockEngine.stopGameClock();
@@ -606,6 +640,7 @@ export function createIpcRouter(
         gameStore.dispatch({ type: 'STOP_GAME_CLOCK' });
         // 3. Fire buzzer sound
         sendEventToControlPanel({ type: 'BUZZER_SHOT_CLOCK' });
+        relayBridgeServer.triggerBuzz(1.5, 'SHOT_CLOCK');
         // 4. Broadcast the stopped state
         const stoppedState = gameStore.getState();
         broadcastState(stoppedState);
@@ -625,7 +660,8 @@ export function createIpcRouter(
       return;
     }
 
-    broadcastWithBuzzerCheck(prevState, newState);
+    const isExplicitZero = command.type === 'SET_GAME_CLOCK' && command.seconds === 0;
+    broadcastWithBuzzerCheck(prevState, newState, isExplicitZero);
     autosaveStore.schedule(newState);
     sendEventToControlPanel({ type: 'UNDO_STATE', canUndo: gameStore.canUndo(), description: gameStore.getUndoDescription() });
     auditCommand(command, prevState, newState);
@@ -974,6 +1010,9 @@ export function createIpcRouter(
 
       // Force NEW_GAME after save prompt (Requirement 18)
       case 'NEW_GAME_CONFIRMED': {
+        clockEngine.stopGameClock();
+        clockEngine.stopShotClock();
+        clockEngine.stopTimeoutClock();
         const prev = gameStore.getState();
         const next = gameStore.dispatch({ type: 'NEW_GAME', clearTeams: query.clearTeams });
         broadcastWithBuzzerCheck(prev, next);
@@ -1848,6 +1887,69 @@ export function createIpcRouter(
         return { success: false, error: 'Unknown share query.' };
       }
 
+      case 'OPEN_EXTERNAL_URL': {
+        try {
+          const url = query.url;
+          if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+            await shell.openExternal(url);
+            return { success: true };
+          }
+          return { success: false, error: 'Invalid URL scheme. Must start with http:// or https://' };
+        } catch (e) {
+          return { success: false, error: (e as Error).message };
+        }
+      }
+
+      case 'START_RELAY_SERVER': {
+        try {
+          const candidatePaths = [
+            'c:\\Users\\flore\\OneDrive\\Desktop\\System\\Jaloy system\\Relay Automatic\\Run exe and server\\START_RELAY_SERVER.bat',
+            resolve(app.getAppPath(), '../Run exe and server/START_RELAY_SERVER.bat'),
+            resolve(process.cwd(), '../Run exe and server/START_RELAY_SERVER.bat'),
+            resolve(process.cwd(), 'Run exe and server/START_RELAY_SERVER.bat'),
+            resolve(process.resourcesPath, '../Relay_Server/START_RELAY_SERVER.bat'),
+            resolve(app.getAppPath(), '../Basketball_Scoreboard_Deployment/Relay_Server/START_RELAY_SERVER.bat'),
+          ];
+
+          let targetPath: string | null = null;
+          for (const p of candidatePaths) {
+            if (existsSync(p)) {
+              targetPath = p;
+              break;
+            }
+          }
+
+          if (targetPath) {
+            spawn('cmd.exe', ['/c', 'start', 'Flask Relay Server', targetPath], {
+              detached: true,
+              shell: true,
+              stdio: 'ignore',
+            }).unref();
+            return { success: true, path: targetPath };
+          } else {
+            return { success: false, error: 'Hindi natagpuan ang START_RELAY_SERVER.bat file.' };
+          }
+        } catch (e) {
+          return { success: false, error: (e as Error).message };
+        }
+      }
+
+      case 'RELAY_BRIDGE_TRIGGER_BUZZ': {
+        const payload = (query as any).payload || {};
+        const duration = payload.duration || 3.0;
+        const source = payload.source || 'MANUAL';
+        relayBridgeServer.triggerBuzz(duration, source);
+        return { success: true, clients: relayBridgeServer.getWebClientsCount() };
+      }
+
+      case 'GET_RELAY_BRIDGE_STATUS': {
+        return {
+          success: true,
+          running: relayBridgeServer.isRunning(),
+          webClientsCount: relayBridgeServer.getWebClientsCount(),
+        };
+      }
+
       default: {
         const _exhaustive: never = query as never;
         void _exhaustive;
@@ -1872,9 +1974,9 @@ export function createIpcRouter(
     }
   });
 
-  function broadcastWithBuzzerCheck(prevState: GameState, nextState: GameState): void {
+  function broadcastWithBuzzerCheck(prevState: GameState, nextState: GameState, isExplicitZero = false): void {
     broadcastState(nextState);
-    checkAndSendBuzzerEvents(prevState, nextState);
+    checkAndSendBuzzerEvents(prevState, nextState, isExplicitZero);
     checkFoulOutAlerts(prevState, nextState);
   }
 

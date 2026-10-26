@@ -93,7 +93,7 @@ function PeriodControl(): React.ReactElement {
       'Start a new game? This will reset all scores, fouls, clocks, and timeouts to their configured values.'
     )
     if (!confirmed) return
-    sendCommand({ type: 'NEW_GAME', clearTeams: false })
+    sendCommand({ type: 'NEW_GAME', clearTeams: false, forceReset: true })
   }
 
   // ---- render --------------------------------------------------------------

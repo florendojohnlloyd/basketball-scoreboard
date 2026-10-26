@@ -294,7 +294,6 @@ function VolleyballScoreboardLayout(): React.ReactElement {
                 text={away.config.name || 'AWAY'}
                 color={away.config.color || '#00a2ff'}
                 align="left"
-                maxFontSize={300}
               />
               {servingTeam === 'away' && (
                 <span className="vb-serve-arrow" title="Away Serving">◀</span>
@@ -318,7 +317,6 @@ function VolleyballScoreboardLayout(): React.ReactElement {
                 text={home.config.name || 'HOME'}
                 color={home.config.color || '#ff3333'}
                 align="right"
-                maxFontSize={300}
               />
             </div>
           </div>

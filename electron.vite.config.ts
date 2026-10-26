@@ -32,6 +32,7 @@ export default defineConfig({
   renderer: {
     root: resolve(__dirname, 'src/renderer'),
     resolve: {
+      extensions: ['.tsx', '.ts', '.jsx', '.js', '.json'],
       alias: {
         '@renderer': resolve('src/renderer'),
         '@shared': resolve('src/shared')

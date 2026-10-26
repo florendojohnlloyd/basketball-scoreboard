@@ -190,9 +190,11 @@ function LiveStreamingPanel(): React.ReactElement {
   }, [])
 
   useEffect(() => {
-    window.electron.ipcRenderer.on(SCOREBOARD_EVENT, handleEvent)
+    const cleanup = window.electron.ipcRenderer.on(SCOREBOARD_EVENT, handleEvent)
     return () => {
-      window.electron.ipcRenderer.removeAllListeners(SCOREBOARD_EVENT)
+      if (typeof cleanup === 'function') cleanup()
+      else if (window.electron.ipcRenderer.removeListener) window.electron.ipcRenderer.removeListener(SCOREBOARD_EVENT, handleEvent)
+      else window.electron.ipcRenderer.removeAllListeners?.(SCOREBOARD_EVENT)
     }
   }, [handleEvent])
 

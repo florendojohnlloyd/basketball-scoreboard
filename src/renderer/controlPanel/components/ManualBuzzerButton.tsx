@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react'
+import { relayBuzzerService } from '../hardware/relayBuzzerService'
 import './ManualBuzzerButton.css'
 
 // ---------------------------------------------------------------------------
@@ -36,6 +37,7 @@ function ManualBuzzerButton(): React.ReactElement {
 
     try {
       audioEngineRef?.playEndOfPeriod()
+      relayBuzzerService.triggerBuzzer('MANUAL')
     } catch (err) {
       console.error('[ManualBuzzerButton] audioEngine.playEndOfPeriod() failed:', err)
     }

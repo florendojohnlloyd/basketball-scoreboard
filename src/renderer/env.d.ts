@@ -19,12 +19,14 @@ interface ElectronIpcRenderer {
   on(channel: string, listener: (...args: unknown[]) => void): void
   invoke(channel: string, ...args: unknown[]): Promise<unknown>
   removeAllListeners(channel: string): void
+  removeListener?(channel: string, listener: (...args: unknown[]) => void): void
 }
 
 declare global {
   interface Window {
     electron: {
       ipcRenderer: ElectronIpcRenderer
+      openExternal?: (url: string) => Promise<unknown>
     }
   }
 }

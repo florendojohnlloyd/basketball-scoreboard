@@ -120,13 +120,8 @@ class AudioEngine {
 
       window.electron.ipcRenderer.on(SCOREBOARD_EVENT, (raw: unknown) => {
         const event = raw as ScoreboardEvent
-        // Resume context if suspended before playing
         if (this.ctx && this.ctx.state === 'suspended') {
-          this.ctx.resume().then(() => {
-            this.audioAvailable = true
-            this._handleBuzzerEvent(event)
-          }).catch(() => {/* ignore */})
-          return
+          void this.ctx.resume().catch(() => {/* ignore */})
         }
         this._handleBuzzerEvent(event)
       })

@@ -931,15 +931,15 @@ export default ScoreboardLayout
 // TimeoutOverlay — self-contained timeout screen with its own drag/edit mode
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TO_LAYOUT_KEY = 'tv-timeout-widget-layout-v7'
+const TO_LAYOUT_KEY = 'tv-timeout-widget-layout-v10'
 const TO_LABELS_KEY = 'tv-timeout-labels-v1'
 const TO_CUSTOM_IMG_KEY = 'tv-timeout-custom-img-v1'
 
 const TO_WIDGET_DEFAULTS: Record<string, { x: number; y: number; w: number; h: number; fontScale?: number; hidden?: boolean }> = {
-  'to-flash':      { x: 5,  y: 12, w: 40, h: 12, fontScale: 1.0 },  // Large TIMEOUT text (volleyball style)
-  'to-team':       { x: 5,  y: 26, w: 40, h: 10, fontScale: 1.0, hidden: false },  // Large team name (volleyball style)
-  'to-ring':       { x: 6,  y: 38, w: 38, h: 40 },  // Countdown timer
-  'to-label':      { x: 6,  y: 80, w: 38, h: 6  },  // TIME REMAINING label (hidden via CSS)
+  'to-flash':      { x: 1,  y: 6,  w: 48, h: 18, fontScale: 1.0 },  // Clean broadcast-scale TIMEOUT text
+  'to-team':       { x: 1,  y: 25, w: 48, h: 12, fontScale: 1.0, hidden: false },  // Team name
+  'to-ring':       { x: 3,  y: 38, w: 44, h: 44 },  // Countdown timer
+  'to-label':      { x: 3,  y: 82, w: 44, h: 6  },  // TIME REMAINING label
   'to-video':      { x: 50, y: 0,  w: 50, h: 88 },
   'to-custom-img': { x: 50, y: 0,  w: 50, h: 88, hidden: true },
   // Bottom bar — continuous, touching (no gaps), full width
@@ -957,6 +957,9 @@ function loadToLayout(): Record<string, { x: number; y: number; w: number; h: nu
   localStorage.removeItem('tv-timeout-widget-layout-v4')
   localStorage.removeItem('tv-timeout-widget-layout-v5')
   localStorage.removeItem('tv-timeout-widget-layout-v6')
+  localStorage.removeItem('tv-timeout-widget-layout-v7')
+  localStorage.removeItem('tv-timeout-widget-layout-v8')
+  localStorage.removeItem('tv-timeout-widget-layout-v9')
   
   try {
     const raw = localStorage.getItem(TO_LAYOUT_KEY)
@@ -1079,9 +1082,7 @@ function TimeoutOverlay({ gs, home, away, period, gameClock, videoSrc, toLayout 
       {/* TIMEOUT flash text */}
       <EditableWidget id="to-flash" rect={rect('to-flash')} editing={editing} onUpdate={updateWidget} onRemove={removeWidget} label="TIMEOUT Text">
         <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <span className="tv-timeout__flash" style={{ color: toLayout.flashColor }}>
-            <EditableText id="to-flash-label" value={labels['to-flash-label'] ?? 'TIMEOUT'} editing={editing} onChange={setLabel} className="tv-timeout__flash" />
-          </span>
+          <EditableText id="to-flash-label" value={labels['to-flash-label'] ?? 'TIMEOUT'} editing={editing} onChange={setLabel} className="tv-timeout__flash" style={{ color: toLayout.flashColor || '#ffd700' }} />
         </div>
       </EditableWidget>
 

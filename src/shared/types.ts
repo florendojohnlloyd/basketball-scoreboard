@@ -275,7 +275,7 @@ export type CommandType =
   | { type: 'SET_TEAM_CONFIG'; team: 'home' | 'away'; config: Partial<TeamConfig> }
   // Preset / Game
   | { type: 'LOAD_PRESET'; preset: GameConfig }
-  | { type: 'NEW_GAME'; clearTeams: boolean }
+  | { type: 'NEW_GAME'; clearTeams: boolean; forceReset?: boolean }
   // Volume
   | { type: 'SET_VOLUME'; level: number }
   // Possession
@@ -717,6 +717,13 @@ export function makeDefaultPlayer(): Player {
 
 export function DEFAULT_GAME_STATE(): GameState {
   const config: GameConfig = { ...NBA_RULES };
+  const defaultStartingFive = (prefix: string): Player[] => [
+    { ...makeDefaultPlayer(), id: `${prefix}-p1`, number: '1', name: 'Player 1', active: true },
+    { ...makeDefaultPlayer(), id: `${prefix}-p2`, number: '2', name: 'Player 2', active: true },
+    { ...makeDefaultPlayer(), id: `${prefix}-p3`, number: '3', name: 'Player 3', active: true },
+    { ...makeDefaultPlayer(), id: `${prefix}-p4`, number: '4', name: 'Player 4', active: true },
+    { ...makeDefaultPlayer(), id: `${prefix}-p5`, number: '5', name: 'Player 5', active: true },
+  ];
   const defaultTeam = (name: string, color: string): TeamState => ({
     config: { name, color, logoPath: null, playerImagePath: null },
     score: 0,
@@ -729,7 +736,7 @@ export function DEFAULT_GAME_STATE(): GameState {
       secondHalfUsed: 0,
       overtimeUsed: 0,
     },
-    players: [],
+    players: defaultStartingFive(name.toLowerCase()),
   });
 
   return {

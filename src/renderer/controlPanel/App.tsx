@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useControlPanelStore, sendCommand } from './store'
 import type { UserSession } from './store'
-import { formatClockDisplay } from '../shared/clockUtils'
 import type { Player, Liga, LigaTeam, GameLogRecord, SyncRecord } from '@shared/types'
 import { SCOREBOARD_EVENT, SCOREBOARD_QUERY } from '@shared/types'
 import { SportSelector } from './components/SportSelector'
@@ -26,7 +25,6 @@ import TournamentManager from './components/TournamentManager'
 import { TimeoutSettings } from './components/TimeoutSettings'
 import { LanguagePicker } from './components/LanguagePicker'
 import { RelayBuzzerSettings } from './components/RelayBuzzerSettings'
-import sponsorLogo from '../../../pictures/BG.png'
 import fitnessLogo from '../../../pictures/red.png'
 import './App.css'
 import './audio/audioEngine'
@@ -97,7 +95,7 @@ function App(): React.ReactElement {
 // ---------------------------------------------------------------------------
 // AUTHENTICATED APP (Liga Picker → Matchup → Control Panel)
 // ---------------------------------------------------------------------------
-function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogout: () => void }): React.ReactElement {
+function AuthenticatedApp({ session: _session, onLogout }: { session: UserSession; onLogout: () => void }): React.ReactElement {
   const [screen, setScreen] = useState<AppScreen>('sport-selector')
   const [selectedSport, setSelectedSport] = useState<'basketball' | 'volleyball'>('basketball')
   const [ligas, setLigas] = useState<LigaSummary[]>([])
@@ -224,43 +222,81 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
           <div className="liga-picker__logo-img">
             <img src={fitnessLogo} alt="Fitness Exclusive" className="liga-picker__brand-img" />
           </div>
-          <p className="liga-picker__sub">Basketball Scoreboard System</p>
+          <div className="liga-picker__sport-badge">
+            <span>{selectedSport === 'volleyball' ? '🏐 VOLLEYBALL' : '🏀 BASKETBALL'} SCOREBOARD SYSTEM</span>
+            <button
+              type="button"
+              className="liga-picker__sport-switch"
+              onClick={() => setScreen('sport-selector')}
+              title="Change Sport"
+            >
+              Change Sport ▾
+            </button>
+          </div>
 
           <div className="liga-picker__actions">
             {/* NEW LIGA */}
             <div className="liga-picker__new">
-              <input className="liga-picker__inp" placeholder="Liga Name (e.g. MCBL 2026)" value={newLigaName} onChange={e => setNewLigaName(e.target.value)} />
-              <button className="btn btn--green btn--lg" disabled={!newLigaName.trim()} onClick={async () => {
-                const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_CREATE', name: newLigaName.trim(), year: new Date().getFullYear() }) as any
-                if (result?.success) {
-                  setCurrentLiga(result.liga)
-                  setNewLigaName('')
-                  setScreen('liga-manage')
-                  refreshLigas()
-                }
-              }}>+ NEW LIGA</button>
+              <input
+                className="liga-picker__inp"
+                placeholder="Liga Name (e.g. MCBL 2026)"
+                value={newLigaName}
+                onChange={e => setNewLigaName(e.target.value)}
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter' && newLigaName.trim()) {
+                    const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_CREATE', name: newLigaName.trim(), year: new Date().getFullYear() }) as any
+                    if (result?.success) {
+                      setCurrentLiga(result.liga)
+                      setNewLigaName('')
+                      setScreen('liga-manage')
+                      refreshLigas()
+                    }
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="liga-picker__new-btn"
+                disabled={!newLigaName.trim()}
+                onClick={async () => {
+                  const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_CREATE', name: newLigaName.trim(), year: new Date().getFullYear() }) as any
+                  if (result?.success) {
+                    setCurrentLiga(result.liga)
+                    setNewLigaName('')
+                    setScreen('liga-manage')
+                    refreshLigas()
+                  }
+                }}
+              >
+                + NEW LIGA
+              </button>
             </div>
 
             {/* LOAD LIGA */}
             {ligas.length > 0 && (
               <div className="liga-picker__list">
-                <h3>Load Existing Liga</h3>
+                <h3>📁 Load Existing Liga</h3>
                 {ligas.map(l => (
                   <div key={l.id} className="liga-picker__liga-row">
-                    <button className="liga-picker__liga-btn" onClick={async () => {
-                      const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LOAD', id: l.id }) as any
-                      if (result?.success) {
-                        setCurrentLiga(result.liga)
-                        setScreen('matchup-picker')
-                      } else {
-                        alert(result?.error ?? 'Failed to load liga')
-                      }
-                    }}>
-                      <span className="liga-picker__liga-name">{l.name} ({l.year})</span>
-                      <span className="liga-picker__liga-teams">{l.teamCount} teams</span>
+                    <button
+                      type="button"
+                      className="liga-picker__liga-btn"
+                      onClick={async () => {
+                        const result = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LOAD', id: l.id }) as any
+                        if (result?.success) {
+                          setCurrentLiga(result.liga)
+                          setScreen('matchup-picker')
+                        } else {
+                          alert(result?.error ?? 'Failed to load liga')
+                        }
+                      }}
+                    >
+                      <span className="liga-picker__liga-name">{l.name} <span className="liga-picker__liga-year">({l.year})</span></span>
+                      <span className="liga-picker__liga-teams">{l.teamCount} {l.teamCount === 1 ? 'team' : 'teams'}</span>
                     </button>
                     <button
-                      className="btn btn--red btn--xs liga-picker__liga-del"
+                      type="button"
+                      className="liga-picker__liga-del"
                       title={`Delete ${l.name}`}
                       onClick={async () => {
                         if (!window.confirm(`Delete "${l.name}"?\n\nThis will permanently remove this liga and all its data.`)) return
@@ -276,15 +312,23 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
             )}
 
             {/* TRIAL MODE */}
-            <button className="btn btn--dark btn--lg" onClick={() => {
-              if (selectedSport === 'volleyball') {
-                sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })
-              } else {
-                sendCommand({ type: 'NEW_GAME', clearTeams: false })
-              }
-              setScreen('control-panel')
-            }}>TRIAL MODE (Quick Game)</button>
-            <p style={{ fontSize: '0.65rem', color: '#556', textAlign: 'center' }}>Trial mode: keeps teams, resets scores</p>
+            <div className="liga-picker__trial-group">
+              <button
+                type="button"
+                className="liga-picker__trial-btn"
+                onClick={() => {
+                  if (selectedSport === 'volleyball') {
+                    sendCommand({ type: 'NEW_VOLLEYBALL_GAME', clearTeams: false })
+                  } else {
+                    sendCommand({ type: 'NEW_GAME', clearTeams: false })
+                  }
+                  setScreen('control-panel')
+                }}
+              >
+                <span>⚡</span> TRIAL MODE (QUICK GAME)
+              </button>
+              <p className="liga-picker__trial-hint">Trial mode: keeps teams, resets scores</p>
+            </div>
           </div>
         </div>
       </div>
@@ -505,6 +549,7 @@ function AuthenticatedApp({ session, onLogout }: { session: UserSession; onLogou
       <ControlPanel
         onBack={() => setScreen(currentLiga ? 'matchup-picker' : 'liga-picker')}
         onSelectSportScreen={() => setScreen('sport-selector')}
+        onLogout={onLogout}
         ligaId={currentLiga?.id ?? null}
         ligaName={currentLiga?.name ?? null}
         onSelectLiga={(liga) => setCurrentLiga(liga)}
@@ -559,7 +604,8 @@ function ControlPanel({
   onSelectLiga,
   ligas,
   refreshLigas,
-  selectedSport,
+  selectedSport: _selectedSport,
+  onLogout,
 }: {
   onBack: () => void
   onSelectSportScreen?: () => void
@@ -568,7 +614,8 @@ function ControlPanel({
   onSelectLiga: (liga: Liga) => void
   ligas: LigaSummary[]
   refreshLigas: () => void
-  selectedSport: 'basketball' | 'volleyball'
+  selectedSport?: 'basketball' | 'volleyball'
+  onLogout?: () => void
 }): React.ReactElement {
   const gsLigaId = useControlPanelStore(s => s.gameState.ligaId)
   const gsLigaName = useControlPanelStore(s => s.gameState.ligaName)
@@ -616,9 +663,6 @@ function ControlPanel({
   }
 
   const gs = useControlPanelStore(s => s.gameState)
-  const { home, away, gameClock, shotClock, period, gameConfig } = gs
-  const clockStr = formatClockDisplay(gameClock.displayMs)
-  const shotSec = Math.ceil(shotClock.displayMs / 1000)
 
   // Handler for tab changes that intercepts BOXSCORE to show modal instead
   function handleTabChange(newTab: string): void {
@@ -646,6 +690,9 @@ function ControlPanel({
         {layoutEditing && <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#8cf' }} onClick={() => { setTemplateName(''); setTemplateInput('load') }}>📂 Load</button>}
         <button className="cp-tabs__btn cp-tabs__btn--right" style={{ fontSize: '1.6em' }} onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>📺</button>
         <button className="cp-tabs__btn cp-tabs__btn--right" onClick={onBack}>← Liga</button>
+        {onLogout && (
+          <button className="cp-tabs__btn cp-tabs__btn--right" style={{ color: '#ff6b6b' }} onClick={onLogout} title="Log Out">🚪 Logout</button>
+        )}
         <button 
           className="cp-tabs__btn cp-tabs__btn--right" 
           style={{ color: '#f0a020', fontWeight: 900 }}
@@ -929,7 +976,6 @@ function ControlPanel({
           </div>
           <h3>Display</h3>
           <button className="btn btn--dark" onClick={() => window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'OPEN_SCOREBOARD' })}>Open TV Display</button>
-          <SafeLanguagePicker resetKey={tab} />
           <SafeTimeoutSettings resetKey={tab} />
           <RelayBuzzerSettings />
           <h3>Game Event Log ({gs.events.length} events)</h3>
@@ -1030,13 +1076,15 @@ function ControlPanel({
           aria-modal="true"
         >
           <div className="box-score-modal__content">
-            <button
-              className="box-score-modal__close"
-              onClick={() => setShowBoxScore(false)}
-              aria-label="Close box score"
-            >
-              ✕ Close Box Score
-            </button>
+            <div className="box-score-modal__header-bar">
+              <button
+                className="box-score-modal__close"
+                onClick={() => setShowBoxScore(false)}
+                aria-label="Close box score"
+              >
+                ✕ Close Box Score
+              </button>
+            </div>
             <BoxScoreView />
           </div>
         </div>
