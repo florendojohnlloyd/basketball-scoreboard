@@ -171,12 +171,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
   if (mode === 'loading') {
     return (
       <div className="login-screen" data-testid="login-screen">
-        <div className="login-screen__card">
-          <div className="login-screen__brand">
-            <div className="login-screen__logo-wrap">
-              <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
-            </div>
-          </div>
+        <div className="login-screen__orb login-screen__orb--1" />
+        <div className="login-screen__orb login-screen__orb--2" />
+        <div className="login-screen__orb login-screen__orb--3" />
+        <div className="login-screen__loading-box">
           <div className="login-screen__spinner" />
           <p className="login-screen__loading">Initializing system security...</p>
         </div>
@@ -187,7 +185,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
   if (mode === 'setup') {
     return (
       <div className="login-screen" data-testid="login-screen">
-        <div className="login-screen__card">
+        {/* Animated ambient glowing cyber orbs */}
+        <div className="login-screen__orb login-screen__orb--1" />
+        <div className="login-screen__orb login-screen__orb--2" />
+        <div className="login-screen__orb login-screen__orb--3" />
+        <div className="login-screen__card" key="setup-card">
           <div className="login-screen__brand">
             <div className="login-screen__logo-wrap">
               <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
@@ -325,7 +327,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
       <div className="login-screen__orb login-screen__orb--1" />
       <div className="login-screen__orb login-screen__orb--2" />
       <div className="login-screen__orb login-screen__orb--3" />
-      <div className="login-screen__card">
+      <div className="login-screen__card" key="login-card">
         <div className="login-screen__brand">
           <div className="login-screen__logo-wrap">
             <img src={fitnessLogo} alt="Fitness Exclusive" className="login-screen__brand-img" />
@@ -334,10 +336,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
         </div>
 
         <h1 className="login-screen__title">Login</h1>
-        <p className="login-screen__subtitle">Basketball Scoreboard System</p>
+        <p className="login-screen__subtitle">Multi-Sport Scoreboard System</p>
 
         <form className="login-screen__form" onSubmit={handleLogin}>
-          <div className="login-screen__field">
+          <div className="login-screen__field login-screen__field--username">
             <label htmlFor="login-username">Username</label>
             <div className="login-screen__input-wrapper">
               <input
@@ -353,7 +355,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
             </div>
           </div>
 
-          <div className="login-screen__field">
+          <div className="login-screen__field login-screen__field--password">
             <label htmlFor="login-password">Password</label>
             <div className="login-screen__input-wrapper">
               <input

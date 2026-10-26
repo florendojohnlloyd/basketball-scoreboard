@@ -23,6 +23,30 @@
   max-width: 760px;
 }
 
+/* ---- Keyframes ---- */
+
+@keyframes sportFadeSlideUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sportCardPop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 /* ---- Title ---- */
 
 .sport-selector__title {
@@ -33,6 +57,8 @@
   text-align: center;
   margin: 0;
   text-transform: uppercase;
+  animation: sportFadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
 }
 
 .sport-selector__subtitle {
@@ -41,6 +67,8 @@
   text-align: center;
   margin: 0;
   letter-spacing: 0.02em;
+  animation: sportFadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  will-change: transform, opacity;
 }
 
 /* ---- Card Grid ---- */
@@ -69,7 +97,14 @@
   transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
   text-align: center;
   outline-offset: 2px;
+  will-change: transform, opacity;
 }
+
+.sport-card:nth-child(1) { animation: sportCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.16s both; }
+.sport-card:nth-child(2) { animation: sportCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.24s both; }
+.sport-card:nth-child(3) { animation: sportCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both; }
+.sport-card:nth-child(4) { animation: sportCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+.sport-card:nth-child(5) { animation: sportCardPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both; }
 
 .sport-card--available {
   border-color: #e0a800;
@@ -81,7 +116,7 @@
   background: #22283a;
   border-color: #f2c94c;
   box-shadow: 0 0 0 1px rgba(242, 201, 76, 0.4), 0 4px 20px rgba(242, 201, 76, 0.12);
-  transform: translateY(-2px);
+  transform: translateY(-2px) !important;
 }
 
 .sport-card--available:focus-visible {
