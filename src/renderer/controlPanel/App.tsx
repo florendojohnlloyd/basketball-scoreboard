@@ -637,6 +637,7 @@ function ControlPanel({
   const [showUserManagement, setShowUserManagement] = useState(false)
   const [templateInput, setTemplateInput] = useState<'save' | 'load' | null>(null)
   const [templateName, setTemplateName] = useState('')
+  const [showSportModal, setShowSportModal] = useState(false)
   const { editing: layoutEditing, setEditing: setLayoutEditing, resetLayout, saveTemplate, loadTemplate, getTemplateNames, currentTemplate } = useLayoutStore()
   const session = useControlPanelStore(s => s.session)
 
@@ -696,15 +697,7 @@ function ControlPanel({
         <button 
           className="cp-tabs__btn cp-tabs__btn--right" 
           style={{ color: '#f0a020', fontWeight: 900 }}
-          onClick={() => {
-            if (confirm('Return to Sport Selection? Game progress will be kept.')) {
-              if (onSelectSportScreen) {
-                onSelectSportScreen()
-              } else {
-                window.location.reload()
-              }
-            }
-          }}
+          onClick={() => setShowSportModal(true)}
         >
           🏀 SELECT SPORT
         </button>
@@ -1100,6 +1093,98 @@ function ControlPanel({
         >
           <div className="box-score-modal__content">
             <UserManagementView onClose={() => setShowUserManagement(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* ── RETURN TO SPORT SELECTION MODAL ── */}
+      {showSportModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sport-modal-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: 'rgba(0, 0, 0, 0.78)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowSportModal(false)
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#121824',
+              border: '2px solid rgba(245, 158, 11, 0.6)',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(245, 158, 11, 0.25)',
+              borderRadius: '16px',
+              padding: '28px 32px',
+              maxWidth: '480px',
+              width: '100%',
+              color: '#ffffff',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px'
+            }}
+          >
+            <div style={{ fontSize: '2.5rem', lineHeight: 1 }}>🏆</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <h2 id="sport-modal-title" style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.5px' }}>
+                Return to Sport Selection?
+              </h2>
+              <p style={{ margin: 0, fontSize: '1rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                Current game progress and scores will be preserved. You can switch sports or select another match anytime.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '14px', marginTop: '10px' }}>
+              <button
+                type="button"
+                style={{
+                  flex: 1,
+                  minHeight: '52px',
+                  backgroundColor: '#242f42',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '10px',
+                  color: '#e2e8f0',
+                  fontSize: '1.05rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  touchAction: 'manipulation'
+                }}
+                onClick={() => setShowSportModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                style={{
+                  flex: 1,
+                  minHeight: '52px',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                  border: 'none',
+                  borderRadius: '10px',
+                  color: '#000000',
+                  fontSize: '1.05rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)',
+                  touchAction: 'manipulation'
+                }}
+                onClick={() => {
+                  setShowSportModal(false)
+                  if (onSelectSportScreen) onSelectSportScreen()
+                }}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}

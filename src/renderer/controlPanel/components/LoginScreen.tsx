@@ -321,6 +321,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
   // Login mode
   return (
     <div className="login-screen" data-testid="login-screen">
+      {/* Animated ambient glowing cyber orbs */}
+      <div className="login-screen__orb login-screen__orb--1" />
+      <div className="login-screen__orb login-screen__orb--2" />
+      <div className="login-screen__orb login-screen__orb--3" />
       <div className="login-screen__card">
         <div className="login-screen__brand">
           <div className="login-screen__logo-wrap">
@@ -391,7 +395,8 @@ export function LoginScreen({ onLogin }: LoginScreenProps): React.ReactElement {
             className="login-screen__submit"
             disabled={submitting || !!lockoutMessage}
           >
-            {submitting ? 'Logging in...' : 'Log In'}
+            <span className="login-screen__submit-shimmer" />
+            <span className="login-screen__submit-text">{submitting ? 'Logging in...' : 'Log In'}</span>
           </button>
         </form>
 
