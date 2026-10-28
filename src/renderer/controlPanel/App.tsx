@@ -118,6 +118,20 @@ function AuthenticatedApp({ session: _session, onLogout }: { session: UserSessio
   // Load ligas on mount
   useEffect(() => { refreshLigas() }, [])
 
+  // Support Ctrl+Shift+R / Ctrl+R / F5 hard reload from anywhere in the app
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isCmdOrCtrl = e.ctrlKey || e.metaKey
+      const key = e.key.toLowerCase()
+      if ((isCmdOrCtrl && key === 'r') || e.key === 'F5') {
+        e.preventDefault()
+        window.location.reload()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
 
 
   // Listen for SAVE_GAME_LOG_PROMPT event from main process (Requirement 18)
@@ -404,10 +418,12 @@ function AuthenticatedApp({ session: _session, onLogout }: { session: UserSessio
                   const nameEl = e.currentTarget
                   const name = nameEl.value.trim()
                   if (!name) return
+                  const teamIndex = currentLiga.teams.length
+                  const teamColor = teamIndex === 0 ? '#4a9eff' : teamIndex === 1 ? '#ff4a4a' : '#1D428A'
                   const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
                     type: 'LIGA_ADD_TEAM',
                     ligaId: currentLiga.id,
-                    team: { name, color: '#1D428A', logoPath: null, playerImagePath: null, players: [] }
+                    team: { name, color: teamColor, logoPath: null, playerImagePath: null, players: [] }
                   }) as any
                   if (result?.success) {
                     const reload = await window.electron.ipcRenderer.invoke('scoreboard:query', { type: 'LIGA_LOAD', id: currentLiga.id }) as any
@@ -421,10 +437,12 @@ function AuthenticatedApp({ session: _session, onLogout }: { session: UserSessio
               const nameEl = document.getElementById('new-team-name') as HTMLInputElement
               const name = nameEl.value.trim()
               if (!name) return
+              const teamIndex = currentLiga.teams.length
+              const teamColor = teamIndex === 0 ? '#4a9eff' : teamIndex === 1 ? '#ff4a4a' : '#1D428A'
               const result = await window.electron.ipcRenderer.invoke('scoreboard:query', {
                 type: 'LIGA_ADD_TEAM',
                 ligaId: currentLiga.id,
-                team: { name, color: '#1D428A', logoPath: null, playerImagePath: null, players: [] }
+                team: { name, color: teamColor, logoPath: null, playerImagePath: null, players: [] }
               }) as any
               if (result?.success) {
                 // Reload liga
@@ -640,6 +658,8 @@ function ControlPanel({
   const [showSportModal, setShowSportModal] = useState(false)
   const { editing: layoutEditing, setEditing: setLayoutEditing, resetLayout, saveTemplate, loadTemplate, getTemplateNames, currentTemplate } = useLayoutStore()
   const session = useControlPanelStore(s => s.session)
+  const controlsLocked = useControlPanelStore(s => s.controlsLocked)
+  const setControlsLocked = useControlPanelStore(s => s.setControlsLocked)
 
   // Swipe navigation
   const touchStartRef = React.useRef<{ x: number; y: number } | null>(null)
@@ -675,13 +695,46 @@ function ControlPanel({
   }
 
   return (
-    <div className="cp" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} style={{ background: '#0e0e0e' }}>
+    <div
+      className="cp"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      style={{
+        background: '#0e0e0e',
+        position: 'relative',
+        pointerEvents: controlsLocked ? 'none' : 'auto',
+      }}
+    >
 
       {/* ── TAB BAR ── */}
       <div className="cp-tabs">
         {TABS.map(t => (
           <button key={t} className={`cp-tabs__btn${tab === t ? ' cp-tabs__btn--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
         ))}
+
+        {/* Global Control Panel Touchscreen Lock Button */}
+        <button
+          className="cp-tabs__btn cp-tabs__btn--right"
+          style={{
+            color: controlsLocked ? '#ff4d4d' : '#4ade80',
+            fontWeight: 900,
+            background: controlsLocked ? 'rgba(239, 68, 68, 0.25)' : 'rgba(34, 197, 94, 0.1)',
+            border: controlsLocked ? '1.5px solid #ef4444' : '1px solid rgba(74, 222, 128, 0.3)',
+            borderRadius: '5px',
+            padding: '1px 10px',
+            cursor: 'pointer',
+            boxShadow: controlsLocked ? '0 0 10px rgba(239, 68, 68, 0.5)' : 'none',
+            fontSize: 'clamp(0.68rem, 1.2vw, 0.82rem)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+          onClick={() => setControlsLocked(!controlsLocked)}
+          title={controlsLocked ? 'Click to Unlock Control Panel' : 'Click to Lock Control Panel against accidental touches'}
+        >
+          {controlsLocked ? '🔒 LOCKED' : '🔓 LOCK'}
+        </button>
+
         <button className={`cp-tabs__btn cp-tabs__btn--right${layoutEditing ? ' cp-tabs__btn--active' : ''}`} onClick={() => setLayoutEditing(!layoutEditing)}>
           {layoutEditing ? '🔓 Lock' : '✏️ Edit'}
         </button>
@@ -1185,6 +1238,86 @@ function ControlPanel({
                 Confirm
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── GLOBAL TOUCHSCREEN CONTROLS LOCK OVERLAY ── */}
+      {controlsLocked && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0, 0, 0, 0.82)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999999,
+            pointerEvents: 'all',
+            touchAction: 'none',
+          }}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+          onMouseDown={(e) => { e.stopPropagation(); e.preventDefault(); }}
+          onTouchStart={(e) => { e.stopPropagation(); e.preventDefault(); }}
+        >
+          <div
+            style={{
+              background: 'linear-gradient(180deg, #182030 0%, #0d121c 100%)',
+              border: '2px solid #ef4444',
+              borderRadius: '16px',
+              padding: '28px 36px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '14px',
+              textAlign: 'center',
+              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 35px rgba(239, 68, 68, 0.45)',
+              maxWidth: '420px',
+              width: '100%',
+              color: '#ffffff',
+              pointerEvents: 'auto',
+            }}
+          >
+            <div style={{ fontSize: '3.2rem', lineHeight: 1 }}>🔒</div>
+            <div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Control Panel Locked
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '6px', lineHeight: 1.4 }}>
+                All touchscreen buttons are disabled to prevent accidental taps. Clocks and game status continue running normally.
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn"
+              style={{
+                marginTop: '6px',
+                height: '52px',
+                minHeight: '52px',
+                padding: '0 32px',
+                background: 'linear-gradient(180deg, #10b981 0%, #047857 100%)',
+                color: '#fff',
+                border: '2px solid #34d399',
+                borderRadius: '10px',
+                fontSize: '1.15rem',
+                fontWeight: 900,
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+                boxShadow: '0 4px 18px rgba(16, 185, 129, 0.45)',
+              }}
+              onClick={(e) => {
+                e.stopPropagation()
+                setControlsLocked(false)
+              }}
+            >
+              🔓 Tap to Unlock Controls
+            </button>
           </div>
         </div>
       )}
