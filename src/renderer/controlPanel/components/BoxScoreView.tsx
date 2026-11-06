@@ -5,8 +5,9 @@ import type {
   BoxScoreExportData,
   ExportTeamData,
   ExportPlayerRow,
-} from '../../../../main/exportService'
+} from '@shared/reportTypes'
 import './BoxScoreView.css'
+import QuarterScoreTable, { buildPeriodScoresExport } from '@renderer/shared/QuarterScoreTable'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -62,7 +63,8 @@ function BoxScoreView(): React.ReactElement {
     const buildTeam = (team: 'home' | 'away'): ExportTeamData => {
       const ts = gameState[team]
       const rows: ExportPlayerRow[] = ts.players.map(p => {
-        const pct = p.fga === 0 ? '—' : `${((p.fgm / p.fga) * 100).toFixed(1)}%`
+        const fgPct = p.fga === 0 ? '—' : `${((p.fgm / p.fga) * 100).toFixed(1)}%`
+        const ftPct = (p.fta || 0) === 0 ? '—' : `${(((p.ftm || 0) / (p.fta || 0)) * 100).toFixed(1)}%`
         return {
           jerseyNumber: p.number,
           name: p.name,
@@ -73,8 +75,11 @@ function BoxScoreView(): React.ReactElement {
           blk: p.blocks,
           fga: p.fga,
           fgm: p.fgm,
+          fta: p.fta || 0,
+          ftm: p.ftm || 0,
           fouls: p.fouls,
-          fgPct: pct,
+          fgPct: fgPct,
+          ftPct: ftPct,
         }
       })
       const totals = rows.reduce(
@@ -86,15 +91,18 @@ function BoxScoreView(): React.ReactElement {
           blk: acc.blk + r.blk,
           fga: acc.fga + r.fga,
           fgm: acc.fgm + r.fgm,
+          fta: acc.fta + r.fta,
+          ftm: acc.ftm + r.ftm,
           fouls: acc.fouls + r.fouls,
         }),
-        { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fga: 0, fgm: 0, fouls: 0 }
+        { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fga: 0, fgm: 0, fta: 0, ftm: 0, fouls: 0 }
       )
       const totalFgPct = totals.fga === 0 ? '—' : `${((totals.fgm / totals.fga) * 100).toFixed(1)}%`
+      const totalFtPct = totals.fta === 0 ? '—' : `${((totals.ftm / totals.fta) * 100).toFixed(1)}%`
       return {
         teamName: ts.config.name,
         rows,
-        totals: { ...totals, fgPct: totalFgPct },
+        totals: { ...totals, fgPct: totalFgPct, ftPct: totalFtPct },
       }
     }
 
@@ -104,6 +112,7 @@ function BoxScoreView(): React.ReactElement {
       gameDate: new Date().toLocaleDateString(),
       homeTeam: buildTeam('home'),
       awayTeam: buildTeam('away'),
+      periodScores: buildPeriodScoresExport(gameState),
     }
   }, [gameState])
 
@@ -154,6 +163,8 @@ function BoxScoreView(): React.ReactElement {
         blocks: p.blocks,
         fga: p.fga,
         fgm: p.fgm,
+        fta: p.fta || 0,
+        ftm: p.ftm || 0,
         fouls: p.fouls,
         active: p.active,
         jerseyNumber: p.number || null,
@@ -173,9 +184,11 @@ function BoxScoreView(): React.ReactElement {
         blocks: acc.blocks + r.totals.blocks,
         fga: acc.fga + r.totals.fga,
         fgm: acc.fgm + r.totals.fgm,
+        fta: acc.fta + (r.totals.fta || 0),
+        ftm: acc.ftm + (r.totals.ftm || 0),
         fouls: acc.fouls + r.totals.fouls,
       }),
-      { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fga: 0, fgm: 0, fouls: 0 }
+      { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, fga: 0, fgm: 0, fta: 0, ftm: 0, fouls: 0 }
     )
 
     const statCols: Array<{ key: keyof typeof teamTotals; label: string }> = [
@@ -186,6 +199,8 @@ function BoxScoreView(): React.ReactElement {
       { key: 'blocks', label: 'BLK' },
       { key: 'fga', label: 'FGA' },
       { key: 'fgm', label: 'FGM' },
+      { key: 'fta', label: 'FTA' },
+      { key: 'ftm', label: 'FTM' },
       { key: 'fouls', label: 'PF' },
     ]
 
@@ -202,6 +217,7 @@ function BoxScoreView(): React.ReactElement {
                   <th key={c.key} className="box-score__th">{c.label}</th>
                 ))}
                 <th className="box-score__th">FG%</th>
+                <th className="box-score__th">FT%</th>
                 {expandPeriods && periods.map(p => (
                   <th key={p} className="box-score__th box-score__th--period" colSpan={3}>
                     {gameState.period.format === 'halves' ? `H${p}` : `Q${p}`}
@@ -212,7 +228,8 @@ function BoxScoreView(): React.ReactElement {
                 <tr>
                   <th colSpan={2} />
                   {statCols.map(() => <th key={Math.random()} />)}
-                  <th />
+                  <th /> {/* FG% */}
+                  <th /> {/* FT% */}
                   {periods.map(p => (
                     <React.Fragment key={p}>
                       <th className="box-score__th box-score__th--period-sub">PTS</th>
@@ -232,6 +249,7 @@ function BoxScoreView(): React.ReactElement {
                     <td key={c.key} className="box-score__td">{row.totals[c.key as keyof typeof teamTotals]}</td>
                   ))}
                   <td className="box-score__td">{fgPct(row.totals.fgm, row.totals.fga)}</td>
+                  <td className="box-score__td">{fgPct(row.totals.ftm, row.totals.fta)}</td>
                   {expandPeriods && periods.map(p => {
                     const idx = players.findIndex(pl => pl.id === row.id)
                     const snaps = gameState.periodSnapshots
@@ -255,6 +273,7 @@ function BoxScoreView(): React.ReactElement {
                   <td key={c.key} className="box-score__td"><strong>{teamTotals[c.key]}</strong></td>
                 ))}
                 <td className="box-score__td"><strong>{fgPct(teamTotals.fgm, teamTotals.fga)}</strong></td>
+                <td className="box-score__td"><strong>{fgPct(teamTotals.ftm, teamTotals.fta)}</strong></td>
                 {expandPeriods && periods.map(p => (
                   <React.Fragment key={p}>
                     <td className="box-score__td box-score__td--period" colSpan={3} />
@@ -314,6 +333,8 @@ function BoxScoreView(): React.ReactElement {
           </button>
         </div>
       )}
+      <h3 className="box-score__team-name">Score per Quarter</h3>
+      <QuarterScoreTable gameState={gameState} />
       {renderTeamTable('home')}
       {renderTeamTable('away')}
     </div>

@@ -446,22 +446,9 @@ export function ScoreTab({
                   disabled={p.fouledOut}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {/* Jersey Visual */}
-                    <div style={{
-                      background: homeColor,
-                      width: '38px',
-                      height: '48px',
-                      borderRadius: '6px',
-                      border: `2px solid ${homeColor}dd`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.4rem',
-                      fontWeight: 900,
-                      color: '#fff',
-                      flexShrink: 0,
-                    }}>
-                      {p.number}
+                    {/* Basketball jersey with number */}
+                    <div style={{ width: '42px', height: '52px', flexShrink: 0 }}>
+                      <JerseyWithNumber src={JERSEYS.basketball.home} number={p.number} />
                     </div>
                     
                     {/* Player Name */}
@@ -471,20 +458,7 @@ export function ScoreTab({
                   </div>
 
                   {/* Stats Table */}
-                  <table style={{ fontSize: '0.72rem', marginTop: '2px', width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ color: '#94a3b8' }}>
-                        <th style={{ padding: '1px 4px', textAlign: 'left', fontWeight: 700 }}>PTS</th>
-                        <th style={{ padding: '1px 4px', textAlign: 'left', fontWeight: 700 }}>FOU</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ fontWeight: 800 }}>
-                        <td style={{ padding: '1px 4px', color: '#4ade80' }}>{p.points}</td>
-                        <td style={{ padding: '1px 4px', color: p.fouls >= 5 ? '#ff4a4a' : p.fouls >= 4 ? '#ffaa00' : '#4ade80' }}>{p.fouls}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <PlayerStatsTable points={p.points} fouls={p.fouls} foulLabel="FOU" warnAt={4} dangerAt={5} />
                 </button>
               ))}
 
@@ -584,9 +558,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: '#374151',
-                    color: '#fca5a5',
-                    border: '1.5px solid #4b5563',
+                    background: 'linear-gradient(180deg, #64748b 0%, #475569 100%)',
+                    color: '#fff',
+                    border: '1.5px solid #94a3b8',
                     borderRadius: '8px',
                     fontSize: '0.95rem',
                     fontWeight: 900,
@@ -647,7 +621,15 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'home' ? selectedPlayer.id : homeDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'rebounds' })
+                    if (targetId) {
+                      sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'rebounds' })
+                      // Defensive rebound = got the ball from opponent = change possession + reset shot clock
+                      if (possession !== 'home') {
+                        sendCommand({ type: 'SET_POSSESSION', team: 'home' })
+                        sendCommand({ type: 'RESET_SHOT_CLOCK' })
+                      }
+                      // Offensive rebound = same team kept the ball = no change
+                    }
                   }}
                   title="Add Rebound"
                 >
@@ -657,9 +639,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%)',
+                    background: 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)',
                     color: '#fff',
-                    border: '1.5px solid #8b5cf6',
+                    border: '1.5px solid #60a5fa',
                     borderRadius: '8px',
                     fontSize: '0.95rem',
                     fontWeight: 900,
@@ -683,9 +665,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)',
+                    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
                     color: '#fff',
-                    border: '2px solid #fbbf24',
+                    border: '2px solid #34d399',
                     borderRadius: '8px',
                     fontSize: '1.45rem',
                     fontWeight: 900,
@@ -694,7 +676,7 @@ export function ScoreTab({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.35)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.35)',
                   }}
                   onClick={() => handleAddPoints('home', 1)}
                   title="Add 1 Point Home"
@@ -719,7 +701,12 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'home' ? selectedPlayer.id : homeDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'steals' })
+                    if (targetId) {
+                      sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'steals' })
+                      // Steal = took the ball from opponent = change possession + reset shot clock
+                      sendCommand({ type: 'SET_POSSESSION', team: 'home' })
+                      sendCommand({ type: 'RESET_SHOT_CLOCK' })
+                    }
                   }}
                   title="Add Steal"
                 >
@@ -729,9 +716,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #059669 0%, #047857 100%)',
+                    background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
                     color: '#fff',
-                    border: '1.5px solid #10b981',
+                    border: '1.5px solid #fbbf24',
                     borderRadius: '8px',
                     fontSize: '0.95rem',
                     fontWeight: 900,
@@ -827,7 +814,7 @@ export function ScoreTab({
               </div>
 
               {/* Row 5: TIMEOUT (full width spanning 3 columns) */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px', flex: '1.15 1 0', minHeight: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px', flex: '0 0 auto', minHeight: '50px', maxHeight: '60px' }}>
                 <button
                   className="btn"
                   style={{
@@ -1325,7 +1312,7 @@ export function ScoreTab({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'auto 1.15fr 0.95fr 1.25fr',
+              gridTemplateColumns: 'auto 1fr 0.9fr 1fr 1fr',
               alignItems: 'center',
               gap: '5px',
               width: '100%',
@@ -1633,7 +1620,15 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'away' ? selectedPlayer.id : awayDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'rebounds' })
+                    if (targetId) {
+                      sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'rebounds' })
+                      // Defensive rebound = got the ball from opponent = change possession + reset shot clock
+                      if (possession !== 'away') {
+                        sendCommand({ type: 'SET_POSSESSION', team: 'away' })
+                        sendCommand({ type: 'RESET_SHOT_CLOCK' })
+                      }
+                      // Offensive rebound = same team kept the ball = no change
+                    }
                   }}
                   title="Add Rebound"
                 >
@@ -1705,7 +1700,12 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'away' ? selectedPlayer.id : awayDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'steals' })
+                    if (targetId) {
+                      sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'steals' })
+                      // Steal = took the ball from opponent = change possession + reset shot clock
+                      sendCommand({ type: 'SET_POSSESSION', team: 'away' })
+                      sendCommand({ type: 'RESET_SHOT_CLOCK' })
+                    }
                   }}
                   title="Add Steal"
                 >
@@ -1902,22 +1902,9 @@ export function ScoreTab({
                   disabled={p.fouledOut}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {/* Jersey Visual */}
-                    <div style={{
-                      background: awayColor,
-                      width: '38px',
-                      height: '48px',
-                      borderRadius: '6px',
-                      border: `2px solid ${awayColor}dd`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.4rem',
-                      fontWeight: 900,
-                      color: '#fff',
-                      flexShrink: 0,
-                    }}>
-                      {p.number}
+                    {/* Basketball jersey with number */}
+                    <div style={{ width: '42px', height: '52px', flexShrink: 0 }}>
+                      <JerseyWithNumber src={JERSEYS.basketball.away} number={p.number} />
                     </div>
                     
                     {/* Player Name */}
@@ -1927,20 +1914,7 @@ export function ScoreTab({
                   </div>
 
                   {/* Stats Table */}
-                  <table style={{ fontSize: '0.72rem', marginTop: '2px', width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ color: '#94a3b8' }}>
-                        <th style={{ padding: '1px 4px', textAlign: 'left', fontWeight: 700 }}>PTS</th>
-                        <th style={{ padding: '1px 4px', textAlign: 'left', fontWeight: 700 }}>FOU</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr style={{ fontWeight: 800 }}>
-                        <td style={{ padding: '1px 4px', color: '#4ade80' }}>{p.points}</td>
-                        <td style={{ padding: '1px 4px', color: p.fouls >= 5 ? '#ff4a4a' : p.fouls >= 4 ? '#ffaa00' : '#4ade80' }}>{p.fouls}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+                  <PlayerStatsTable points={p.points} fouls={p.fouls} foulLabel="FOU" warnAt={4} dangerAt={5} />
                 </button>
               ))}
 
