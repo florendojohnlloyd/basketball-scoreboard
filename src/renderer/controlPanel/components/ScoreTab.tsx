@@ -133,15 +133,13 @@ export function ScoreTab({
     if (selectedPlayer && selectedPlayer.team === team) {
       sendCommand({ type: 'ADD_PLAYER_POINTS', team, playerId: selectedPlayer.id, points })
       
-      // Auto-increment FGM/FGA for 2-point and 3-point shots
+      // Auto-increment FGM for 2-point and 3-point shots (FGA is auto-incremented with FGM in gameStore)
       if (points === 2 || points === 3) {
-        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fga' })
         sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fgm' })
       }
       
-      // Auto-increment FTM/FTA for 1-point (free throw)
+      // Auto-increment FTM for 1-point (free throw) (FTA is auto-incremented with FTM in gameStore)
       if (points === 1) {
-        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fta' })
         sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'ftm' })
       }
     } else {
