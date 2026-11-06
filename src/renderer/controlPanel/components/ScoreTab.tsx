@@ -765,9 +765,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #16a34a 0%, #15803d 100%)',
+                    background: 'linear-gradient(180deg, #dc2626 0%, #991b1b 100%)',
                     color: '#fff',
-                    border: '1.5px solid #22c55e',
+                    border: '1.5px solid #ef4444',
                     borderRadius: '8px',
                     fontSize: '0.95rem',
                     fontWeight: 900,
@@ -776,7 +776,6 @@ export function ScoreTab({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.35)',
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'home' ? selectedPlayer.id : homeDisplayPlayers[0]?.id
@@ -1557,9 +1556,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: '#374151',
+                    background: 'linear-gradient(180deg, #64748b 0%, #475569 100%)',
                     color: '#fca5a5',
-                    border: '1.5px solid #4b5563',
+                    border: '1.5px solid #94a3b8',
                     borderRadius: '8px',
                     fontSize: '1.05rem',
                     fontWeight: 900,
@@ -1638,9 +1637,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%)',
+                    background: 'linear-gradient(180deg, #3b82f6 0%, #2563eb 100%)',
                     color: '#fff',
-                    border: '1.5px solid #8b5cf6',
+                    border: '1.5px solid #60a5fa',
                     borderRadius: '8px',
                     fontSize: '1.05rem',
                     fontWeight: 900,
@@ -1664,9 +1663,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)',
+                    background: 'linear-gradient(180deg, #10b981 0%, #059669 100%)',
                     color: '#fff',
-                    border: '2px solid #fbbf24',
+                    border: '2px solid #34d399',
                     borderRadius: '8px',
                     fontSize: '1.45rem',
                     fontWeight: 900,
@@ -1675,7 +1674,7 @@ export function ScoreTab({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(217, 119, 6, 0.35)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.35)',
                   }}
                   onClick={() => handleAddPoints('away', 1)}
                   title="Add 1 Point Away"
@@ -1686,9 +1685,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #d97706 0%, #b45309 100%)',
+                    background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
                     color: '#fff',
-                    border: '1.5px solid #f59e0b',
+                    border: '1.5px solid #fbbf24',
                     borderRadius: '8px',
                     fontSize: '1.05rem',
                     fontWeight: 900,
@@ -1715,9 +1714,9 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #059669 0%, #047857 100%)',
+                    background: 'linear-gradient(180deg, #f59e0b 0%, #d97706 100%)',
                     color: '#fff',
-                    border: '1.5px solid #10b981',
+                    border: '1.5px solid #fbbf24',
                     borderRadius: '8px',
                     fontSize: '1.05rem',
                     fontWeight: 900,
