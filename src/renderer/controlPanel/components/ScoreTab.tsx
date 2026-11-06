@@ -836,6 +836,7 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     playBuzzerSound()
+                    relayBuzzerService.triggerBuzzer('MANUAL')
                     sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' })
                     sendCommand({ type: 'START_TIMEOUT', team: 'home' })
                   }}
@@ -1835,6 +1836,7 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     playBuzzerSound()
+                    relayBuzzerService.triggerBuzzer('MANUAL')
                     sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' })
                     sendCommand({ type: 'START_TIMEOUT', team: 'away' })
                   }}
