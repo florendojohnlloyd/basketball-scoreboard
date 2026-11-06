@@ -3,6 +3,11 @@ import { useControlPanelStore, sendCommand } from '../store'
 import { formatClockDisplay } from '@renderer/shared/clockUtils'
 import type { Player } from '@shared/types'
 import { relayBuzzerService, type RelayBuzzerState } from '../hardware/relayBuzzerService'
+import { JerseyWithNumber, PlayerStatsTable, IconLabel, JERSEYS, playerCardClass } from './PlayerCardParts'
+import { sb, sbGrad, sbTint } from '../colorLayout'
+import './GlossyButtons.css'
+import attackSound from '../../shared/sounds/attack.mp3'
+import buzzerSound from '../../shared/sounds/buzzer.mp3'
 
 interface ScoreTabProps {
   selectedPlayer: { team: 'home' | 'away'; id: string } | null
@@ -127,8 +132,42 @@ export function ScoreTab({
   const handleAddPoints = (team: 'home' | 'away', points: 1 | 2 | 3) => {
     if (selectedPlayer && selectedPlayer.team === team) {
       sendCommand({ type: 'ADD_PLAYER_POINTS', team, playerId: selectedPlayer.id, points })
+      
+      // Auto-increment FGM/FGA for 2-point and 3-point shots
+      if (points === 2 || points === 3) {
+        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fga' })
+        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fgm' })
+      }
+      
+      // Auto-increment FTM/FTA for 1-point (free throw)
+      if (points === 1) {
+        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'fta' })
+        sendCommand({ type: 'ADD_PLAYER_STAT', team, playerId: selectedPlayer.id, stat: 'ftm' })
+      }
     } else {
       sendCommand({ type: 'ADD_SCORE', team, points })
+    }
+  }
+
+  // Play attack sound
+  function playAttackSound(): void {
+    try {
+      const audio = new Audio(attackSound)
+      audio.volume = 0.7
+      audio.play().catch(err => console.warn('Attack sound playback failed:', err))
+    } catch (err) {
+      console.warn('Failed to create attack sound audio:', err)
+    }
+  }
+
+  // Play buzzer sound
+  function playBuzzerSound(): void {
+    try {
+      const audio = new Audio(buzzerSound)
+      audio.volume = 0.8
+      audio.play().catch(err => console.warn('Buzzer sound playback failed:', err))
+    } catch (err) {
+      console.warn('Failed to create buzzer sound audio:', err)
     }
   }
 
@@ -147,6 +186,8 @@ export function ScoreTab({
         blocks: 0,
         fga: 0,
         fgm: 0,
+        fta: 0,
+        ftm: 0,
         minutesPlayed: 0,
         substitutions: [],
         photoPath: null,
@@ -752,12 +793,41 @@ export function ScoreTab({
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'home' ? selectedPlayer.id : homeDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'fgm' })
+                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'fga' })
                   }}
-                  title="Field Goal Made"
+                  title="Missed Field Goal (2pt/3pt miss - FGA only)"
                 >
-                  🎯 +FGM
+                  ✖️ MISS FG
                 </button>
+                <button
+                  className="btn"
+                  style={{
+                    height: '100%',
+                    background: 'linear-gradient(180deg, #b91c1c 0%, #7f1d1d 100%)',
+                    color: '#fff',
+                    border: '1.5px solid #dc2626',
+                    borderRadius: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(185, 28, 28, 0.35)',
+                  }}
+                  onClick={() => {
+                    const targetId = selectedPlayer?.team === 'home' ? selectedPlayer.id : homeDisplayPlayers[0]?.id
+                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'home', playerId: targetId, stat: 'fta' })
+                  }}
+                  title="Missed Free Throw (1pt miss - FTA only)"
+                >
+                  ✖️ MISS FT
+                </button>
+              </div>
+
+              {/* Row 5: TIMEOUT (full width spanning 3 columns) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px', flex: '1.15 1 0', minHeight: 0 }}>
                 <button
                   className="btn"
                   style={{
@@ -779,6 +849,7 @@ export function ScoreTab({
                     padding: '2px',
                   }}
                   onClick={() => {
+                    playBuzzerSound()
                     sendCommand({ type: 'USE_TIMEOUT', team: 'home', kind: 'full' })
                     sendCommand({ type: 'START_TIMEOUT', team: 'home' })
                   }}
@@ -1355,9 +1426,36 @@ export function ScoreTab({
                 touchAction: 'manipulation',
                 whiteSpace: 'nowrap',
               }}
-              onClick={() => relayBuzzerService.triggerManual(1500)}
+              onClick={() => {
+                playBuzzerSound()
+                relayBuzzerService.triggerManual(1500)
+              }}
             >
               ⚡ BUZZER
+            </button>
+
+            <button
+              type="button"
+              className="btn"
+              style={{
+                height: '100%',
+                maxHeight: '30px',
+                padding: '0 6px',
+                background: 'linear-gradient(180deg, #f59e0b 0%, #b45309 100%)',
+                color: '#fff',
+                border: '1px solid #fbbf24',
+                borderRadius: '5px',
+                fontSize: '0.76rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 6px rgba(245, 158, 11, 0.4)',
+              }}
+              onClick={() => playAttackSound()}
+              title="Play Attack Sound (NBA Sound)"
+            >
+              🔊 ATTACK
             </button>
           </div>
         </div>
@@ -1666,27 +1764,56 @@ export function ScoreTab({
                   className="btn"
                   style={{
                     height: '100%',
-                    background: 'linear-gradient(180deg, #16a34a 0%, #15803d 100%)',
+                    background: 'linear-gradient(180deg, #dc2626 0%, #991b1b 100%)',
                     color: '#fff',
-                    border: '1.5px solid #22c55e',
+                    border: '1.5px solid #ef4444',
                     borderRadius: '8px',
-                    fontSize: '1.05rem',
+                    fontSize: '0.95rem',
                     fontWeight: 900,
                     cursor: 'pointer',
                     touchAction: 'manipulation',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.35)',
+                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.35)',
                   }}
                   onClick={() => {
                     const targetId = selectedPlayer?.team === 'away' ? selectedPlayer.id : awayDisplayPlayers[0]?.id
-                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'fgm' })
+                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'fga' })
                   }}
-                  title="Field Goal Made"
+                  title="Missed Field Goal (2pt/3pt) - adds FGA only"
                 >
-                  🎯 +FGM
+                  ❌ MISS FG
                 </button>
+                <button
+                  className="btn"
+                  style={{
+                    height: '100%',
+                    background: 'linear-gradient(180deg, #dc2626 0%, #991b1b 100%)',
+                    color: '#fff',
+                    border: '1.5px solid #ef4444',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    touchAction: 'manipulation',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(220, 38, 38, 0.35)',
+                  }}
+                  onClick={() => {
+                    const targetId = selectedPlayer?.team === 'away' ? selectedPlayer.id : awayDisplayPlayers[0]?.id
+                    if (targetId) sendCommand({ type: 'ADD_PLAYER_STAT', team: 'away', playerId: targetId, stat: 'fta' })
+                  }}
+                  title="Missed Free Throw - adds FTA only"
+                >
+                  ❌ MISS FT
+                </button>
+              </div>
+
+              {/* Row 5: TIMEOUT */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
                 <button
                   className="btn"
                   style={{
@@ -1708,6 +1835,7 @@ export function ScoreTab({
                     padding: '2px',
                   }}
                   onClick={() => {
+                    playBuzzerSound()
                     sendCommand({ type: 'USE_TIMEOUT', team: 'away', kind: 'full' })
                     sendCommand({ type: 'START_TIMEOUT', team: 'away' })
                   }}

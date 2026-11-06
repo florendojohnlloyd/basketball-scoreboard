@@ -37,6 +37,8 @@ export interface Liga {
   name: string;
   year: number;
   createdAt: string;
+  /** Sport the liga was created for (older ligas don't have it) */
+  sport?: 'basketball' | 'volleyball';
   teams: LigaTeam[];
   schedule?: ScheduledGame[];   // Requirement 24 — persisted schedule array
   venues?: Venue[];             // Requirement 25 — persisted venues array
@@ -129,6 +131,8 @@ export interface Player {
   blocks: number;
   fga: number;               // field goal attempts
   fgm: number;               // field goal makes (fgm <= fga always)
+  fta: number;               // free throw attempts
+  ftm: number;               // free throw makes (ftm <= fta always)
   minutesPlayed: number;     // seconds of game-clock time while active
   substitutions: SubstitutionEntry[];
   // Player photo (Requirement 16)
@@ -249,7 +253,8 @@ export interface ClockEngine {
 export type CommandType =
   // Score
   | { type: 'ADD_SCORE';      team: 'home' | 'away'; points: 1 | 2 | 3 }
-  | { type: 'SUBTRACT_SCORE'; team: 'home' | 'away' }
+  /** −1 point. With `playerId`, the point is also taken off that player's points. */
+  | { type: 'SUBTRACT_SCORE'; team: 'home' | 'away'; playerId?: string }
   // Game Clock
   | { type: 'START_GAME_CLOCK' }
   | { type: 'STOP_GAME_CLOCK' }
@@ -410,6 +415,8 @@ export interface PlayerStats {
   blocks: number;
   fga: number;          // field goal attempts
   fgm: number;          // field goal makes (fgm <= fga always)
+  fta: number;          // free throw attempts
+  ftm: number;          // free throw makes (ftm <= fta always)
   fouls: number;
   active: boolean;
   jerseyNumber: string | null;
@@ -433,6 +440,8 @@ export interface PeriodSnapshot {
   period: number;
   teamId: string;       // 'home' | 'away' or Liga team id
   playerSnapshots: PlayerStats[];
+  /** Team's cumulative score at the end of this period (absent in older logs). */
+  teamScore?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -710,13 +719,13 @@ export function makeDefaultPlayer(): Player {
   return {
     id: '', number: '', name: '', fouls: 0, points: 0, rebounds: 0, assists: 0,
     active: true, fouledOut: false,
-    steals: 0, blocks: 0, fga: 0, fgm: 0, minutesPlayed: 0, substitutions: [],
+    steals: 0, blocks: 0, fga: 0, fgm: 0, fta: 0, ftm: 0, minutesPlayed: 0, substitutions: [],
     photoPath: null,
   };
 }
 
 export function DEFAULT_GAME_STATE(): GameState {
-  const config: GameConfig = { ...NBA_RULES };
+  const config: GameConfig = { ...FIBA_RULES };
   const defaultStartingFive = (prefix: string): Player[] => [
     { ...makeDefaultPlayer(), id: `${prefix}-p1`, number: '1', name: 'Player 1', active: true },
     { ...makeDefaultPlayer(), id: `${prefix}-p2`, number: '2', name: 'Player 2', active: true },

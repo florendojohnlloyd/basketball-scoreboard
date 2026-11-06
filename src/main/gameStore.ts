@@ -94,9 +94,16 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
     }
     case 'SUBTRACT_SCORE': {
       const t = command.team;
+      const ts = state[t];
+      // Selected player who actually has points → take the point off them too,
+      // so player points keep adding up to the team score.
+      const target = command.playerId ? ts.players.find(p => p.id === command.playerId) : undefined;
+      const players = target && target.points > 0
+        ? ts.players.map((p): Player => (p.id === target.id ? { ...p, points: p.points - 1 } : p))
+        : ts.players;
       return {
         ...state,
-        [t]: { ...state[t], score: Math.max(0, state[t].score - 1) },
+        [t]: { ...ts, players, score: Math.max(0, ts.score - 1) },
       };
     }
 
@@ -160,7 +167,9 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           ...state.shotClock,
           configuredDurationSeconds: command.seconds,
           displayMs: command.seconds * 1000,
-          running: false, // pause on duration change so operator can confirm
+          // Keep the current running state: a 24/14 reset during live play
+          // (steal, rebound) must not stop the shot clock.
+          running: state.shotClock.running,
         },
         gameConfig: {
           ...state.gameConfig,
@@ -176,11 +185,13 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
 
       // 1. Period end: game clock just expired (00:00) → stop both game clock & shot clock
       if (state.gameClock.running && !newGameClock.running && newGameClock.displayMs === 0) {
-        return {
+        // Record the end-of-period score right away (covers the final quarter / OT too).
+        // ADVANCE_PERIOD re-captures later, overwriting this with any late changes (e.g. free throws).
+        return gameReducer({
           ...state,
           gameClock: newGameClock,
           shotClock: { ...newShotClock, running: false },
-        };
+        }, { type: 'CAPTURE_PERIOD_SNAPSHOT' });
       }
 
       // 2. Shot clock violation: shot clock just expired → stop game clock (dead ball)
@@ -387,7 +398,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
         players: clearTeams ? [] : t.players.map(p => ({
           ...p,
           fouls: 0, points: 0, rebounds: 0, assists: 0,
-          steals: 0, blocks: 0, fga: 0, fgm: 0,
+          steals: 0, blocks: 0, fga: 0, fgm: 0, fta: 0, ftm: 0,
           fouledOut: false, active: true,
         })),
       });
@@ -569,6 +580,10 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           // FGM increment also atomically increments FGA
           return { ...p, fgm: p.fgm + 1, fga: p.fga + 1 };
         }
+        if (stat === 'ftm') {
+          // FTM increment also atomically increments FTA
+          return { ...p, ftm: p.ftm + 1, fta: p.fta + 1 };
+        }
         return { ...p, [stat]: (p[stat] as number) + 1 };
       });
       return { ...state, [team]: { ...ts, players } };
@@ -585,6 +600,13 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           const newFgm = Math.max(0, p.fgm - 1);
           const newFga = Math.max(newFgm, Math.max(0, p.fga - 1));
           return { ...p, fgm: newFgm, fga: newFga };
+        }
+        if (stat === 'ftm') {
+          // FTM decrement also decrements FTA, both floored at 0,
+          // and ensures FTM never exceeds FTA after decrement.
+          const newFtm = Math.max(0, p.ftm - 1);
+          const newFta = Math.max(newFtm, Math.max(0, p.fta - 1));
+          return { ...p, ftm: newFtm, fta: newFta };
         }
         return { ...p, [stat]: Math.max(0, (p[stat] as number) - 1) };
       });
@@ -666,6 +688,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       const homeSnap = {
         period: currentPeriod,
         teamId: 'home' as const,
+        teamScore: state.home.score,
         playerSnapshots: state.home.players.map(p => ({
           points: p.points,
           rebounds: p.rebounds,
@@ -674,6 +697,8 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           blocks: p.blocks,
           fga: p.fga,
           fgm: p.fgm,
+          fta: p.fta,
+          ftm: p.ftm,
           fouls: p.fouls,
           active: p.active,
           jerseyNumber: p.number || null,
@@ -685,6 +710,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
       const awaySnap = {
         period: currentPeriod,
         teamId: 'away' as const,
+        teamScore: state.away.score,
         playerSnapshots: state.away.players.map(p => ({
           points: p.points,
           rebounds: p.rebounds,
@@ -693,6 +719,8 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           blocks: p.blocks,
           fga: p.fga,
           fgm: p.fgm,
+          fta: p.fta,
+          ftm: p.ftm,
           fouls: p.fouls,
           active: p.active,
           jerseyNumber: p.number || null,
@@ -733,7 +761,7 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
         players: clearTeams ? [] : t.players.map(p => ({
           ...p,
           fouls: 0, points: 0, rebounds: 0, assists: 0,
-          steals: 0, blocks: 0, fga: 0, fgm: 0,
+          steals: 0, blocks: 0, fga: 0, fgm: 0, fta: 0, ftm: 0,
           fouledOut: false, active: true,
         })),
       });
@@ -805,10 +833,17 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
 
     case 'ADVANCE_SET': {
       if (!state.volleyball) return state;
+      // Record the finished set's score (per-set points) and start the next set at 0-0
+      const finishedSet = state.volleyball.currentSet;
+      const setScores = [
+        ...(state.volleyball.setScores ?? []).filter(s => s.set !== finishedSet),
+        { set: finishedSet, homeScore: state.volleyball.pointsCurrentSet.home, awayScore: state.volleyball.pointsCurrentSet.away },
+      ];
       if (state.volleyball.currentSet >= 5) {
         return {
           ...state,
           gamePhase: 'post-game',
+          volleyball: { ...state.volleyball, setScores },
         };
       }
       const ev = makeEvent(state, 'PERIOD_START', {
@@ -832,6 +867,8 @@ export function gameReducer(state: GameState, command: CommandType): GameState {
           ...state.volleyball,
           currentSet: state.volleyball.currentSet + 1,
           setsWon: newSetsWon,
+          setScores,
+          pointsCurrentSet: { home: 0, away: 0 },
           timeoutsUsed: { home: 0, away: 0 },
           substitutionsUsed: { home: 0, away: 0 },
         },

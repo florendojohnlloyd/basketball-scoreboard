@@ -14,7 +14,10 @@
  */
 
 import { SCOREBOARD_EVENT } from '@shared/types'
-import hornSound from '../../shared/sounds/horn.mp3'
+import buzzerSound from '../../shared/sounds/buzzer.mp3'
+
+/** PC buzzer sound (shot clock & period end). */
+const HORN_SOUND_ENABLED = true
 
 // ---------------------------------------------------------------------------
 // Types
@@ -187,17 +190,21 @@ class AudioEngine {
   // -------------------------------------------------------------------------
 
   /**
-   * End-of-period buzzer — plays the horn sound.
+   * End-of-period / manual buzzer — plays buzzer.mp3 sound from PC.
+   * The USB relay hardware horn is separate and is still controlled
+   * from Settings → Relay Buzzer.
    */
   playEndOfPeriod(): void {
-    this._playAudioFile(hornSound)
+    if (!HORN_SOUND_ENABLED) return
+    this._playAudioFile(buzzerSound)
   }
 
   /**
-   * Shot-clock / substitution horn — plays the horn sound.
+   * Shot-clock violation buzzer — plays buzzer.mp3 sound from PC.
    */
   playShotClockViolation(): void {
-    this._playAudioFile(hornSound)
+    if (!HORN_SOUND_ENABLED) return
+    this._playAudioFile(buzzerSound)
   }
 
   /**
